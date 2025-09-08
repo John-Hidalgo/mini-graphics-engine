@@ -3,8 +3,12 @@
 **Semaine #1**
 
 Louis Barbonet:
+
 Michel Bilodeau:
+
 Rémi Cyr:
+
 Juan Pablo Hidalgo:
+
 Zachary Marcotte:
 
