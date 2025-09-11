@@ -10,7 +10,7 @@ int main( ){
 	settings.windowMode = OF_WINDOW; //can also be OF_FULLSCREEN
 
 	auto window = ofCreateWindow(settings);
-	window->setWindowTitle("Projet session équipe 5");
+	window->setWindowTitle("Projet session équipe 5 (Test Changement Louis) ");
 
 	ofRunApp(window, std::make_shared<ofApp>());
 	ofRunMainLoop();
