@@ -1,16 +1,17 @@
 #include "ofMain.h"
 #include "Application.h"
 
-class ofApp : public ofBaseApp {
-public:
-	Application app;
+//========================================================================
+int main( ){
 
-	void setup() override { app.setup(); }
-	void update() override { app.update(); }
-	void draw() override { app.draw(); }
-};
+	//Use ofGLFWWindowSettings for more options like multi-monitor fullscreen
+	ofGLWindowSettings settings;
+	settings.setSize(1024, 768);
+	settings.windowMode = OF_WINDOW; //can also be OF_FULLSCREEN
 
-int main() {
-	ofSetupOpenGL(800, 600, OF_WINDOW);
-	ofRunApp(new ofApp());
+	auto window = ofCreateWindow(settings);
+
+	ofRunApp(window, std::make_shared<Application>());
+	ofRunMainLoop();
+
 }
