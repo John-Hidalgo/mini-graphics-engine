@@ -1,23 +1,28 @@
 #pragma once
-#include "Renderer.h"
-#include "ImageManager.h"
-#include "GUIManager.h"
-#include "Histogram.h"
-#include <string>
+#include "ofMain.h"
+#include "Canvas.h"
+#include "Toolbar.h"
+#include "SceneGraph.h"
+#include "Model3D.h"
 
-class Application {
+class Application : public ofBaseApp {
 public:
 	void setup();
 	void update();
 	void draw();
 
-private:
-	Renderer renderer;
-	ImageManager imageManager;
-	GUIManager gui;
-	Histogram histogram;
+	void mousePressed(int x, int y, int button);
+	void mouseDragged(int x, int y, int button);
+	void mouseReleased(int x, int y, int button);
 
-	void handleImport(const std::string& path);
-	void handleClear();
-	void handleHistogram(bool enabled);
+	void windowResized(int w, int h);
+
+private:
+	Canvas canvas;
+	Toolbar toolbar;
+	SceneGraph sceneGraph;
+	//Model3D model3d;
+
+	ofRectangle canvasArea;
+	ofRectangle sceneGraphArea;
 };
