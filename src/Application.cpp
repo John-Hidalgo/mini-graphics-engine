@@ -14,6 +14,7 @@ void Application::setup() {
 
 	toolbar.setup(&canvas);
 	sceneGraph.setup(&canvas, sceneGraphArea);
+	//model3d.setup();
 }
 
 void Application::windowResized(int w, int h) {
@@ -28,12 +29,14 @@ void Application::windowResized(int w, int h) {
 
 void Application::update() {
 	canvas.update();
+	//model3d.update();
 }
 
 void Application::draw() {
 	canvas.draw();
 	sceneGraph.draw();
 	toolbar.draw();
+	//model3d.draw();
 }
 
 void Application::mousePressed(int x, int y, int button) {

@@ -5,32 +5,47 @@ Toolbar::Toolbar() : canvasRef(nullptr) {}
 void Toolbar::setup(Canvas* canvas) {
 	canvasRef = canvas;
 	
-	gui.setup("Tools");
+	dessinez.setup("Dessinez");
+	dessinez.setPosition(220,0);
 	
-	gui.add(rectangleToggle.setup("Rectangle", false));
-	gui.add(circleToggle.setup("Cercle", false));
-	gui.add(lineToggle.setup("Ligne", false));
-	gui.add(freeformToggle.setup("Libre", false));
-	gui.add(selectColourToggle.setup("coleur du canevas", false));
-	gui.add(importImageButton.setup("Importez Image"));
-	importImageButton.addListener(this, &Toolbar::importImagePressed);
-
-	gui.add(colorSlider.setup("Couleur", ofColor(0, 0, 0), ofColor(0,0,0), ofColor(255,255,255)));
+	dessinez.add(rectangleToggle.setup("Rectangle", false));
+	rectangleToggle.addListener(this, &Toolbar::rectangleToggleChanged);
+	
+	dessinez.add(circleToggle.setup("Cercle", false));
+	circleToggle.addListener(this, &Toolbar::circleToggleChanged);
+	
+	dessinez.add(lineToggle.setup("Ligne", false));
+	lineToggle.addListener(this, &Toolbar::lineToggleChanged);
+	
+	dessinez.add(freeformToggle.setup("Libre", false));
+	freeformToggle.addListener(this, &Toolbar::freeformToggleChanged);
+	
+	dessinez.add(selectColourToggle.setup("coleur du canevas", false));
+	selectColourToggle.addListener(this, &Toolbar::selectColourToggleChanged);
+	
+	dessinez.add(colorSlider.setup("Couleur", ofColor(0, 0, 0), ofColor(0,0,0), ofColor(255,255,255)));
 	static_cast<ofParameter<ofColor>&>(colorSlider.getParameter()).addListener(this, &Toolbar::colorChanged);
 
-	
-	gui.add(undoButton.setup("defaire"));
-
-	rectangleToggle.addListener(this, &Toolbar::rectangleToggleChanged);
-	circleToggle.addListener(this, &Toolbar::circleToggleChanged);
-	lineToggle.addListener(this, &Toolbar::lineToggleChanged);
-	freeformToggle.addListener(this, &Toolbar::freeformToggleChanged);
-	selectColourToggle.addListener(this, &Toolbar::selectColourToggleChanged);
+	dessinez.add(undoButton.setup("defaire"));
 	undoButton.addListener(this, &Toolbar::undoButtonPressed);
+
+	dessinez.minimize();
+	
+	importation.setup("Importation");
+	importation.setPosition(0,0);
+
+	importation.add(importImageButton.setup("Importez Image"));
+	importImageButton.addListener(this, &Toolbar::importImagePressed);
+
+	importation.add(importModelButton.setup("Importez Model 3D"));
+	importModelButton.addListener(this, &Toolbar::importModelPressed);
+	
+	importation.minimize();
 }
 
 void Toolbar::draw() {
-	gui.draw();
+	dessinez.draw();
+	importation.draw();
 }
 
 void Toolbar::rectangleToggleChanged(bool & val) {
@@ -111,4 +126,17 @@ void Toolbar::colorChanged(ofColor& col) {
 	}
 }
 
+void Toolbar::importModelPressed() {
+	std::string defaultPath = ofToDataPath("", true);
+	ofFileDialogResult result = ofSystemLoadDialog(
+		"Select a 3D model (.obj)",
+		false,
+		defaultPath
+	);
 
+	if(result.bSuccess){
+		std::string filepath = result.getPath();
+		ofLogNotice() << "Loaded model: " << filepath;
+		canvasRef->loadModel(filepath);
+	}
+}

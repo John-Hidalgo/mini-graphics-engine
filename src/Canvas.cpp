@@ -7,20 +7,37 @@ void Canvas::setup(const ofRectangle& area,Toolbar* toolbar){
 	toolbarRef = toolbar;
 	drawingArea = area;
 	ofSetLineWidth(2);
+	model3D.setup();
+	color_picker_background.set("background color", ofColor(255, 255, 0), ofColor(0, 0), ofColor(255, 255));
+	color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255));
+	color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255));
 }
 
 void Canvas::update() {
+	if(hasModel) {
+		model3D.update();
+		model3D.color_background = color_picker_background;
+		model3D.color_ambient = color_picker_ambient;
+		model3D.color_diffuse = color_picker_diffuse;
+	}
 }
-
-void Canvas::draw() {
-	ofSetColor(255, 255, 255);
+void Canvas::drawCanvas(){
+	if(hasImage){
+		ofSetColor(255,255,255);
+	}
+	else{
+		ofSetColor(255,255,255);
+	}
 	ofFill();
 	ofDrawRectangle(drawingArea);
+}
+void Canvas::draw() {
+	drawCanvas();
+	drawModel();
 	drawImage();
 	for (auto &s : shapes) {
 		drawShape(s);
 	}
-
 	drawPreview();
 }
 void Canvas::drawPreview(){
@@ -239,4 +256,12 @@ void Canvas::loadImage(const std::string & path) {
 		ofLogError() << "Failed to load image: " << path;
 		hasImage = false;
 	}
+}
+
+void Canvas::loadModel(const std::string& path) {
+	model3D.loadModel(path);
+	hasModel = true;
+}
+void Canvas::drawModel() {
+	if(hasModel) model3D.draw();
 }
