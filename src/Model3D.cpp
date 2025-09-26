@@ -7,7 +7,7 @@ void Model3D::setup()
 	ofSetLogLevel(OF_LOG_VERBOSE);
 
 	// paramètres
-	scale_model = 1.5f;
+	scale_model = 0.2f;
 	rotation_speed = 0.3f;
 	use_rotation = true;
 	// chargement du shader
@@ -26,7 +26,7 @@ void Model3D::update()
 
 	// transformation du model
 	model.setScale(scale_model, scale_model, scale_model);
-	model.setPosition(center_x, center_y + 90, 0);
+	model.setPosition(position.x, position.y, 0);
 
 	if (use_rotation)
 	model.setRotation(0, ofGetFrameNum() * rotation_speed, 0.0f, 1.0f, 0.0f);

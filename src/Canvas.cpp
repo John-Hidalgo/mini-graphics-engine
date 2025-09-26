@@ -1,10 +1,12 @@
 #include "Canvas.h"
 #include "Toolbar.h"
+#include "SceneGraph.h"
 
 Canvas::Canvas() {}
 
-void Canvas::setup(const ofRectangle& area,Toolbar* toolbar){
+void Canvas::setup(const ofRectangle& area,Toolbar* toolbar,SceneGraph* sceneGraph){
 	toolbarRef = toolbar;
+	sceneGraphRef = sceneGraph;
 	drawingArea = area;
 	ofSetLineWidth(2);
 	model3D.setup();
@@ -19,6 +21,24 @@ void Canvas::update() {
 		model3D.color_background = color_picker_background;
 		model3D.color_ambient = color_picker_ambient;
 		model3D.color_diffuse = color_picker_diffuse;
+	}
+	calculateModelsPosition();
+
+	if(!sceneGraphRef->selectedModelIndices.empty()) {
+		for(int idx : sceneGraphRef->selectedModelIndices) {
+			auto& model = models[idx];
+			model->color_background = sceneGraphRef->color_picker_background;
+			model->color_ambient = sceneGraphRef->color_picker_ambient;
+			model->color_diffuse = sceneGraphRef->color_picker_diffuse;
+			model->scale_model = sceneGraphRef->scaleSlider;
+		}
+	} else {
+		for(auto &model : models) {
+			model->color_background = sceneGraphRef->color_picker_background;
+			model->color_ambient = sceneGraphRef->color_picker_ambient;
+			model->color_diffuse = sceneGraphRef->color_picker_diffuse;
+			model->scale_model = sceneGraphRef->scaleSlider;
+		}
 	}
 }
 void Canvas::drawCanvas(){
@@ -35,6 +55,10 @@ void Canvas::draw() {
 	drawCanvas();
 	drawModel();
 	drawImage();
+	for (auto &m : models) {
+		m->draw();
+	}
+
 	for (auto &s : shapes) {
 		drawShape(s);
 	}
@@ -213,7 +237,6 @@ void Canvas::mouseReleased(int x, int y, int button) {
 	}
 }
 
-
 void Canvas::undo() {
 	if (!shapes.empty()) {
 		shapes.pop_back();
@@ -264,4 +287,22 @@ void Canvas::loadModel(const std::string& path) {
 }
 void Canvas::drawModel() {
 	if(hasModel) model3D.draw();
+}
+void Canvas::calculateModelsPosition() {
+	int n = models.size();
+	if (n == 0) return;
+
+	float radius = 50.0f;
+	radius = sceneGraphRef->positionSlider;
+	float centerX = drawingArea.x + drawingArea.width  * 0.5f;
+	float centerY = drawingArea.y + drawingArea.height * 0.5f;
+
+	for (int i = 0; i < n; i++) {
+		float angle = TWO_PI * i / n;
+		float x = centerX + radius * cos(angle);
+		float y = centerY + radius * sin(angle);
+
+		models[i]->position.set(x, y, 0);
+		models[i]->update();
+	}
 }

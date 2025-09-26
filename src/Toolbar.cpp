@@ -7,6 +7,7 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.setup("Dessinez");
 	dessinez.setPosition(220,0);
+	dessinez.setSize(200, 0);
 	
 	dessinez.add(rectangleToggle.setup("Rectangle", false));
 	rectangleToggle.addListener(this, &Toolbar::rectangleToggleChanged);
@@ -33,6 +34,7 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	importation.setup("Importation");
 	importation.setPosition(0,0);
+	importation.setSize(200,0);
 
 	importation.add(importImageButton.setup("Importez Image"));
 	importImageButton.addListener(this, &Toolbar::importImagePressed);
@@ -88,7 +90,6 @@ void Toolbar::selectColourToggleChanged(bool & val) {
 	}
 }
 
-
 void Toolbar::undoButtonPressed() {
 	if (canvasRef) {
 		canvasRef->undo();
@@ -133,10 +134,15 @@ void Toolbar::importModelPressed() {
 		false,
 		defaultPath
 	);
-
-	if(result.bSuccess){
-		std::string filepath = result.getPath();
-		ofLogNotice() << "Loaded model: " << filepath;
-		canvasRef->loadModel(filepath);
+	if (result.bSuccess) {
+		auto newModel = std::make_unique<Model3D>();
+		newModel->setup();
+		newModel->loadModel(result.getPath());
+		newModel->color_background = canvasRef->color_picker_background;
+		newModel->color_ambient = canvasRef->color_picker_ambient;
+		newModel->color_diffuse = canvasRef->color_picker_diffuse;
+		canvasRef->models.push_back(std::move(newModel));
+		ofLogNotice() << "Imported model: " << result.getPath();
 	}
+	
 }

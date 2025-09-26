@@ -2,23 +2,22 @@
 
 
 void Application::setup() {
-	ofSetWindowShape(1024, 768);
+	ofSetWindowShape(1700, 1024);
 
-	float sidebarWidth = 224.0f;
+	//float sidebarWidth = 224.0f;
 
 	canvasArea.set(0, 0, ofGetWidth() - sidebarWidth, ofGetHeight());
 	sceneGraphArea.set(ofGetWidth() - sidebarWidth, 0, sidebarWidth, ofGetHeight());
 
-	canvas.setup(canvasArea,&toolbar);
+	canvas.setup(canvasArea,&toolbar,&sceneGraph);
 	canvas.setDrawingArea(canvasArea);
 
 	toolbar.setup(&canvas);
 	sceneGraph.setup(&canvas, sceneGraphArea);
-	//model3d.setup();
 }
 
 void Application::windowResized(int w, int h) {
-	float sidebarWidth = 224.0f;
+	//float sidebarWidth = 224.0f;
 
 	canvasArea.set(0, 0, w - sidebarWidth, h);
 	sceneGraphArea.set(w - sidebarWidth, 0, sidebarWidth, h);
@@ -29,14 +28,12 @@ void Application::windowResized(int w, int h) {
 
 void Application::update() {
 	canvas.update();
-	//model3d.update();
 }
 
 void Application::draw() {
 	canvas.draw();
 	sceneGraph.draw();
 	toolbar.draw();
-	//model3d.draw();
 }
 
 void Application::mousePressed(int x, int y, int button) {
