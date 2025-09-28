@@ -13,7 +13,6 @@ int main( ){
 //
 //	ofRunApp(window, std::make_shared<Application>());
 //	ofRunMainLoop();
-	
 	// paramètres du contexte de rendu
 	ofGLFWWindowSettings windowSettings;
 

@@ -25,4 +25,6 @@ private:
 
 	ofRectangle canvasArea;
 	ofRectangle sceneGraphArea;
+    ofRectangle leftPanel;
+    ofRectangle bottomPanel;
 };

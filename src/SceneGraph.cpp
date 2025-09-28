@@ -78,16 +78,18 @@ void SceneGraph::drawShapeList() {
 	}
 }
 void SceneGraph::draw() {
-	//ofPushStyle();
+	ofPushStyle();
 	ofSetColor(50, 50, 50);
 	ofFill();
 	ofDrawRectangle(x, y, width, height);
 	//ofPopStyle();
 	gui.draw();
 	drawShapeList();
+	ofPopStyle();
 }
 
 void SceneGraph::mousePressed(int mx, int my, int button) {
+	ofPushStyle();
 	int listStartY = 450 - panelPadding;
 	int rowHeight = 15;
 
@@ -106,6 +108,7 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 		satSlider = s.contourColor.getSaturation();
 		briSlider = s.contourColor.getBrightness();
 	}
+	ofPopStyle();
 }
 void SceneGraph::deleteButtonPressed() {
 	auto& shapes = canvasRef->getShapes();
