@@ -5,12 +5,14 @@
 #include <vector>
 #include <map>
 
+
+class SceneGraph;
 class Toolbar;
 
 class Canvas {
 public:
 	Canvas();
-	void setup(const ofRectangle& area,Toolbar* toolbar);
+	void setup(const ofRectangle& area,Toolbar* toolbar,SceneGraph* sceneGraph);
 	void update();
 	void draw();
 	void drawPreview();
@@ -26,30 +28,34 @@ public:
 	void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
 	
+	std::vector<std::unique_ptr<Model3D>> models;
+	vector<Shape> shapes;
 	ofParameter<ofColor> color_picker_background;
 	ofParameter<ofColor> color_picker_ambient;
 	ofParameter<ofColor> color_picker_diffuse;
+	//std::vector<int> selectedModelIndices;
+	//std::vector<int> selectedShapeIndices;
 	
 	void undo();
 	void clear();
 	void loadImage(const std::string & path);
-	void loadModel(const std::string& path); // load a 3D model
+	void loadModel(const std::string& path);
 	void drawModel();
 	void drawImage();
-	
+	void calculateModelsPosition();
 private:
 	ofPoint start, end;
 	bool drawing = false;
 	ShapeMode currentMode = ShapeMode::NONE;
-	vector<Shape> shapes;
 	Shape tempShape;
 	Toolbar* toolbarRef = nullptr;
 	ofRectangle drawingArea;
 	ofColor currentColor = ofColor(0, 0, 0);
 	ofImage importedImage;
-	Model3D model3D;// manages shaders, lighting, mesh, etc.
-	bool hasModel = true; // only draw if true
+	Model3D model3D;
+	bool hasModel = true;
 	bool hasImage = false;
+	SceneGraph* sceneGraphRef = nullptr;
 
 	void drawCanvas();
 	void drawShape(const Shape& s);

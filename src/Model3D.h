@@ -15,6 +15,8 @@ public:
 	ofColor color_background;
 	ofColor color_ambient;
 	ofColor color_diffuse;
+	
+	ofVec3f position;
 
 	float center_x;
 	float center_y;

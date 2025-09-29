@@ -10,7 +10,16 @@ public:
 	void draw();
 	void mousePressed(int x, int y, int button);
 	void setPanelArea(const ofRectangle& area);
-
+	ofxFloatSlider scaleSlider;
+	ofxFloatSlider positionSlider;
+	ofxPanel modelEditorPanel;
+	
+	ofParameter<ofColor> color_picker_background;
+	ofParameter<ofColor> color_picker_ambient;
+	ofParameter<ofColor> color_picker_diffuse;
+	std::vector<int> selectedShapeIndices;
+	std::vector<int> selectedModelIndices;
+	
 private:
 	Canvas* canvasRef;
 	ofRectangle panelArea;
@@ -18,7 +27,7 @@ private:
 	float x, y, width, height;
 	float panelPadding = 10;
 	int selectedIndex = -1;
-
+	
 	ofxPanel gui;
 	ofxFloatSlider thicknessSlider;
 	ofxColorSlider colorSlider;
@@ -39,4 +48,5 @@ private:
 	void contourToggled(bool & val);
 	void fillToggled(bool & val);
 	
+	void drawModelList();
 };

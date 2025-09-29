@@ -21,8 +21,8 @@ private:
 	Canvas canvas;
 	Toolbar toolbar;
 	SceneGraph sceneGraph;
-	//Model3D model3d;
 
 	ofRectangle canvasArea;
 	ofRectangle sceneGraphArea;
+	float sidebarWidth = 500.0f;
 };
