@@ -25,13 +25,13 @@ private:
 	SceneGraph sceneGraph;
 	BottomPanel bottomPanel;
 	LeftPanel leftPanel;
-	//Model3D model3d;
 
 	ofRectangle canvasArea;
 	ofRectangle sceneGraphArea;
-  ofRectangle leftPanelArea;
-  ofRectangle bottomPanelArea;
+	ofRectangle leftPanelArea;
+	ofRectangle bottomPanelArea;
 
-	ofRectangle canvasArea;
-	ofRectangle sceneGraphArea;
+	float leftPanelWidth = 224.0f;
+	float rightPanelWidth = 500.0f;
+	float bottomPanelHeight = 100.0f;
 };

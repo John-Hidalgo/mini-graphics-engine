@@ -68,41 +68,42 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	
 }
 void SceneGraph::draw() {
-	ofPushStyle();
+	//ofPushStyle();
 	ofSetColor(50, 50, 50);
 	ofFill();
 	ofDrawRectangle(x, y, width, height);
 	//ofPopStyle();
 	gui.draw();
 	drawShapeList();
-	ofPopStyle();
-}
-
-void SceneGraph::mousePressed(int mx, int my, int button) {
-	ofPushStyle();
-	int listStartY = 450 - panelPadding;
-	int rowHeight = 15;
-
-	int numShapes = canvasRef->getShapes().size();
-	if (mx >= x + panelPadding && mx <= x + width - panelPadding &&
-		my >= listStartY && my <= listStartY + rowHeight * numShapes)
-	{
-		selectedIndex = (my - listStartY) / rowHeight;
-
-		const auto& s = canvasRef->getShapes()[selectedIndex];
-		thicknessSlider = s.thickness;
-		contourToggle = true;
-		fillToggle = false;
-		colorSlider = s.contourColor;
-		hueSlider = s.contourColor.getHue();
-		satSlider = s.contourColor.getSaturation();
-		briSlider = s.contourColor.getBrightness();
-	}
-  
 	modelEditorPanel.draw();
 	drawModelList();
-	ofPopStyle();
 }
+
+//void SceneGraph::mousePressed(int mx, int my, int button) {
+//	ofPushStyle();
+//	int listStartY = 450 - panelPadding;
+//	int rowHeight = 15;
+//
+//	int numShapes = canvasRef->getShapes().size();
+//	if (mx >= x + panelPadding && mx <= x + width - panelPadding &&
+//		my >= listStartY && my <= listStartY + rowHeight * numShapes)
+//	{
+//		selectedIndex = (my - listStartY) / rowHeight;
+//
+//		const auto& s = canvasRef->getShapes()[selectedIndex];
+//		thicknessSlider = s.thickness;
+//		contourToggle = true;
+//		fillToggle = false;
+//		colorSlider = s.contourColor;
+//		hueSlider = s.contourColor.getHue();
+//		satSlider = s.contourColor.getSaturation();
+//		briSlider = s.contourColor.getBrightness();
+//	}
+//  
+//	modelEditorPanel.draw();
+//	drawModelList();
+//	ofPopStyle();
+//}
 
 void SceneGraph::deleteButtonPressed() {
 	auto& shapes = canvasRef->getShapes();
