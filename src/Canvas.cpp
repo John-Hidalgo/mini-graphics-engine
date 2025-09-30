@@ -52,6 +52,7 @@ void Canvas::drawCanvas(){
 	ofDrawRectangle(drawingArea);
 }
 void Canvas::draw() {
+	ofPushStyle();
 	drawCanvas();
 	drawModel();
 	drawImage();
@@ -63,6 +64,7 @@ void Canvas::draw() {
 		drawShape(s);
 	}
 	drawPreview();
+	ofPopStyle();
 }
 void Canvas::drawPreview(){
 	if (drawing) {
@@ -161,6 +163,7 @@ void Canvas::drawShape(const Shape& s) {
 	}
 }
 void Canvas::mousePressed(int x, int y, int button) {
+	ofPushStyle();
 	if (!drawingArea.inside(x, y)) return;
 	
 	if (toolbarRef && toolbarRef->isSelectingColor()) {
@@ -188,6 +191,7 @@ void Canvas::mousePressed(int x, int y, int button) {
 		tempShape.contourColor = currentColor;
 		tempShape.points.push_back(ofPoint(x, y));
 	}
+	ofPopStyle();
 }
 
 
