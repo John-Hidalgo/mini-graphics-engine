@@ -13,6 +13,13 @@ void Canvas::setup(const ofRectangle& area,Toolbar* toolbar,SceneGraph* sceneGra
 	color_picker_background.set("background color", ofColor(255, 255, 0), ofColor(0, 0), ofColor(255, 255));
 	color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255));
 	color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255));
+	ofLogNotice() << "drawingArea: x=" << drawingArea.x
+				  << " y=" << drawingArea.y
+				  << " w=" << drawingArea.getWidth()
+				  << " h=" << drawingArea.getHeight()
+				  << " bottom=" << drawingArea.getBottom()
+				  << " window height=" << ofGetHeight();
+
 }
 
 void Canvas::update() {
@@ -50,6 +57,11 @@ void Canvas::drawCanvas(){
 	}
 	ofFill();
 	ofDrawRectangle(drawingArea);
+	ofNoFill();
+//	ofSetColor(255, 0, 0);
+//	ofSetLineWidth(200);
+//	ofDrawRectangle(drawingArea);
+//	ofFill();
 }
 void Canvas::draw() {
 	ofPushStyle();
@@ -298,7 +310,7 @@ void Canvas::calculateModelsPosition() {
 
 	float radius = 50.0f;
 	radius = sceneGraphRef->positionSlider;
-	float centerX = drawingArea.x + drawingArea.width  * 0.5f;
+	float centerX = drawingArea.x + drawingArea.width * 0.5f;
 	float centerY = drawingArea.y + drawingArea.height * 0.5f;
 
 	for (int i = 0; i < n; i++) {

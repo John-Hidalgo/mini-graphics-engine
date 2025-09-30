@@ -4,7 +4,7 @@ void Model3D::setup()
 {
 	ofSetFrameRate(60);
 	//ofSetWindowShape(512, 512);
-	ofSetLogLevel(OF_LOG_VERBOSE);
+	//ofSetLogLevel(OF_LOG_VERBOSE);
 
 	// paramètres
 	scale_model = 0.2f;

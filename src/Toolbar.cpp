@@ -4,7 +4,7 @@ Toolbar::Toolbar() : canvasRef(nullptr) {}
 
 void Toolbar::setup(Canvas* canvas) {
 	canvasRef = canvas;
-	
+
 	dessinez.setup("Dessinez");
 	dessinez.setPosition(220,0);
 	dessinez.setSize(200, 0);
@@ -31,9 +31,21 @@ void Toolbar::setup(Canvas* canvas) {
 	undoButton.addListener(this, &Toolbar::undoButtonPressed);
 
 	dessinez.minimize();
+
+	echantillonage.setup("Echantillonage");
+	echantillonage.setPosition(440,0);
+	echantillonage.setSize(200,0);
+
+	echantillonage.add(echantillon1Button.setup("Échantillonez une Image"));
+	echantillon1Button.addListener(this, &Toolbar::echantillon1Pressed);
+
+	echantillonage.add(echantillon2Button.setup("Échantillonez une Image"));
+	echantillon2Button.addListener(this, &Toolbar::echantillon2Pressed);
+
+	echantillonage.minimize();
 	
 	importation.setup("Importation");
-	importation.setPosition(0,0);
+	importation.setPosition(660,0);
 	importation.setSize(200,0);
 
 	importation.add(importImageButton.setup("Importez Image"));
@@ -43,17 +55,6 @@ void Toolbar::setup(Canvas* canvas) {
 	importModelButton.addListener(this, &Toolbar::importModelPressed);
 	
 	importation.minimize();
-
-	echantillonage.setup("Echantillonage");
-	echantillonage.setPosition(440,0);
-
-	echantillonage.add(echantillon1Button.setup("Échantillonez une Image"));
-	echantillon1Button.addListener(this, &Toolbar::echantillon1Pressed);
-
-	echantillonage.add(echantillon2Button.setup("Échantillonez une Image"));
-	echantillon2Button.addListener(this, &Toolbar::echantillon2Pressed);
-
-	echantillonage.minimize();
 }
 
 void Toolbar::draw() {

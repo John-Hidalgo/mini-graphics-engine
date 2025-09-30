@@ -6,7 +6,8 @@ void Application::setup() {
 	leftPanelArea.set(0, 0, leftPanelWidth, ofGetHeight() - bottomPanelHeight);
 	leftPanel.setup(&canvas, leftPanelArea);
 	
-	canvasArea.set(leftPanelWidth, 0, ofGetWidth() - leftPanelWidth - rightPanelWidth, ofGetHeight() - bottomPanelHeight);
+	canvasArea.set(leftPanelWidth, 0, ofGetWidth() - leftPanelWidth - rightPanelWidth,
+				   ofGetHeight() - bottomPanelHeight);
 	canvas.setup(canvasArea, &toolbar, &sceneGraph);
 	canvas.setDrawingArea(canvasArea);
 	
@@ -19,14 +20,16 @@ void Application::setup() {
 	toolbar.setup(&canvas);
 }
 void Application::windowResized(int w, int h) {
-	leftPanelArea.set(0, 0, leftPanelWidth, w - bottomPanelHeight);
+	leftPanelArea.set(0, 0, leftPanelWidth, h - bottomPanelHeight);
 	leftPanel.setup(&canvas, leftPanelArea);
 	
-	canvasArea.set(leftPanelWidth, 0, w - leftPanelWidth - rightPanelWidth, w - bottomPanelHeight);
+	canvasArea.set(leftPanelWidth, 0,
+				   w - leftPanelWidth - rightPanelWidth,
+				   h - bottomPanelHeight);
 	canvas.setup(canvasArea, &toolbar, &sceneGraph);
 	canvas.setDrawingArea(canvasArea);
 	
-	sceneGraphArea.set(w - rightPanelWidth, 0, rightPanelWidth, w);
+	sceneGraphArea.set(w - rightPanelWidth, 0, rightPanelWidth, h);
 	sceneGraph.setup(&canvas, sceneGraphArea);
 
 	bottomPanelArea.set(0, h - bottomPanelHeight, w, bottomPanelHeight);

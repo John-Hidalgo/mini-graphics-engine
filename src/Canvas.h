@@ -33,8 +33,6 @@ public:
 	ofParameter<ofColor> color_picker_background;
 	ofParameter<ofColor> color_picker_ambient;
 	ofParameter<ofColor> color_picker_diffuse;
-	//std::vector<int> selectedModelIndices;
-	//std::vector<int> selectedShapeIndices;
 	
 	void undo();
 	void clear();
