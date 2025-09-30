@@ -16,6 +16,7 @@ public:
 	ofxPanel& getGui() { return dessinez; }
 	bool isSelectingColor() const { return pickingColour; }
 	void setColorSlider(const ofColor& col){colorSlider = col;};
+	ofParameter<ofColor> colorSlider;
 	
 private:
 	Canvas* canvasRef;
@@ -27,7 +28,6 @@ private:
 	ofxToggle lineToggle;
 	ofxToggle freeformToggle;
 	ofxToggle selectColourToggle;
-	ofxColorSlider colorSlider;
 	ofxButton undoButton;
 	
 	ofxPanel importation;

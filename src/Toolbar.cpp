@@ -24,8 +24,9 @@ void Toolbar::setup(Canvas* canvas) {
 	dessinez.add(selectColourToggle.setup("coleur du canevas", false));
 	selectColourToggle.addListener(this, &Toolbar::selectColourToggleChanged);
 	
-	dessinez.add(colorSlider.setup("Couleur", ofColor(0, 0, 0), ofColor(0,0,0), ofColor(255,255,255)));
-	static_cast<ofParameter<ofColor>&>(colorSlider.getParameter()).addListener(this, &Toolbar::colorChanged);
+	dessinez.add(colorSlider);
+	colorSlider.set("Couleur", ofColor(0,0,0), ofColor(0,0,0), ofColor(255,255,255));
+	colorSlider.addListener(this, &Toolbar::colorChanged);
 
 	dessinez.add(undoButton.setup("defaire"));
 	undoButton.addListener(this, &Toolbar::undoButtonPressed);
