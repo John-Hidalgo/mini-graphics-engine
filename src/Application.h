@@ -29,6 +29,9 @@ private:
 
 	ofRectangle canvasArea;
 	ofRectangle sceneGraphArea;
-    ofRectangle leftPanelArea;
-    ofRectangle bottomPanelArea;
+  ofRectangle leftPanelArea;
+  ofRectangle bottomPanelArea;
+
+	ofRectangle canvasArea;
+	ofRectangle sceneGraphArea;
 };

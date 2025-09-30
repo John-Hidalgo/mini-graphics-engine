@@ -1,17 +1,16 @@
 #include "Application.h"
 
 void Application::setup() {
-	ofSetWindowShape(1024, 768);
+	ofSetWindowShape(1700, 1024);
 
 	float sidebarWidth = 224.0f;
 	float bottomPanelHeight = 100.0f;
-
 	leftPanelArea.set(0, 0, sidebarWidth, ofGetHeight() - bottomPanelHeight);
 	bottomPanelArea.set(0, ofGetHeight() - bottomPanelHeight, ofGetWidth(), bottomPanelHeight);
 	canvasArea.set(sidebarWidth, 0, ofGetWidth() - sidebarWidth, ofGetHeight() - bottomPanelHeight);
 	sceneGraphArea.set(ofGetWidth() - sidebarWidth, 0, sidebarWidth, ofGetHeight());
 
-	canvas.setup(canvasArea,&toolbar);
+	canvas.setup(canvasArea,&toolbar,&sceneGraph);
 	canvas.setDrawingArea(canvasArea);
 
 	toolbar.setup(&canvas);
@@ -23,6 +22,10 @@ void Application::setup() {
 void Application::windowResized(int w, int h) {
 	float sidebarWidth = 224.0f;
 	float bottomPanelHeight = 100.0f;
+}
+
+void Application::windowResized(int w, int h) {
+	float sidebarWidth = 224.0f;
 
 	leftPanelArea.set(0, 0, sidebarWidth, h);
 	bottomPanelArea.set(0, h - bottomPanelHeight, w, bottomPanelHeight);

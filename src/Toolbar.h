@@ -33,7 +33,10 @@ private:
 	ofxPanel importation;
 	ofxButton importImageButton;
 	ofxButton importModelButton;
-	
+
+	ofxPanel echantillonage;
+	ofxButton echantillon1Button;
+	ofxButton echantillon2Button;
 	
 	bool pickingColour = false;
 	
@@ -46,7 +49,9 @@ private:
 	void importImagePressed();
 	void undoButtonPressed();
 	void importModelPressed();
-	
+	void echantillon1Pressed();
+	void echantillon2Pressed();
+
 	void setExclusiveToggle(ShapeMode mode);
 
 };
