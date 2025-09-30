@@ -19,6 +19,7 @@ public:
 	ofParameter<ofColor> color_picker_diffuse;
 	std::vector<int> selectedShapeIndices;
 	std::vector<int> selectedModelIndices;
+	ofParameter<ofColor> colour2dShapes;
 	
 private:
 	Canvas* canvasRef;
@@ -30,19 +31,20 @@ private:
 	
 	ofxPanel gui;
 	ofxFloatSlider thicknessSlider;
-	ofxColorSlider colorSlider;
+	//ofxColorSlider colorSlider;
 	ofxButton deleteButton;
 	ofxFloatSlider hueSlider;
 	ofxFloatSlider satSlider;
 	ofxFloatSlider briSlider;
 	ofxToggle contourToggle;
 	ofxToggle fillToggle;
+	
 
 	void deleteButtonPressed();
 	void thicknessChanged(float & val);
 	void colorComponentChanged(int & value);
 	void drawShapeList();
-	void adjustShapeColor();
+	//void adjustShapeColor();
 	void colorChanged(ofColor& col);
 	void hsbChanged(float & val);
 	void contourToggled(bool & val);

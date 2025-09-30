@@ -34,16 +34,20 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	fillToggle.addListener(this, &SceneGraph::fillToggled);
 	gui.add(&fillToggle);
 
-	colorSlider.setup("Couleur", ofColor(0,0,0), ofColor(0,0,0), ofColor(255,255,255));
-	static_cast<ofParameter<ofColor>&>(colorSlider.getParameter()).addListener(this, &SceneGraph::colorChanged);
-	gui.add(&colorSlider);
-	
+//	colorSlider.setup("Couleur", ofColor(0,0,0), ofColor(0,0,0), ofColor(255,255,255));
+//	static_cast<ofParameter<ofColor>&>(colorSlider.getParameter()).addListener(this, &SceneGraph::colorChanged);
+//	gui.add(&colorSlider);
+	//colorSlider.setDefaultHeight(9);
+	gui.add(colour2dShapes);
+	colour2dShapes.set("Couleur", ofColor(0,0,0), ofColor(0,0,0), ofColor(255,255,255));
+	colour2dShapes.addListener(this, &SceneGraph::colorChanged);
 	gui.add(hueSlider.setup("Hue", 128, 0, 255));
 	gui.add(satSlider.setup("Saturation", 200, 0, 255));
 	gui.add(briSlider.setup("Brightness", 200, 0, 255));
 	hueSlider.addListener(this, &SceneGraph::hsbChanged);
 	satSlider.addListener(this, &SceneGraph::hsbChanged);
 	briSlider.addListener(this, &SceneGraph::hsbChanged);
+	
 
 
 	deleteButton.setup("Effacez");
@@ -60,6 +64,7 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	//modelEditorPanel.add(color_picker_background.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
 	modelEditorPanel.add(color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
 	modelEditorPanel.add(color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+
 	
 }
 void SceneGraph::draw() {
@@ -132,7 +137,8 @@ void SceneGraph::hsbChanged(float & val) {
 			}
 		}
 	}
-	colorSlider = c;
+	colour2dShapes = c;
+	//colorSlider = c;
 }
 
 void SceneGraph::contourToggled(bool& val){
@@ -140,7 +146,7 @@ void SceneGraph::contourToggled(bool& val){
 		fillToggle = false;
 		if (!selectedShapeIndices.empty()) {
 			const auto& s = canvasRef->getShapes()[selectedShapeIndices.back()];
-			colorSlider = s.contourColor;
+			//colorSlider = s.contourColor;
 			hueSlider = s.contourColor.getHue();
 			satSlider = s.contourColor.getSaturation();
 			briSlider = s.contourColor.getBrightness();
@@ -153,7 +159,7 @@ void SceneGraph::fillToggled(bool & val) {
 		contourToggle = false;
 		if (!selectedShapeIndices.empty()) {
 			const auto& s = canvasRef->getShapes()[selectedShapeIndices.back()];
-			colorSlider = s.fillColor;
+			//colorSlider = s.fillColor;
 			hueSlider = s.fillColor.getHue();
 			satSlider = s.fillColor.getSaturation();
 			briSlider = s.fillColor.getBrightness();
@@ -196,7 +202,7 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 			thicknessSlider = s.thickness;
 			contourToggle = true;
 			fillToggle = false;
-			colorSlider = s.contourColor;
+			//colorSlider = s.contourColor;
 			hueSlider = s.contourColor.getHue();
 			satSlider = s.contourColor.getSaturation();
 			briSlider = s.contourColor.getBrightness();
