@@ -6,8 +6,8 @@ void Application::setup() {
 	float sidebarWidth = 224.0f;
 	float bottomPanelHeight = 100.0f;
 
-	leftPanel.set(0, 0, sidebarWidth, ofGetHeight());
-	bottomPanel.set(0, ofGetHeight() - bottomPanelHeight, ofGetWidth(), bottomPanelHeight);
+	leftPanelArea.set(0, 0, sidebarWidth, ofGetHeight() - bottomPanelHeight);
+	bottomPanelArea.set(0, ofGetHeight() - bottomPanelHeight, ofGetWidth(), bottomPanelHeight);
 	canvasArea.set(sidebarWidth, 0, ofGetWidth() - sidebarWidth, ofGetHeight() - bottomPanelHeight);
 	sceneGraphArea.set(ofGetWidth() - sidebarWidth, 0, sidebarWidth, ofGetHeight());
 
@@ -16,19 +16,23 @@ void Application::setup() {
 
 	toolbar.setup(&canvas);
 	sceneGraph.setup(&canvas, sceneGraphArea);
+	bottomPanel.setup(&canvas, bottomPanelArea);
+	leftPanel.setup(&canvas, leftPanelArea);
 }
 
 void Application::windowResized(int w, int h) {
 	float sidebarWidth = 224.0f;
 	float bottomPanelHeight = 100.0f;
 
-	leftPanel.set(0, 0, sidebarWidth, h);
-	bottomPanel.set(0, h - bottomPanelHeight, w, bottomPanelHeight);
+	leftPanelArea.set(0, 0, sidebarWidth, h);
+	bottomPanelArea.set(0, h - bottomPanelHeight, w, bottomPanelHeight);
 	canvasArea.set(sidebarWidth, 0, w - sidebarWidth, h - bottomPanelHeight);
 	sceneGraphArea.set(w - sidebarWidth, 0, sidebarWidth, h);
 
 	canvas.setDrawingArea(canvasArea);
 	sceneGraph.setPanelArea(sceneGraphArea);
+	bottomPanel.setPanelArea(bottomPanelArea);
+	leftPanel.setPanelArea(leftPanelArea);
 }
 
 void Application::update() {
@@ -36,33 +40,18 @@ void Application::update() {
 }
 
 void Application::draw() {
-	ofPushStyle();
-	ofSetColor(50, 50, 50);
-	ofDrawRectangle(leftPanel);
-	ofDrawRectangle(bottomPanel);
-
-	// Borders in black
-	ofSetColor(0, 0, 0); // Noir
-	ofNoFill();
-	ofSetLineWidth(2);
-	ofDrawRectangle(leftPanel);
-	ofDrawRectangle(bottomPanel);
-	ofDrawRectangle(sceneGraphArea);
-	ofFill();
-	ofPopStyle();
-
-
-	// Réinitialiser la couleur pour les autres dessins
-	ofSetColor(255, 255, 255);
-
 	canvas.draw();
 	sceneGraph.draw();
+	bottomPanel.draw();
+	leftPanel.draw();
 	toolbar.draw();
 }
 
 void Application::mousePressed(int x, int y, int button) {
 	canvas.mousePressed(x, y, button);
 	sceneGraph.mousePressed(x, y, button);
+	bottomPanel.mousePressed(x, y, button);
+	leftPanel.mousePressed(x, y, button);
 }
 
 void Application::mouseDragged(int x, int y, int button) {

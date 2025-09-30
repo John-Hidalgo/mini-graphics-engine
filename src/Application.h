@@ -3,6 +3,8 @@
 #include "Canvas.h"
 #include "Toolbar.h"
 #include "SceneGraph.h"
+#include "BottomPanel.h"
+#include "LeftPanel.h"
 #include "Model3D.h"
 
 class Application : public ofBaseApp {
@@ -21,10 +23,12 @@ private:
 	Canvas canvas;
 	Toolbar toolbar;
 	SceneGraph sceneGraph;
+	BottomPanel bottomPanel;
+	LeftPanel leftPanel;
 	//Model3D model3d;
 
 	ofRectangle canvasArea;
 	ofRectangle sceneGraphArea;
-    ofRectangle leftPanel;
-    ofRectangle bottomPanel;
+    ofRectangle leftPanelArea;
+    ofRectangle bottomPanelArea;
 };
