@@ -53,7 +53,7 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	modelEditorPanel.setSize(175,0);
 	
 	modelEditorPanel.add(scaleSlider.setup("Scale", 1.0f, 0.1f, 3.0f));
-	modelEditorPanel.add(positionSlider.setup("Position", 100.0f, 0.1f, 200.0f));
+	modelEditorPanel.add(positionSlider.setup("Position", 100.0f, 0.1f, 700.0f));
 	
 	//modelEditorPanel.add(color_picker_background.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
 	modelEditorPanel.add(color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));

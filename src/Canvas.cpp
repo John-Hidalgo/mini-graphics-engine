@@ -63,20 +63,26 @@ void Canvas::drawCanvas(){
 //	ofDrawRectangle(drawingArea);
 //	ofFill();
 }
-void Canvas::draw() {
+void Canvas::draw2d(){
 	ofPushStyle();
 	drawCanvas();
-	drawModel();
 	drawImage();
-	for (auto &m : models) {
-		m->draw();
-	}
 
 	for (auto &s : shapes) {
 		drawShape(s);
 	}
 	drawPreview();
 	ofPopStyle();
+}
+void Canvas::draw3d(){
+	for (auto &m : models) {
+		m->draw();
+	}
+}
+
+void Canvas::draw() {
+	draw2d();
+	draw3d();
 }
 void Canvas::drawPreview(){
 	if (drawing) {
@@ -310,8 +316,8 @@ void Canvas::calculateModelsPosition() {
 
 	float radius = 50.0f;
 	radius = sceneGraphRef->positionSlider;
-	float centerX = drawingArea.x + drawingArea.width * 0.5f;
-	float centerY = drawingArea.y + drawingArea.height * 0.5f;
+	float centerX = 0;//drawingArea.x + drawingArea.width * 0.5f;
+	float centerY = 0;//drawingArea.y + drawingArea.height * 0.5f;
 
 	for (int i = 0; i < n; i++) {
 		float angle = TWO_PI * i / n;
@@ -322,3 +328,4 @@ void Canvas::calculateModelsPosition() {
 		models[i]->update();
 	}
 }
+

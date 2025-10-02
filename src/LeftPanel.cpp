@@ -20,7 +20,7 @@ void LeftPanel::setup(Canvas* canvas, const ofRectangle& area) {
     gui.setBorderColor(ofColor(100, 100, 100));
     gui.setTextColor(ofColor(255, 255, 255));
     gui.setHeaderBackgroundColor(ofColor(50, 50, 50));
-    gui.setDefaultWidth(width - 2 * panelPadding);
+	gui.setSize(200, 0);
 }
 
 void LeftPanel::draw() {

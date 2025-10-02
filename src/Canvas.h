@@ -41,6 +41,12 @@ public:
 	void drawModel();
 	void drawImage();
 	void calculateModelsPosition();
+	
+	void draw2d();
+	void draw3d();
+	
+	
+	
 private:
 	ofPoint start, end;
 	bool drawing = false;
