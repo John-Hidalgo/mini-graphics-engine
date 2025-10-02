@@ -17,11 +17,20 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.add(lineToggle.setup("Ligne", false));
 	lineToggle.addListener(this, &Toolbar::lineToggleChanged);
+
+	dessinez.add(pointToggle.setup("Point", false));
+	pointToggle.addListener(this, &Toolbar::pointToggleChanged);
+
+	dessinez.add(squareToggle.setup("Carré", false));
+	squareToggle.addListener(this, &Toolbar::squareToggleChanged);
+
+	dessinez.add(triangleToggle.setup("Triangle", false));
+	triangleToggle.addListener(this, &Toolbar::triangleToggleChanged);
 	
 	dessinez.add(freeformToggle.setup("Libre", false));
 	freeformToggle.addListener(this, &Toolbar::freeformToggleChanged);
 	
-	dessinez.add(selectColourToggle.setup("coleur du canevas", false));
+	dessinez.add(selectColourToggle.setup("Couleur du canevas", false));
 	selectColourToggle.addListener(this, &Toolbar::selectColourToggleChanged);
 	
 	dessinez.add(colorSlider);
@@ -85,6 +94,27 @@ void Toolbar::lineToggleChanged(bool & val) {
 	}
 }
 
+void Toolbar::pointToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::POINT);
+	else if (canvasRef->getCurrentMode() == ShapeMode::POINT) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+}
+
+void Toolbar::squareToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::SQUARE);
+	else if (canvasRef->getCurrentMode() == ShapeMode::SQUARE) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+}
+
+void Toolbar::triangleToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::TRIANGLE);
+	else if (canvasRef->getCurrentMode() == ShapeMode::TRIANGLE) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+}
+
 void Toolbar::freeformToggleChanged(bool & val) {
 	if (val) setExclusiveToggle(ShapeMode::FREEFORM);
 	else if (canvasRef->getCurrentMode() == ShapeMode::FREEFORM) {
@@ -100,6 +130,9 @@ void Toolbar::selectColourToggleChanged(bool & val) {
 		circleToggle    = false;
 		lineToggle      = false;
 		freeformToggle  = false;
+		pointToggle = false;
+		triangleToggle = false;
+		squareToggle    = false;
 		if (canvasRef) canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
 }
@@ -123,6 +156,9 @@ void Toolbar::setExclusiveToggle(ShapeMode mode) {
 	rectangleToggle = (mode == ShapeMode::RECTANGLE);
 	circleToggle    = (mode == ShapeMode::CIRCLE);
 	lineToggle      = (mode == ShapeMode::LINE);
+	squareToggle    = (mode == ShapeMode::SQUARE);
+	pointToggle     = (mode == ShapeMode::POINT);
+	triangleToggle  = (mode == ShapeMode::TRIANGLE);
 	freeformToggle  = (mode == ShapeMode::FREEFORM);
 	selectColourToggle = (mode == ShapeMode::NONE && pickingColour);
 

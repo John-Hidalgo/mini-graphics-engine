@@ -26,6 +26,9 @@ private:
 	ofxToggle rectangleToggle;
 	ofxToggle circleToggle;
 	ofxToggle lineToggle;
+	ofxToggle pointToggle;
+	ofxToggle triangleToggle;
+	ofxToggle squareToggle;
 	ofxToggle freeformToggle;
 	ofxToggle selectColourToggle;
 	ofxButton undoButton;
@@ -43,6 +46,9 @@ private:
 	void rectangleToggleChanged(bool & val);
 	void circleToggleChanged(bool & val);
 	void lineToggleChanged(bool & val);
+	void pointToggleChanged(bool & val);
+	void triangleToggleChanged(bool & val);
+	void squareToggleChanged(bool & val);
 	void freeformToggleChanged(bool & val);
 	void selectColourToggleChanged(bool& val);
 	void colorChanged(ofColor& col);

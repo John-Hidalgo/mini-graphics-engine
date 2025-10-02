@@ -60,5 +60,8 @@ private:
 	void drawCircle(const Shape& s);
 	void drawFreeForm(const Shape& s);
 	void drawRectangle(const Shape& s);
+	void drawPoint(const Shape& s);
+	void drawTriangle(const Shape& s);
+	void drawSquare(const Shape& s);
 	
 };
