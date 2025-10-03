@@ -193,8 +193,9 @@ void Canvas::mousePressed(int x, int y, int button) {
 		ofColor picked = pixels.getColor(0, 0);
 		currentColor = picked;
 		if (toolbarRef) {
-			toolbarRef->setColorSlider(picked);
-
+			std::string nom = "Canevas";
+			toolbarRef->setColorFromCanvas(picked,nom);
+			setDrawingColor(picked);
 		}
 		return;
 	}

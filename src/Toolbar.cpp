@@ -21,13 +21,36 @@ void Toolbar::setup(Canvas* canvas) {
 	dessinez.add(freeformToggle.setup("Libre", false));
 	freeformToggle.addListener(this, &Toolbar::freeformToggleChanged);
 	
-	dessinez.add(selectColourToggle.setup("coleur du canevas", false));
+	dessinez.add(selectColourToggle.setup("couleur du canevas", false));
 	selectColourToggle.addListener(this, &Toolbar::selectColourToggleChanged);
 	
-	dessinez.add(colorSlider);
-	colorSlider.set("Couleur", ofColor(0,0,0), ofColor(0,0,0), ofColor(255,255,255));
-	colorSlider.addListener(this, &Toolbar::colorChanged);
+	dessinez.add(redBtn.setup("Rouge"));
+	dessinez.add(greenBtn.setup("Vert"));
+	dessinez.add(blueBtn.setup("Bleue"));
+	dessinez.add(yellowBtn.setup("Jaune"));
 
+	currentColour.setup("Couleur Courant", "");
+	dessinez.add(&currentColour);
+	currentColour.setBackgroundColor(ofColor(255, 255, 255));
+
+	redBtn.setBackgroundColor(ofColor(150, 50, 50));
+	greenBtn.setBackgroundColor(ofColor(50, 150, 50));
+	blueBtn.setBackgroundColor(ofColor(50, 50, 150));
+	yellowBtn.setBackgroundColor(ofColor(150, 150, 50));
+
+	redBtn.setTextColor(ofColor(255, 200, 200));
+	greenBtn.setTextColor(ofColor(200, 255, 200));
+	blueBtn.setTextColor(ofColor(200, 200, 255));
+	yellowBtn.setTextColor(ofColor(255, 255, 200));
+	
+	redBtn.addListener(this, &Toolbar::onRedPressed);
+	greenBtn.addListener(this, &Toolbar::onGreenPressed);
+	blueBtn.addListener(this, &Toolbar::onBluePressed);
+	yellowBtn.addListener(this, &Toolbar::onYellowPressed);
+
+	currentColor = ofColor(255, 255, 255);
+	currentColorName = "";
+	
 	dessinez.add(undoButton.setup("defaire"));
 	undoButton.addListener(this, &Toolbar::undoButtonPressed);
 
@@ -131,7 +154,7 @@ void Toolbar::setExclusiveToggle(ShapeMode mode) {
 			canvasRef->setCurrentMode(ShapeMode::NONE);
 		} else {
 			canvasRef->setCurrentMode(mode);
-			canvasRef->setDrawingColor(colorSlider);
+			canvasRef->setDrawingColor(currentColor);
 		}
 	}
 }
@@ -222,3 +245,65 @@ void Toolbar::echantillon1Pressed() {
 void Toolbar::echantillon2Pressed() {
 	std::cout << "echantillon2Pressed!" << "\n";
 }
+
+void Toolbar::onRedPressed(){
+	currentColor = ofColor(255, 0, 0);
+	currentColour = "Rouge";
+	currentColour.setBackgroundColor(currentColor);
+	if (canvasRef) {
+		canvasRef->setDrawingColor(currentColor);
+	}
+}
+
+void Toolbar::onGreenPressed(){
+	currentColor = ofColor(0, 255, 0);
+	currentColour = "Vert";
+	currentColour.setBackgroundColor(currentColor);
+	if (canvasRef) {
+		canvasRef->setDrawingColor(currentColor);
+	}
+}
+
+void Toolbar::onBluePressed(){
+	currentColor = ofColor(0, 0, 255);
+	currentColour = "Bleue";
+	currentColour.setBackgroundColor(currentColor);
+	if (canvasRef) {
+		canvasRef->setDrawingColor(currentColor);
+	}
+}
+
+void Toolbar::onYellowPressed(){
+	currentColor = ofColor(255, 255, 0);
+	currentColour = "Jaune";
+	currentColour.setBackgroundColor(currentColor);
+	if (canvasRef) {
+		canvasRef->setDrawingColor(currentColor);
+	}
+}
+
+void Toolbar::setColorFromCanvas(ofColor& color,std::string& name){
+	currentColour.setBackgroundColor(color);
+	currentColour = name;
+	currentColor = color;
+		currentColour = name;
+		currentColour.setBackgroundColor(currentColor);
+
+		redBtn.setBackgroundColor(ofColor(150, 50, 50));
+		greenBtn.setBackgroundColor(ofColor(50, 150, 50));
+		blueBtn.setBackgroundColor(ofColor(50, 50, 150));
+		yellowBtn.setBackgroundColor(ofColor(150, 150, 50));
+		if (color == ofColor(255, 0, 0)) {
+			redBtn.setBackgroundColor(ofColor(255, 100, 100));
+		} else if (color == ofColor(0, 255, 0)) {
+			greenBtn.setBackgroundColor(ofColor(100, 255, 100));
+		} else if (color == ofColor(0, 0, 255)) {
+			blueBtn.setBackgroundColor(ofColor(100, 100, 255));
+		} else if (color == ofColor(255, 255, 0)) {
+			yellowBtn.setBackgroundColor(ofColor(255, 255, 100));
+		}
+		
+		if (canvasRef) {
+			canvasRef->setDrawingColor(currentColor);
+		}
+};
