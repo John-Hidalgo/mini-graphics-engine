@@ -17,6 +17,7 @@ public:
 	void mousePressed(int x, int y, int button);
 	void mouseDragged(int x, int y, int button);
 	void mouseReleased(int x, int y, int button);
+	void mouseMoved(int x, int y);
 
 	void windowResized(int w, int h);
 	
@@ -42,4 +43,10 @@ private:
 	float leftPanelWidth = 224.0f;
 	float rightPanelWidth = 500.0f;
 	float bottomPanelHeight = 160.0f;
+
+	float yaw = 0.0f;   // Orientation a gauche et a droite
+	float pitch = 0.0f; // Orientation en bas et en haut
+	float mouseSensitivity = 0.2f;
+	bool mouseCaptured = false;
+
 };

@@ -1,6 +1,7 @@
 #include "Canvas.h"
 #include "Toolbar.h"
 #include "SceneGraph.h"
+#include "of3dUtils.h"
 
 Canvas::Canvas() {}
 
@@ -78,6 +79,9 @@ void Canvas::draw3d(){
 	for (auto &m : models) {
 		m->draw();
 	}
+
+	// TODO: Juste pour tester la camera
+	ofDrawBox(-100, 0, 0, 100);
 }
 
 void Canvas::draw() {

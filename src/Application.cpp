@@ -21,6 +21,7 @@ void Application::setup() {
 	setupCameras();
 	updateCameraViewports(ofGetWidth(), ofGetHeight());
 }
+
 void Application::windowResized(int w, int h) {
 	leftPanelArea.set(0, 0, leftPanelWidth, h - bottomPanelHeight);
 	leftPanel.setup(&canvas, leftPanelArea);
@@ -41,15 +42,33 @@ void Application::windowResized(int w, int h) {
 
 void Application::update() {
 	canvas.update();
-}
 
-//void Application::draw() {
-//	leftPanel.draw();
-//	canvas.draw();
-//	sceneGraph.draw();
-//	bottomPanel.draw();
-//	toolbar.draw();
-//}
+	if (!cameras.empty()) {
+		float moveSpeed = 10.0f;
+		auto &cam = cameras[activeCameraIndex].cam;
+
+		glm::vec3 front;
+		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		front.y = sin(glm::radians(pitch));
+		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		front   = glm::normalize(front);
+
+		glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0,1,0)));
+		glm::vec3 up    = glm::normalize(glm::cross(right, front));
+
+		glm::vec3 pos = cam.getPosition();
+
+		if (ofGetKeyPressed('w')) pos += front * moveSpeed;
+		if (ofGetKeyPressed('s')) pos -= front * moveSpeed;
+		if (ofGetKeyPressed('a')) pos -= right * moveSpeed;
+		if (ofGetKeyPressed('d')) pos += right * moveSpeed;
+
+		cam.setPosition(pos);
+
+		// Change l'orientation de la cam, selon le point ou on regarde
+		cam.lookAt(pos + front, up);
+	}
+}
 
 void Application::mousePressed(int x, int y, int button) {
 	canvas.mousePressed(x, y, button);
@@ -64,6 +83,16 @@ void Application::mousePressed(int x, int y, int button) {
 			return;
 		}
 	}
+
+	if(button == OF_MOUSE_BUTTON_RIGHT) {
+		mouseCaptured = !mouseCaptured;
+		if(mouseCaptured) {
+			// TODO: Change le curseur pour quelques chose comme une quatre fleches en axe
+			// ofHideCursor();
+		} else {
+			ofShowCursor();
+		}
+	}
 }
 
 void Application::mouseDragged(int x, int y, int button) {
@@ -72,6 +101,25 @@ void Application::mouseDragged(int x, int y, int button) {
 
 void Application::mouseReleased(int x, int y, int button) {
 	canvas.mouseReleased(x, y, button);
+}
+
+// Pour la camera
+void Application::mouseMoved(int x, int y) {
+	static int lastX = x;
+	static int lastY = y;
+
+	if(mouseCaptured && !cameras.empty()) {
+		float dx = x - lastX;
+		float dy = y - lastY;
+
+		yaw   += dx * mouseSensitivity;
+		pitch -= dy * mouseSensitivity;
+
+		pitch = ofClamp(pitch, -89.0f, 89.0f);
+	}
+
+	lastX = x;
+	lastY = y;
 }
 
 void Application::draw() {
@@ -84,15 +132,16 @@ void Application::draw() {
 	
 	
 	if(!cameras.empty()) {
-		//pour la camera sur le caneva
+		// Pour la camera sur le canevas
 		ofPushView();
 		ofViewport(canvasArea);
 		cameras[activeCameraIndex].cam.begin();
+
 		canvas.draw3d();
 		cameras[activeCameraIndex].cam.end();
 		ofPopView();
 		
-		// pour les autres
+		// Pour les autres cameras
 		for(int i = 0; i < cameras.size(); i++) {
 			ofPushView();
 			ofViewport(cameras[i].viewport);
