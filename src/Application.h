@@ -27,6 +27,11 @@ public:
 	int previewWidth = 200;
 	int previewHeight = 150;
 	void updateCameraViewports(int w, int h);
+	void updateActiveCamera();
+	void resetCamerasToSphere();
+	void drawDebugAxes(float length, float thickness);
+	void updateYawPitchFromCamera();
+	void keyPressed(int key);
 	
 private:
 	Canvas canvas;

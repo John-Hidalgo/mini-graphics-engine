@@ -59,10 +59,6 @@ void Canvas::drawCanvas(){
 	ofFill();
 	ofDrawRectangle(drawingArea);
 	ofNoFill();
-//	ofSetColor(255, 0, 0);
-//	ofSetLineWidth(200);
-//	ofDrawRectangle(drawingArea);
-//	ofFill();
 }
 void Canvas::draw2d(){
 	ofPushStyle();
@@ -333,4 +329,3 @@ void Canvas::calculateModelsPosition() {
 		models[i]->update();
 	}
 }
-
