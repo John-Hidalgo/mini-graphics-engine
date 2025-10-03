@@ -6,6 +6,7 @@
 #include "BottomPanel.h"
 #include "LeftPanel.h"
 #include "Model3D.h"
+#include "CameraView.h"
 
 class Application : public ofBaseApp {
 public:
@@ -18,7 +19,14 @@ public:
 	void mouseReleased(int x, int y, int button);
 
 	void windowResized(int w, int h);
-
+	
+	void setupCameras();
+	std::vector<CameraView> cameras;
+	int activeCameraIndex = 0;
+	int previewWidth = 200;
+	int previewHeight = 150;
+	void updateCameraViewports(int w, int h);
+	
 private:
 	Canvas canvas;
 	Toolbar toolbar;
@@ -33,5 +41,5 @@ private:
 
 	float leftPanelWidth = 224.0f;
 	float rightPanelWidth = 500.0f;
-	float bottomPanelHeight = 100.0f;
+	float bottomPanelHeight = 160.0f;
 };

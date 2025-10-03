@@ -41,6 +41,12 @@ public:
 	void drawModel();
 	void drawImage();
 	void calculateModelsPosition();
+	
+	void draw2d();
+	void draw3d();
+	
+	
+	
 private:
 	ofPoint start, end;
 	bool drawing = false;
@@ -54,6 +60,9 @@ private:
 	bool hasModel = true;
 	bool hasImage = false;
 	SceneGraph* sceneGraphRef = nullptr;
+	float zoomLevel = 1.0f;
+	float minZoom = 0.1f;
+	float maxZoom = 5.0f;
 
 	void drawCanvas();
 	void drawShape(const Shape& s);

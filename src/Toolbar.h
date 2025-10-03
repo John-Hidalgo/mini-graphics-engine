@@ -15,8 +15,17 @@ public:
 	
 	ofxPanel& getGui() { return dessinez; }
 	bool isSelectingColor() const { return pickingColour; }
-	void setColorSlider(const ofColor& col){colorSlider = col;};
-	ofParameter<ofColor> colorSlider;
+	
+	ofxButton redBtn, greenBtn, blueBtn, yellowBtn;
+	void onRedPressed();
+	void onGreenPressed();
+	void onBluePressed();
+	void onYellowPressed();
+	
+	ofColor currentColor;
+	string currentColorName;
+	ofxLabel currentColour;
+	void setColorFromCanvas(ofColor& color,std::string& name);
 	
 private:
 	Canvas* canvasRef;
