@@ -49,7 +49,15 @@ private:
 	ofxPanel echantillonage;
 	ofxButton echantillon1Button;
 	ofxButton echantillon2Button;
-	
+
+	ofxPanel primitives3DGroup;
+	ofxToggle sphereToggle;
+	ofxToggle cubeToggle;
+	ofxToggle cylinderToggle;
+	ofxToggle coneToggle;
+	ofxToggle torusToggle;
+	ofxToggle pyramidToggle;
+
 	bool pickingColour = false;
 	
 	void rectangleToggleChanged(bool & val);
@@ -69,4 +77,11 @@ private:
 
 	void setExclusiveToggle(ShapeMode mode);
 
+	void sphereToggleChanged(bool &val);
+	void cubeToggleChanged(bool &val);
+	void cylinderToggleChanged(bool &val);
+	void coneToggleChanged(bool &val);
+	void torusToggleChanged(bool &val);
+	void pyramidToggleChanged(bool &val);
+	void setExclusivePrimitiveToggle(Primitive3DType mode);
 };

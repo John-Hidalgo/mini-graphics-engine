@@ -89,12 +89,38 @@ void Toolbar::setup(Canvas* canvas) {
 	importModelButton.addListener(this, &Toolbar::importModelPressed);
 	
 	importation.minimize();
+
+	// 3D Primitives Group
+	primitives3DGroup.setup("Primitives 3D");
+	primitives3DGroup.setPosition(880, 0);
+	primitives3DGroup.setSize(200, 0);
+
+	primitives3DGroup.add(sphereToggle.setup("Sphere", false));
+	sphereToggle.addListener(this, &Toolbar::sphereToggleChanged);
+
+	primitives3DGroup.add(cubeToggle.setup("Cube", false));
+	cubeToggle.addListener(this, &Toolbar::cubeToggleChanged);
+
+	primitives3DGroup.add(cylinderToggle.setup("Cylinder", false));
+	cylinderToggle.addListener(this, &Toolbar::cylinderToggleChanged);
+
+	primitives3DGroup.add(coneToggle.setup("Cone", false));
+	coneToggle.addListener(this, &Toolbar::coneToggleChanged);
+
+	primitives3DGroup.add(torusToggle.setup("Torus", false));
+	torusToggle.addListener(this, &Toolbar::torusToggleChanged);
+
+	primitives3DGroup.add(pyramidToggle.setup("Pyramid", false));
+	pyramidToggle.addListener(this, &Toolbar::pyramidToggleChanged);
+
+	primitives3DGroup.minimize();
 }
 
 void Toolbar::draw() {
 	dessinez.draw();
 	importation.draw();
 	echantillonage.draw();
+	primitives3DGroup.draw();
 }
 
 void Toolbar::rectangleToggleChanged(bool & val) {
@@ -184,17 +210,24 @@ void Toolbar::setExclusiveToggle(ShapeMode mode) {
 	pointToggle     = (mode == ShapeMode::POINT);
 	triangleToggle  = (mode == ShapeMode::TRIANGLE);
 	freeformToggle  = (mode == ShapeMode::FREEFORM);
-	selectColourToggle = (mode == ShapeMode::NONE && pickingColour);
+	selectColourToggle = false;
+
+	// On désactive toutes toggle de primitives 3D primitive
+	sphereToggle = false;
+	cubeToggle = false;
+	cylinderToggle = false;
+	coneToggle = false;
+	torusToggle = false;
+	pyramidToggle = false;
 
 	if (canvasRef) {
-		if (mode == ShapeMode::NONE && pickingColour) {
-			canvasRef->setCurrentMode(ShapeMode::NONE);
-		} else {
-			canvasRef->setCurrentMode(mode);
-			canvasRef->setDrawingColor(currentColor);
-		}
+		canvasRef->setCurrentMode(mode);
+		// Pour s'assurer que le mode 3D mode est désactivé
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+		canvasRef->setDrawingColor(currentColor);
 	}
 }
+
 void Toolbar::colorChanged(ofColor& col) {
 	if (canvasRef) {
 		canvasRef->setDrawingColor(col);
@@ -344,3 +377,72 @@ void Toolbar::setColorFromCanvas(ofColor& color,std::string& name){
 			canvasRef->setDrawingColor(currentColor);
 		}
 };
+
+
+void Toolbar::sphereToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::SPHERE);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::SPHERE) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+}
+
+void Toolbar::cubeToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::CUBE);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::CUBE) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+}
+
+void Toolbar::cylinderToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::CYLINDER);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::CYLINDER) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+}
+
+void Toolbar::coneToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::CONE);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::CONE) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+}
+
+void Toolbar::torusToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::TORUS);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::TORUS) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+}
+
+void Toolbar::pyramidToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::PYRAMID);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::PYRAMID) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+}
+
+void Toolbar::setExclusivePrimitiveToggle(Primitive3DType mode) {
+	// On désactive toutes toggle de primitives 2D primitive
+	rectangleToggle = false;
+	circleToggle = false;
+	lineToggle = false;
+	freeformToggle = false;
+	pointToggle = false;
+	triangleToggle = false;
+	squareToggle = false;
+	selectColourToggle = false;
+
+	// On active la bonne toggle sélectionné
+	sphereToggle = (mode == Primitive3DType::SPHERE);
+	cubeToggle = (mode == Primitive3DType::CUBE);
+	cylinderToggle = (mode == Primitive3DType::CYLINDER);
+	coneToggle = (mode == Primitive3DType::CONE);
+	torusToggle = (mode == Primitive3DType::TORUS);
+	pyramidToggle = (mode == Primitive3DType::PYRAMID);
+
+	if (canvasRef) {
+		canvasRef->setCurrentPrimitiveMode(mode);
+		// Pour s'assurer que le mode 2D mode est désactivé
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+}

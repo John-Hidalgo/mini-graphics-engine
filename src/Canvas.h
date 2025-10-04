@@ -2,6 +2,7 @@
 #include "ofMain.h"
 #include "ShapeDefs.h"
 #include "Model3D.h"
+#include "Primitives3DDefs.h"
 #include <vector>
 #include <map>
 
@@ -44,9 +45,10 @@ public:
 	
 	void draw2d();
 	void draw3d();
-	
-	
-	
+
+	void setCurrentPrimitiveMode(Primitive3DType mode);
+	Primitive3DType getCurrentPrimitiveMode() const { return currentPrimitiveMode; }
+
 private:
 	ofPoint start, end;
 	bool drawing = false;
@@ -72,5 +74,23 @@ private:
 	void drawPoint(const Shape& s);
 	void drawTriangle(const Shape& s);
 	void drawSquare(const Shape& s);
-	
+
+	std::vector<Primitive3D> primitives3D;
+	Primitive3DType currentPrimitiveMode = Primitive3DType::NONE;
+	bool placingPrimitive = false;
+	bool drawingPrimitive = false;
+	ofPoint primitiveStartPos;
+
+	// TEMP
+	Primitive3D tempPrimitive;
+
+	// TEMP
+	void addPrimitive3D(Primitive3DType type, const ofPoint& position, float size);
+
+	//void addPrimitive3D(Primitive3DType type, const ofPoint& position);
+	void drawPrimitives3D();
+
+	// TEMP
+	void drawPrimitivePreview();
+
 };
