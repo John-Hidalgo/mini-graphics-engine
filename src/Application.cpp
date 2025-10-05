@@ -52,7 +52,6 @@ void Application::mousePressed(int x, int y, int button) {
 	bottomPanel.mousePressed(x, y, button);
 	leftPanel.mousePressed(x, y, button);
 
-	//bool commandHeld = ofGetKeyPressed(OF_KEY_COMMAND); //OF_KEY_CONTROL
 	for (int i = 0; i < cameras.size(); i++) {
 		if (cameras[i].viewport.inside(x, y)) {
 			activeCameraIndex = i;
@@ -64,6 +63,7 @@ void Application::mousePressed(int x, int y, int button) {
 	if(button == OF_MOUSE_BUTTON_RIGHT) {
 		mouseCaptured = !mouseCaptured;
 		if(mouseCaptured) {
+			orbitMode = !orbitMode; // Toggle between control schemes
 			// TODO: Change le curseur pour quelques chose comme une quatre fleches en axe
 			// ofHideCursor();
 		} else {
@@ -166,10 +166,10 @@ void Application::setupCameras(){
 		
 		cv.cam.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 		
-		cv.cam.setFov(120.0f);
+		cv.cam.setFov(60.0f);
 		
 		cv.cam.setNearClip(10.0f);
-		cv.cam.setFarClip(2000.0f);
+		cv.cam.setFarClip(10000.0f);
 
 		cv.viewport = ofRectangle(
 			10 + i * (previewWidth + 10),
@@ -199,35 +199,51 @@ void Application::updateCameraViewports(int w, int h) {
 	}
 }
 
-
-
 void Application::updateActiveCamera() {
-	if (cameras.empty() || !mouseCaptured) return;
+	if (cameras.empty()) return;
 	
 	float deltaTime = ofGetLastFrameTime();
-	float moveSpeed = 100.0f * deltaTime;
+	float moveSpeed = 200.0f * deltaTime;
+	float rotateSpeed = 30.0f * deltaTime;
+	
 	auto& cam = cameras[activeCameraIndex].cam;
 
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front = glm::normalize(front);
+	if (orbitMode && mouseCaptured) {
+		glm::vec3 front;
+		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		front.y = sin(glm::radians(pitch));
+		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		front = glm::normalize(front);
 
-	glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0, 1, 0)));
-	glm::vec3 up = glm::normalize(glm::cross(right, front));
+		glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0, 1, 0)));
+		glm::vec3 up = glm::normalize(glm::cross(right, front));
 
-	glm::vec3 pos = cam.getPosition();
+		glm::vec3 pos = cam.getPosition();
 
-	if (ofGetKeyPressed('w')) pos += front * moveSpeed;
-	if (ofGetKeyPressed('s')) pos -= front * moveSpeed;
-	if (ofGetKeyPressed('a')) pos -= right * moveSpeed;
-	if (ofGetKeyPressed('d')) pos += right * moveSpeed;
-	if (ofGetKeyPressed('e')) pos += up * moveSpeed;
-	if (ofGetKeyPressed('q')) pos -= up * moveSpeed;
+		if (ofGetKeyPressed('w')) pos += front * moveSpeed;
+		if (ofGetKeyPressed('s')) pos -= front * moveSpeed;
+		if (ofGetKeyPressed('a')) pos -= right * moveSpeed;
+		if (ofGetKeyPressed('d')) pos += right * moveSpeed;
+		if (ofGetKeyPressed('e')) pos += up * moveSpeed;
+		if (ofGetKeyPressed('q')) pos -= up * moveSpeed;
 
-	cam.setPosition(pos);
-	cam.lookAt(pos + front, up);
+		cam.setPosition(pos);
+		cam.lookAt(pos + front, up);
+	} else {
+		if (ofGetKeyPressed('w')) cam.dolly(-moveSpeed);  // Forward
+		if (ofGetKeyPressed('s')) cam.dolly(moveSpeed);   // Backward
+		if (ofGetKeyPressed('a')) cam.truck(-moveSpeed);  // Left
+		if (ofGetKeyPressed('d')) cam.truck(moveSpeed);   // Right
+		if (ofGetKeyPressed('e')) cam.boom(moveSpeed);    // Up
+		if (ofGetKeyPressed('q')) cam.boom(-moveSpeed);   // Down
+		
+		if (ofGetKeyPressed('f')) cam.panDeg(rotateSpeed);   // Rotate left
+		if (ofGetKeyPressed('j')) cam.panDeg(-rotateSpeed);  // Rotate right
+		
+		if (ofGetKeyPressed('g')) cam.tiltDeg(rotateSpeed);   // Tilt up
+		if (ofGetKeyPressed('h')) cam.tiltDeg(-rotateSpeed);  // Tilt down
+		
+	}
 }
 
 void Application::resetCamerasToSphere() {
@@ -250,7 +266,7 @@ void Application::resetCamerasToSphere() {
 	ofLog() << "Cameras reset to spherical arrangement :)";
 }
 void Application::updateYawPitchFromCamera() {
-	if (cameras.empty()) return;
+	if (cameras.empty() || !orbitMode) return;
 	
 	auto& cam = cameras[activeCameraIndex].cam;
 	glm::vec3 front = glm::normalize(-cam.getSideDir());

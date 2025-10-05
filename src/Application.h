@@ -32,6 +32,7 @@ public:
 	void drawDebugAxes(float length, float thickness);
 	void updateYawPitchFromCamera();
 	void keyPressed(int key);
+	bool orbitMode = false;
 	
 private:
 	Canvas canvas;
