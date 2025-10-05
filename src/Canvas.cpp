@@ -1,6 +1,7 @@
 #include "Canvas.h"
 #include "Toolbar.h"
 #include "SceneGraph.h"
+#include "of3dUtils.h"
 
 Canvas::Canvas() {}
 
@@ -58,10 +59,6 @@ void Canvas::drawCanvas(){
 	ofFill();
 	ofDrawRectangle(drawingArea);
 	ofNoFill();
-//	ofSetColor(255, 0, 0);
-//	ofSetLineWidth(200);
-//	ofDrawRectangle(drawingArea);
-//	ofFill();
 }
 void Canvas::draw2d(){
 	ofPushStyle();
@@ -78,6 +75,9 @@ void Canvas::draw3d(){
 	for (auto &m : models) {
 		m->draw();
 	}
+
+	// TODO: Juste pour tester la camera
+	ofDrawBox(-100, 0, 0, 100);
 }
 
 void Canvas::draw() {
@@ -384,22 +384,45 @@ void Canvas::loadModel(const std::string& path) {
 void Canvas::drawModel() {
 	if(hasModel) model3D.draw();
 }
+//void Canvas::calculateModelsPosition() {
+//	int n = models.size();
+//	if (n == 0) return;
+//
+//	float radius = 50.0f;
+//	radius = sceneGraphRef->positionSlider;
+//	float centerX = 0;
+//	float centerY = 0;//drawingArea.y + drawingArea.height * 0.5f;
+//
+//	for (int i = 0; i < n; i++) {
+//		float angle = TWO_PI * i / n;
+//		float x = centerX + radius * cos(angle);
+//		float y = centerY + radius * sin(angle);
+//
+//		models[i]->position.set(x, y, 0);
+//		models[i]->update();
+//	}
+//}
 void Canvas::calculateModelsPosition() {
 	int n = models.size();
 	if (n == 0) return;
 
-	float radius = 50.0f;
-	radius = sceneGraphRef->positionSlider;
-	float centerX = 0;//drawingArea.x + drawingArea.width * 0.5f;
-	float centerY = 0;//drawingArea.y + drawingArea.height * 0.5f;
+	float radius = sceneGraphRef->positionSlider;
+	float centerX = 0;
+	float centerZ = 0;
 
+	ofLog() << "=== Calculating positions for " << n << " models ===";
+	
 	for (int i = 0; i < n; i++) {
 		float angle = TWO_PI * i / n;
 		float x = centerX + radius * cos(angle);
-		float y = centerY + radius * sin(angle);
+		float z = centerZ + radius * sin(angle);
 
-		models[i]->position.set(x, y, 0);
+		models[i]->position.set(x, 0, z);
 		models[i]->update();
+		
+		ofLog() << "Model " << i << " position set to: "
+				<< "x=" << x << ", y=0, z=" << z;
+		ofLog() << "Model " << i << " actual position: "
+				<< models[i]->position;
 	}
 }
-

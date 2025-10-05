@@ -26,7 +26,7 @@ void Model3D::update()
 
 	// transformation du model
 	model.setScale(scale_model, scale_model, scale_model);
-	model.setPosition(position.x, position.y, 0);
+	model.setPosition(position.x, position.y, position.z);
 
 	if (use_rotation)
 	model.setRotation(0, ofGetFrameNum() * rotation_speed, 0.0f, 1.0f, 0.0f);
