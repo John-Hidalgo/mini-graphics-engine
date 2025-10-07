@@ -69,6 +69,11 @@ void Canvas::draw2d(){
 		drawShape(s);
 	}
 	drawPreview();
+	if (hasImage) {
+		if (showHistogram) {
+			histogram.draw(drawingArea.getX() + 650, drawingArea.getY() + 825,300, 150);
+		}
+	}
 	ofPopStyle();
 }
 void Canvas::draw3d(){
@@ -371,6 +376,7 @@ void Canvas::drawImage() {
 void Canvas::loadImage(const std::string & path) {
 	if (importedImage.load(path)) {
 		hasImage = true;
+		histogram.calculateColours(importedImage);
 	} else {
 		ofLogError() << "Failed to load image: " << path;
 		hasImage = false;

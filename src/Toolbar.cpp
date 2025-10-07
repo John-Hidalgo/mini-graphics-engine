@@ -63,6 +63,9 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.add(undoButton.setup("defaire"));
 	undoButton.addListener(this, &Toolbar::undoButtonPressed);
+	
+	dessinez.add(histogramToggle.setup("Affichez l'histogramme", false));
+	histogramToggle.addListener(this, &Toolbar::histogramToggleChanged);
 
 	dessinez.minimize();
 
@@ -87,6 +90,7 @@ void Toolbar::setup(Canvas* canvas) {
 
 	importation.add(importModelButton.setup("Importez Model 3D"));
 	importModelButton.addListener(this, &Toolbar::importModelPressed);
+	
 	
 	importation.minimize();
 }
@@ -344,3 +348,9 @@ void Toolbar::setColorFromCanvas(ofColor& color,std::string& name){
 			canvasRef->setDrawingColor(currentColor);
 		}
 };
+
+void Toolbar::histogramToggleChanged(bool& val) {
+	if (canvasRef) {
+		canvasRef->setShowHistogram(val);
+	}
+}

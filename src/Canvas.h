@@ -2,6 +2,7 @@
 #include "ofMain.h"
 #include "ShapeDefs.h"
 #include "Model3D.h"
+#include "Histogramme.h"
 #include <vector>
 #include <map>
 
@@ -35,6 +36,7 @@ public:
 	ofParameter<ofColor> color_picker_ambient;
 	ofParameter<ofColor> color_picker_diffuse;
 	
+	
 	void undo();
 	void clear();
 	void loadImage(const std::string & path);
@@ -42,6 +44,7 @@ public:
 	void drawModel();
 	void drawImage();
 	void calculateModelsPosition();
+	void setShowHistogram(bool show) { showHistogram = show; }
 	
 	void draw2d();
 	void draw3d();
@@ -64,6 +67,8 @@ private:
 	float zoomLevel = 1.0f;
 	float minZoom = 0.1f;
 	float maxZoom = 5.0f;
+	Histogramme histogram;
+	bool showHistogram = false;
 
 	void drawCanvas();
 	void drawShape(const Shape& s);

@@ -17,6 +17,7 @@ public:
 	bool isSelectingColor() const { return pickingColour; }
 	
 	ofxButton redBtn, greenBtn, blueBtn, yellowBtn;
+	ofxToggle histogramToggle;
 	void onRedPressed();
 	void onGreenPressed();
 	void onBluePressed();
@@ -66,6 +67,7 @@ private:
 	void importModelPressed();
 	void echantillon1Pressed();
 	void echantillon2Pressed();
+	void histogramToggleChanged(bool& val);
 
 	void setExclusiveToggle(ShapeMode mode);
 
