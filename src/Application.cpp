@@ -387,9 +387,22 @@ void Application::keyPressed(int key) {
 		}
 	}
 	if (key == 'k' || key == 'K') {
-			sphericalTangentialMode = !sphericalTangentialMode;
-			ofLog() << "Spherical sub-mode: " << (sphericalTangentialMode ? "TANGENTIAL" : "FREE-LOOK");
+		sphericalTangentialMode = !sphericalTangentialMode;
+		ofLog() << "Spherical sub-mode: " << (sphericalTangentialMode ? "TANGENTIAL" : "FREE-LOOK");
+	}
+	if (key == 'p' || key == 'P') {
+		if (!cameras.empty()) {
+			auto& cam = cameras[activeCameraIndex].cam;
+			
+			if (!cam.getOrtho()) {
+				cam.enableOrtho();
+				ofLog() << "Projection: Orthogonal";
+			} else {
+				cam.disableOrtho();
+				ofLog() << "Projection: Perspective";
+			}
 		}
+	}
 }
 
 Application::SphericalMovement Application::getSphericalMovementData(ofCamera& cam) {
