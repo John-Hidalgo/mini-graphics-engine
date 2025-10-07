@@ -25,6 +25,7 @@ public:
 	ShapeMode getCurrentMode() const { return currentMode; }
 	void setDrawingColor(ofColor color) { currentColor = color; }
 	vector<Shape>& getShapes() {return shapes;}
+	vector<std::unique_ptr<Model3D>>& getModels(){return models;}
 	void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
 	
