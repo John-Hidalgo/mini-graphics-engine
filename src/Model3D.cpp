@@ -9,7 +9,7 @@ void Model3D::setup()
 	// paramètres
 	scale_model = 0.2f;
 	rotation_speed = 0.3f;
-	use_rotation = true;
+	use_rotation = false;
 	// chargement du shader
 	shader_lambert.load("lambert_330_vs.glsl", "lambert_330_fs.glsl");
 	shader_normal.load("draw_normal_330_vs.glsl", "draw_normal_330_fs.glsl");
@@ -27,7 +27,7 @@ void Model3D::update()
 	// transformation du model
 	model.setScale(scale_model, scale_model, scale_model);
 	model.setPosition(position.x, position.y, position.z);
-
+	//model.setPosition(0, 0, 0);
 	if (use_rotation)
 	model.setRotation(0, ofGetFrameNum() * rotation_speed, 0.0f, 1.0f, 0.0f);
 

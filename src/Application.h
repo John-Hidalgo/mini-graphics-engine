@@ -8,6 +8,12 @@
 #include "Model3D.h"
 #include "CameraView.h"
 
+enum Coordinates {
+	EUCLIDEAN,
+	SPHERICAL,
+	HYPERBOLIC
+};
+
 class Application : public ofBaseApp {
 public:
 	void setup();
@@ -33,6 +39,27 @@ public:
 	void updateYawPitchFromCamera();
 	void keyPressed(int key);
 	bool orbitMode = false;
+	bool sphericalCoordinates = false;
+	bool sphericalTangentialMode = false;
+	
+	struct SphericalMovement {
+			glm::vec3 position;
+			glm::vec3 surfaceNormal;
+			glm::vec3 lookDir;
+			glm::vec3 upDir;
+			glm::vec3 rightDir;
+		};
+		
+	SphericalMovement getSphericalMovementData(ofCamera& cam);
+	glm::vec3 calculateSphericalMovement(const SphericalMovement& data, float moveSpeed);
+	void applyTangentialOrientation(ofCamera& cam, const SphericalMovement& data);
+	void handleSphericalRadiusChange(ofCamera& cam, float moveSpeed);
+	
+	Coordinates coodinates = EUCLIDEAN;
+	glm::vec3 hyperbolicTranslate(const glm::vec3& pos, const glm::vec3& dir, float scale);
+	glm::vec3 toHyperbolicCoords(const glm::vec3& euclideanPos, float scale);
+	glm::vec3 toEuclideanCoords(const glm::vec3& hyperbolicPos, float scale);
+	void foo();
 	
 private:
 	Canvas canvas;

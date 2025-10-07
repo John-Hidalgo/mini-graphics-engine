@@ -203,8 +203,8 @@ void Application::updateActiveCamera() {
 	if (cameras.empty()) return;
 	
 	float deltaTime = ofGetLastFrameTime();
-	float moveSpeed = 200.0f * deltaTime;
-	float rotateSpeed = 30.0f * deltaTime;
+	float moveSpeed = 100.0f * deltaTime;
+	float rotateSpeed = 60.0f * deltaTime;
 	
 	auto& cam = cameras[activeCameraIndex].cam;
 
@@ -229,20 +229,88 @@ void Application::updateActiveCamera() {
 
 		cam.setPosition(pos);
 		cam.lookAt(pos + front, up);
-	} else {
-		if (ofGetKeyPressed('w')) cam.dolly(-moveSpeed);  // Forward
-		if (ofGetKeyPressed('s')) cam.dolly(moveSpeed);   // Backward
-		if (ofGetKeyPressed('a')) cam.truck(-moveSpeed);  // Left
-		if (ofGetKeyPressed('d')) cam.truck(moveSpeed);   // Right
-		if (ofGetKeyPressed('e')) cam.boom(moveSpeed);    // Up
-		if (ofGetKeyPressed('q')) cam.boom(-moveSpeed);   // Down
-		
-		if (ofGetKeyPressed('f')) cam.panDeg(rotateSpeed);   // Rotate left
-		if (ofGetKeyPressed('j')) cam.panDeg(-rotateSpeed);  // Rotate right
-		
-		if (ofGetKeyPressed('g')) cam.tiltDeg(rotateSpeed);   // Tilt up
-		if (ofGetKeyPressed('h')) cam.tiltDeg(-rotateSpeed);  // Tilt down
-		
+	}
+	else {
+		if (coodinates == SPHERICAL) {
+			SphericalMovement data = getSphericalMovementData(cam);
+			glm::vec3 newPos = calculateSphericalMovement(data, moveSpeed);
+			if (newPos != data.position) {
+				cam.setPosition(newPos);
+			}
+			handleSphericalRadiusChange(cam, moveSpeed);
+			applyTangentialOrientation(cam, data);
+			ofDrawBitmapStringHighlight("Spherical Mode: " + string(sphericalTangentialMode ? "TANGENTIAL" : "FREE-LOOK"),20, 80);
+		}
+		else if (coodinates == HYPERBOLIC) {
+			glm::vec3 pos = cam.getPosition();
+			float r = glm::length(pos);
+			float scale = 1000.0f;
+			scale = cam.getFarClip();
+			glm::vec3 currentLookDir = glm::normalize(cam.getLookAtDir());
+			glm::vec3 currentUpDir   = glm::normalize(cam.getUpDir());
+			float denom = 1.0f - (r * r) / (scale * scale);
+			denom = glm::max(denom, 0.001f);
+			float hyperbolicFactor = 4.0f / (denom * denom);
+			float effectiveSpeed = moveSpeed * hyperbolicFactor * 0.1f;
+			if (!std::isfinite(effectiveSpeed)) {
+				ofLogWarning() << "moved out of clip plane with r= " << r;
+				effectiveSpeed = 0.0f;
+			}
+			float normalizedR = r / scale;
+			float minFOV = 10.0f;
+			float maxFOV = 170.0f;
+			float hyperbolicFOV = minFOV + (maxFOV - minFOV) * normalizedR * normalizedR;
+			float currentFOV = cam.getFov();
+			float newFOV = ofLerp(currentFOV, hyperbolicFOV, 0.2f);
+			cam.setFov(newFOV);
+			if (ofGetKeyPressed('w')) {
+				glm::vec3 moveDir = currentLookDir * effectiveSpeed;
+				glm::vec3 newPos = hyperbolicTranslate(pos, moveDir, scale);
+				cam.setPosition(newPos);
+			}
+			if (ofGetKeyPressed('s')) {
+				glm::vec3 moveDir = -currentLookDir * effectiveSpeed;
+				glm::vec3 newPos = hyperbolicTranslate(pos, moveDir, scale);
+				cam.setPosition(newPos);
+			}
+			if (ofGetKeyPressed('a')) {
+				glm::vec3 right = glm::normalize(glm::cross(currentLookDir, currentUpDir));
+				glm::vec3 moveDir = -right * effectiveSpeed;
+				glm::vec3 newPos = hyperbolicTranslate(pos, moveDir, scale);
+				cam.setPosition(newPos);
+			}
+			if (ofGetKeyPressed('d')) {
+				glm::vec3 right = glm::normalize(glm::cross(currentLookDir, currentUpDir));
+				glm::vec3 moveDir = right * effectiveSpeed;
+				glm::vec3 newPos = hyperbolicTranslate(pos, moveDir, scale);
+				cam.setPosition(newPos);
+			}
+			if (ofGetKeyPressed('e')) {
+				glm::vec3 moveDir = currentUpDir * effectiveSpeed;
+				glm::vec3 newPos = hyperbolicTranslate(pos, moveDir, scale);
+				cam.setPosition(newPos);
+			}
+			if (ofGetKeyPressed('q')) {
+				glm::vec3 moveDir = -currentUpDir * effectiveSpeed;
+				glm::vec3 newPos = hyperbolicTranslate(pos, moveDir, scale);
+				cam.setPosition(newPos);
+			}
+			cam.lookAt(cam.getPosition() + currentLookDir, currentUpDir);
+			ofLogVerbose() << "[HYPERBOLIC] r=" << r << " FOV=" << newFOV << " speed=" << effectiveSpeed;
+		}
+		else {
+			if (ofGetKeyPressed('w')) cam.dolly(-moveSpeed);
+			if (ofGetKeyPressed('s')) cam.dolly(moveSpeed);
+			if (ofGetKeyPressed('a')) cam.truck(-moveSpeed);
+			if (ofGetKeyPressed('d')) cam.truck(moveSpeed);
+			if (ofGetKeyPressed('e')) cam.boom(moveSpeed);
+			if (ofGetKeyPressed('q')) cam.boom(-moveSpeed);
+			cam.setFov(60.0f);
+		}
+		if (ofGetKeyPressed('f')) cam.panDeg(rotateSpeed);
+		if (ofGetKeyPressed('j')) cam.panDeg(-rotateSpeed);
+		if (ofGetKeyPressed('g')) cam.tiltDeg(rotateSpeed);
+		if (ofGetKeyPressed('h')) cam.tiltDeg(-rotateSpeed);
 	}
 }
 
@@ -303,4 +371,95 @@ void Application::keyPressed(int key) {
 	if (key == 'r' || key == 'R') {
 		resetCamerasToSphere();
 	}
+	if (key == 'c' || key == 'C') {
+		coodinates = static_cast<Coordinates>((coodinates + 1) % 3);
+		
+		switch(coodinates) {
+			case EUCLIDEAN:
+				ofLog() << "Movement mode: Euclidean";
+				break;
+			case SPHERICAL:
+				ofLog() << "Movement mode: Spherical";
+				break;
+			case HYPERBOLIC:
+				ofLog() << "Movement mode: Hyperbolic";
+				break;
+		}
+	}
+	if (key == 'k' || key == 'K') {
+			sphericalTangentialMode = !sphericalTangentialMode;
+			ofLog() << "Spherical sub-mode: " << (sphericalTangentialMode ? "TANGENTIAL" : "FREE-LOOK");
+		}
 }
+
+Application::SphericalMovement Application::getSphericalMovementData(ofCamera& cam) {
+	SphericalMovement data;
+	data.position = cam.getPosition();
+	data.surfaceNormal = glm::normalize(data.position);
+	data.lookDir = cam.getLookAtDir();
+	data.upDir = cam.getUpDir();
+	data.rightDir = glm::cross(data.lookDir, data.upDir);
+	return data;
+}
+
+glm::vec3 Application::calculateSphericalMovement(const SphericalMovement& data, float moveSpeed) {
+	glm::vec3 movement(0, 0, 0);
+	
+	if (ofGetKeyPressed('w')) movement += data.lookDir * moveSpeed;
+	if (ofGetKeyPressed('s')) movement -= data.lookDir * moveSpeed;
+	if (ofGetKeyPressed('a')) movement -= data.rightDir * moveSpeed;
+	if (ofGetKeyPressed('d')) movement += data.rightDir * moveSpeed;
+	
+	if (glm::length(movement) > 0.0f) {
+		glm::vec3 tangentMovement = movement - data.surfaceNormal * glm::dot(movement, data.surfaceNormal);
+		glm::vec3 newPos = data.position + tangentMovement;
+		float currentRadius = glm::length(data.position);
+		return glm::normalize(newPos) * currentRadius;
+	}
+	
+	return data.position;
+}
+
+void Application::applyTangentialOrientation(ofCamera& cam, const SphericalMovement& data) {
+	if (!sphericalTangentialMode) return;
+	
+	glm::vec3 newSurfaceNormal = glm::normalize(cam.getPosition());
+	glm::vec3 currentLook = cam.getLookAtDir();
+	glm::vec3 tangentLook = currentLook - newSurfaceNormal * glm::dot(currentLook, newSurfaceNormal);
+	
+	if (glm::length(tangentLook) > 0.001f) {
+		tangentLook = glm::normalize(tangentLook);
+		cam.lookAt(cam.getPosition() + tangentLook, newSurfaceNormal);
+	}
+}
+
+void Application::handleSphericalRadiusChange(ofCamera& cam, float moveSpeed) {
+	glm::vec3 pos = cam.getPosition();
+	float currentRadius = glm::length(pos);
+	
+	if (ofGetKeyPressed('e')) {
+		pos = glm::normalize(pos) * (currentRadius + moveSpeed);
+		cam.setPosition(pos);
+	}
+	if (ofGetKeyPressed('q')) {
+		float newRadius = glm::max(currentRadius - moveSpeed, 10.0f);
+		pos = glm::normalize(pos) * newRadius;
+		cam.setPosition(pos);
+	}
+}
+
+glm::vec3 Application::hyperbolicTranslate(const glm::vec3& pos, const glm::vec3& dir, float scale) {
+	float r = glm::length(pos);
+	if (r > scale * 0.95f) {
+		return pos;
+	}
+	float boost = 1.0f / (1.0f - (r*r)/(scale*scale));
+	glm::vec3 hyperbolicDir = dir * boost;
+	glm::vec3 newPos = pos + hyperbolicDir;
+	float newR = glm::length(newPos);
+	if (newR >= scale) {
+		newPos = glm::normalize(newPos) * scale * 0.95f;
+	}
+	return newPos;
+}
+
