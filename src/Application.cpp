@@ -63,21 +63,55 @@ void Application::mousePressed(int x, int y, int button) {
 	if(button == OF_MOUSE_BUTTON_RIGHT) {
 		mouseCaptured = !mouseCaptured;
 		if(mouseCaptured) {
-			orbitMode = !orbitMode; // Toggle between control schemes
+			orbitMode = !orbitMode;
 			// TODO: Change le curseur pour quelques chose comme une quatre fleches en axe
 			// ofHideCursor();
 		} else {
 			ofShowCursor();
 		}
 	}
+	if (selectionMode && button == OF_MOUSE_BUTTON_LEFT && canvasArea.inside(x, y)) {
+		isSelecting = true;
+		selectionStart = glm::vec2(x - canvasArea.x, y - canvasArea.y);
+		selectionEnd = selectionStart;
+		selectionRect.set(selectionStart.x, selectionStart.y, 0, 0);
+	}
 }
 
 void Application::mouseDragged(int x, int y, int button) {
 	canvas.mouseDragged(x, y, button);
+	
+	if (selectionMode && isSelecting && button == OF_MOUSE_BUTTON_LEFT) {
+		selectionEnd = glm::vec2(x - canvasArea.x, y - canvasArea.y);
+		
+		float x1 = glm::min(selectionStart.x, selectionEnd.x);
+		float x2 = glm::max(selectionStart.x, selectionEnd.x);
+		float y1 = glm::min(selectionStart.y, selectionEnd.y);
+		float y2 = glm::max(selectionStart.y, selectionEnd.y);
+		
+		selectionRect.set(x1, y1, x2 - x1, y2 - y1);
+	}
 }
 
 void Application::mouseReleased(int x, int y, int button) {
 	canvas.mouseReleased(x, y, button);
+	
+	if (selectionMode && isSelecting && button == OF_MOUSE_BUTTON_LEFT) {
+		isSelecting = false;
+		selectionEnd = glm::vec2(x - canvasArea.x, y - canvasArea.y);
+		
+		float x1 = glm::min(selectionStart.x, selectionEnd.x);
+		float x2 = glm::max(selectionStart.x, selectionEnd.x);
+		float y1 = glm::min(selectionStart.y, selectionEnd.y);
+		float y2 = glm::max(selectionStart.y, selectionEnd.y);
+		
+		selectionRect.set(x1, y1, x2 - x1, y2 - y1);
+
+		if (selectionRect.getWidth() > 10 && selectionRect.getHeight() > 10) {
+			focusToSelection();
+		}
+		selectionRect.set(0, 0, 0, 0);
+	}
 }
 
 // Pour la camera
@@ -106,6 +140,10 @@ void Application::draw() {
 	sceneGraph.draw();
 	//bottomPanel.draw();
 	toolbar.draw();
+	// pour mettre le focus sur un partie du canevas
+	if (selectionMode && isSelecting && selectionRect.getWidth() > 0 && selectionRect.getHeight() > 0) {
+			drawSelectionBox();
+		}
 	
 	
 	if(!cameras.empty()) {
@@ -403,6 +441,14 @@ void Application::keyPressed(int key) {
 			}
 		}
 	}
+	if (key == '1') {
+			selectionMode = !selectionMode;
+			if (selectionMode) {
+				ofLog() << "Selection mode activated - click and drag to select area";
+			} else {
+				ofLog() << "Selection mode deactivated";
+			}
+		}
 }
 
 Application::SphericalMovement Application::getSphericalMovementData(ofCamera& cam) {
@@ -476,3 +522,103 @@ glm::vec3 Application::hyperbolicTranslate(const glm::vec3& pos, const glm::vec3
 	return newPos;
 }
 
+void Application::drawSelectionBox() {
+	if (selectionRect.getWidth() <= 0 || selectionRect.getHeight() <= 0) return;
+	
+	ofPushStyle();
+	float canvasAspect = canvasArea.width / canvasArea.height;
+	float selWidth = selectionRect.width;
+	float selHeight = selectionRect.height;
+	float selAspect = selWidth / selHeight;
+	ofRectangle proportionalRect = selectionRect;
+	
+	if (selAspect > canvasAspect) {
+		float newHeight = selWidth / canvasAspect;
+		proportionalRect.height = newHeight;
+		proportionalRect.y = selectionRect.y - (newHeight - selHeight) * 0.5f;
+	}
+	else {
+		float newWidth = selHeight * canvasAspect;
+		proportionalRect.width = newWidth;
+		proportionalRect.x = selectionRect.x - (newWidth - selWidth) * 0.5f;
+	}
+	ofNoFill();
+	ofSetColor(255, 255, 0);
+	ofSetLineWidth(2);
+
+	ofDrawRectangle(proportionalRect.x + canvasArea.x,proportionalRect.y + canvasArea.y,proportionalRect.width,proportionalRect.height);
+
+	ofSetColor(255, 0, 0);
+	float crosshairSize = 5.0f;
+	float drawX = proportionalRect.x + canvasArea.x;
+	float drawY = proportionalRect.y + canvasArea.y;
+	float drawWidth = proportionalRect.width;
+	float drawHeight = proportionalRect.height;
+	
+	// Top-left corner
+	ofDrawLine(drawX, drawY - crosshairSize,
+			   drawX, drawY + crosshairSize);
+	ofDrawLine(drawX - crosshairSize, drawY,
+			   drawX + crosshairSize, drawY);
+	
+	// Top-right corner
+	ofDrawLine(drawX + drawWidth, drawY - crosshairSize,
+			   drawX + drawWidth, drawY + crosshairSize);
+	ofDrawLine(drawX + drawWidth - crosshairSize, drawY,
+			   drawX + drawWidth + crosshairSize, drawY);
+	
+	// Bottom-left corner
+	ofDrawLine(drawX, drawY + drawHeight - crosshairSize,
+			   drawX, drawY + drawHeight + crosshairSize);
+	ofDrawLine(drawX - crosshairSize, drawY + drawHeight,
+			   drawX + crosshairSize, drawY + drawHeight);
+	
+	// Bottom-right corner
+	ofDrawLine(drawX + drawWidth, drawY + drawHeight - crosshairSize,
+			   drawX + drawWidth, drawY + drawHeight + crosshairSize);
+	ofDrawLine(drawX + drawWidth - crosshairSize, drawY + drawHeight,
+			   drawX + drawWidth + crosshairSize, drawY + drawHeight);
+	
+	ofSetColor(255, 255, 255);
+	string dimensions = ofToString((int)proportionalRect.width) + " x " + ofToString((int)proportionalRect.height);
+	ofDrawBitmapString(dimensions,
+					  drawX + drawWidth * 0.5f - dimensions.length() * 3,
+					  drawY + drawHeight * 0.5f);
+	
+	string aspectInfo = "Aspect: " + ofToString(canvasAspect, 2);
+	//ofDrawBitmapString(aspectInfo,drawX + drawWidth * 0.5f - aspectInfo.length() * 3,drawY + drawHeight * 0.5f + 15);
+	ofPopStyle();
+}
+
+void Application::focusToSelection() {
+	if (cameras.empty()) return;
+	
+	auto& cam = cameras[activeCameraIndex].cam;
+	glm::vec2 selectionCenter = glm::vec2(selectionRect.x + selectionRect.width * 0.5f,selectionRect.y + selectionRect.height * 0.5f);
+	glm::vec2 canvasCenter = glm::vec2(canvasArea.width * 0.5f, canvasArea.height * 0.5f);
+
+	glm::vec2 pixelOffset;
+	pixelOffset.x = selectionCenter.x - canvasCenter.x;
+	pixelOffset.y = selectionCenter.y - canvasCenter.y;
+
+	glm::vec2 normalizedOffset;
+	normalizedOffset.x = pixelOffset.x / canvasCenter.x;
+	normalizedOffset.y = -pixelOffset.y / canvasCenter.y;
+	
+	glm::vec3 camPos = cam.getPosition();
+	float currentDistance = glm::length(camPos);
+	
+	cam.truck(normalizedOffset.x * currentDistance);
+	cam.boom(normalizedOffset.y * currentDistance);
+	
+	float widthRatio = canvasArea.width / selectionRect.width;
+	float heightRatio = canvasArea.height / selectionRect.height;
+	float zoomFactor = glm::min(widthRatio, heightRatio);
+	
+	float dollyDistance = currentDistance * (1.0f - (1.0f / zoomFactor));
+	dollyDistance = glm::clamp(dollyDistance, 10.0f, currentDistance * 0.8f);
+	
+	cam.dolly(-dollyDistance);
+	
+	ofLog() << "Centered and dollied in by: " << dollyDistance;
+}

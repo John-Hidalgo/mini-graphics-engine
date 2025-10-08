@@ -81,5 +81,13 @@ private:
 	float pitch = 0.0f; // Orientation en bas et en haut
 	float mouseSensitivity = 0.2f;
 	bool mouseCaptured = false;
+	
+	bool selectionMode = false;
+	bool isSelecting = false;
+	glm::vec2 selectionStart, selectionEnd;
+	ofRectangle selectionRect;
+	
+	void focusToSelection();
+	void drawSelectionBox();
 
 };
