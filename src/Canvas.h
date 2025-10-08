@@ -59,6 +59,25 @@ public:
 	ofRectangle cameraViewport;
 	void setActiveCamera(ofCamera* cam, const ofRectangle& viewport);
 	ofPoint customScreenToWorld(int x, int y, float planeZ = 0.0f);
+	
+	void loadMultipleImages(const std::vector<std::string>& paths);
+	void setCurrentImage(int index);
+	void removeImage(int index);
+	void clearAllImages();
+	void drawImageThumbnails();
+
+		
+	int getThumbnailAtPosition(int x, int y);
+	void keyPressed(int key);
+	void nextImage();
+	void previousImage();
+	void deleteCurrentImage();
+
+	ofImage& getCurrentImage();
+	int getCurrentImageIndex() const { return currentImageIndex; }
+	int getImageCount() const { return importedImages.size(); }
+	
+	
 private:
 	ofPoint start, end;
 	bool drawing = false;
@@ -77,6 +96,9 @@ private:
 	float maxZoom = 5.0f;
 	Histogramme histogram;
 	bool showHistogram = false;
+	std::vector<ofImage> importedImages;
+	std::vector<std::string> imagePaths;
+	int currentImageIndex = -1;
 
 	void drawCanvas();
 	void drawShape(const Shape& s);
@@ -101,4 +123,7 @@ private:
 
 	void drawPrimitivePreview();
 
+	
+	
+	
 };

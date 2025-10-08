@@ -84,16 +84,23 @@ void Canvas::draw2d(){
 	ofPushStyle();
 	drawCanvas();
 	drawImage();
-
+	drawImageThumbnails();
 	for (auto &s : shapes) {
 		drawShape(s);
 	}
 	drawPreview();
 	if (hasImage) {
-		if (showHistogram) {
-			histogram.draw(drawingArea.getX() + 650, drawingArea.getY() + 825,300, 150);
+			if (showHistogram) {
+				histogram.draw(drawingArea.getX() + 650, drawingArea.getY() + 825, 300, 150);
+			}
+			ofSetColor(0, 0, 0);
+			ofDrawBitmapString("Images: " + ofToString(importedImages.size()) +
+							  " | Courant: " + ofToString(currentImageIndex + 1),
+							  drawingArea.x + 10, drawingArea.y + 20);
+			
+			ofDrawBitmapString("GAUCHE/DROITE : Parcourir les images | RETOUR ARRIÈRE : Supprimer l'image actuelle",
+							  drawingArea.x + 10, drawingArea.y + 40);
 		}
-	}
 	ofPopStyle();
 }
 void Canvas::draw3d(){
@@ -415,12 +422,15 @@ void Canvas::clear() {
 void Canvas::setDrawingArea(const ofRectangle& area) {
 	drawingArea = area;
 }
+
 void Canvas::drawImage() {
-	if (hasImage) {
+	if (hasImage && currentImageIndex >= 0 && currentImageIndex < importedImages.size()) {
+		ofImage& currentImage = importedImages[currentImageIndex];
+		
 		float canvasW = drawingArea.getWidth();
 		float canvasH = drawingArea.getHeight();
-		float imgW = importedImage.getWidth();
-		float imgH = importedImage.getHeight();
+		float imgW = currentImage.getWidth();
+		float imgH = currentImage.getHeight();
 
 		float scaleX = canvasW / imgW;
 		float scaleY = canvasH / imgH;
@@ -432,17 +442,28 @@ void Canvas::drawImage() {
 		float drawX = drawingArea.x + (canvasW - drawW) / 2;
 		float drawY = drawingArea.y + (canvasH - drawH) / 2;
 
-		importedImage.draw(drawX, drawY, drawW, drawH);
+		ofSetColor(255, 255, 255);
+		currentImage.draw(drawX, drawY, drawW, drawH);
+		
+		ofSetColor(0, 0, 0);
+		//ofDrawBitmapString("Image " + ofToString(currentImageIndex + 1) +" of " + ofToString(importedImages.size()),drawX, drawY - 10);
 	}
 }
 
-void Canvas::loadImage(const std::string & path) {
-	if (importedImage.load(path)) {
+void Canvas::loadImage(const std::string &path) {
+	ofImage newImage;
+	if (newImage.load(path)) {
+		importedImages.push_back(newImage);
+		imagePaths.push_back(path);
 		hasImage = true;
-		histogram.calculateColours(importedImage);
+		
+		currentImageIndex = importedImages.size() - 1;
+		histogram.calculateColours(importedImages[currentImageIndex]);
+		
+		ofLogNotice() << "Loaded image: " << path << " (Total: " << importedImages.size() << ")";
+		ofLogNotice() << "Current image index: " << currentImageIndex;
 	} else {
 		ofLogError() << "Failed to load image: " << path;
-		hasImage = false;
 	}
 }
 
@@ -535,5 +556,133 @@ void Canvas::drawPrimitivePreview() {
 		ofSetColor(currentColor);
 		tempPrimitive.mesh.draw();
 		ofPopMatrix();
+  }
+}
+
+void Canvas::loadMultipleImages(const std::vector<std::string>& paths) {
+	for (const auto& path : paths) {
+		loadImage(path);
+	}
+}
+
+void Canvas::setCurrentImage(int index) {
+	if (index >= 0 && index < importedImages.size()) {
+		ofImage selectedImage = importedImages[index];
+		std::string selectedPath = imagePaths[index];
+		importedImages.erase(importedImages.begin() + index);
+		imagePaths.erase(imagePaths.begin() + index);
+		importedImages.push_back(selectedImage);
+		imagePaths.push_back(selectedPath);
+		histogram.calculateColours(importedImages.back());
+		
+		ofLogNotice() << "Set current image to index: " << index << " (now at position: " << getCurrentImageIndex() << ")";
+	}
+}
+
+void Canvas::removeImage(int index) {
+	if (index >= 0 && index < importedImages.size()) {
+		importedImages.erase(importedImages.begin() + index);
+		imagePaths.erase(imagePaths.begin() + index);
+		hasImage = !importedImages.empty();
+		if (hasImage) {
+			histogram.calculateColours(importedImages.back());
+		}
+		
+		ofLogNotice() << "Removed image at index: " << index << " (Remaining: " << importedImages.size() << ")";
+	}
+}
+
+void Canvas::clearAllImages() {
+	importedImages.clear();
+	imagePaths.clear();
+	hasImage = false;
+	ofLogNotice() << "Cleared all images";
+}
+
+ofImage& Canvas::getCurrentImage() {
+	if (hasImage && currentImageIndex >= 0 && currentImageIndex < importedImages.size()) {
+		return importedImages[currentImageIndex];
+	}
+	static ofImage emptyImage;
+	return emptyImage;
+}
+
+void Canvas::keyPressed(int key) {
+	if (!hasImage) return;
+	
+	switch (key) {
+		case OF_KEY_LEFT:
+			previousImage();
+			break;
+		case OF_KEY_RIGHT:
+			nextImage();
+			break;
+		case OF_KEY_BACKSPACE:
+			deleteCurrentImage();
+			break;
+	}
+}
+
+void Canvas::nextImage() {
+	if (importedImages.size() <= 1) return;
+	
+	currentImageIndex = (currentImageIndex + 1) % importedImages.size();
+	histogram.calculateColours(importedImages[currentImageIndex]);
+	
+	ofLogNotice() << "Next image - Current index: " << currentImageIndex;
+}
+
+void Canvas::previousImage() {
+	if (importedImages.size() <= 1) return;
+	
+	currentImageIndex = (currentImageIndex - 1 + importedImages.size()) % importedImages.size();
+	histogram.calculateColours(importedImages[currentImageIndex]);
+	
+	ofLogNotice() << "Previous image - Current index: " << currentImageIndex;
+}
+
+void Canvas::deleteCurrentImage() {
+	if (!hasImage || importedImages.empty()) return;
+	
+	ofLogNotice() << "Deleting current image at index: " << currentImageIndex;
+	
+	importedImages.erase(importedImages.begin() + currentImageIndex);
+	imagePaths.erase(imagePaths.begin() + currentImageIndex);
+	
+	if (importedImages.empty()) {
+		hasImage = false;
+		currentImageIndex = -1;
+	} else {
+		currentImageIndex = currentImageIndex % importedImages.size();
+		histogram.calculateColours(importedImages[currentImageIndex]);
+	}
+	
+	ofLogNotice() << "Deleted image. Remaining: " << importedImages.size() << ", Current index: " << currentImageIndex;
+}
+
+void Canvas::drawImageThumbnails() {
+	if (importedImages.size() <= 1) return;
+
+	float thumbnailSize = 60.0f;
+	float spacing = 5.0f;
+	float startX = drawingArea.x + 20;
+	float startY = drawingArea.getBottom() - thumbnailSize - 20;
+	
+	for (int i = 0; i < importedImages.size(); i++) {
+		float x = startX + i * (thumbnailSize + spacing);
+		float y = startY;
+		if (i == currentImageIndex) {
+			ofSetColor(100, 200, 255);
+			ofDrawRectangle(x - 2, y - 2, thumbnailSize + 4, thumbnailSize + 4);
+		} else {
+			ofSetColor(150, 150, 150);
+			ofDrawRectangle(x - 1, y - 1, thumbnailSize + 2, thumbnailSize + 2);
+		}
+		
+		ofSetColor(255, 255, 255);
+		importedImages[i].draw(x, y, thumbnailSize, thumbnailSize);
+		
+		ofSetColor(0, 0, 0);
+		ofDrawBitmapString(ofToString(i + 1), x + 5, y + 15);
 	}
 }

@@ -461,6 +461,7 @@ void Application::keyPressed(int key) {
 				ofLog() << "Selection mode deactivated";
 			}
 		}
+	canvas.keyPressed(key);
 }
 
 Application::SphericalMovement Application::getSphericalMovementData(ofCamera& cam) {
