@@ -246,20 +246,20 @@ void SceneGraph::drawShapeList() {
 	}
 }
 void SceneGraph::drawModelList() {
-	float panelWidth = 175;
-	float panelX = x + panelWidth + panelPadding;
-	float panelY = 450;
-	float itemHeight = 15;
+    int listStartY = 450 - panelPadding;
+    int rowHeight = 15;
+    int numPrimitives = canvasRef->getPrimitives3D().size();
+    float panelWidth = 175;
 
-	for(int i = 0; i < canvasRef->models.size(); i++) {
-		ofRectangle rect(panelX, panelY + i * itemHeight, panelWidth, itemHeight);
+	for(int i = 0; i < numPrimitives; i++) {
+		ofRectangle rect( x + panelWidth + panelPadding + 120, listStartY + i * rowHeight, panelWidth, rowHeight);
 		if(std::find(selectedModelIndices.begin(), selectedModelIndices.end(), i) != selectedModelIndices.end()){
 			ofSetColor(200, 200, 255);}
 		else{
 			ofSetColor(180);}
 		ofDrawRectangle(rect);
 		ofSetColor(0);
-		ofDrawBitmapString("Model " + std::to_string(i+1), rect.x + 5, rect.y + itemHeight);
+		ofDrawBitmapString("Primitives 3D" + std::to_string(i+1), rect.x + 5, rect.y + rowHeight);
 	}
 }
 

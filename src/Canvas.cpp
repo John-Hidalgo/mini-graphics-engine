@@ -22,6 +22,26 @@ void Canvas::setup(const ofRectangle& area,Toolbar* toolbar,SceneGraph* sceneGra
 
 }
 
+// On en a besoin pour transformer les clics sur l'ecran en position 3D dans l'editeur
+void Canvas::setActiveCamera(ofCamera* cam, const ofRectangle& viewport) {
+	activeCamera = cam;
+	cameraViewport = viewport;
+}
+
+ofPoint Canvas::customScreenToWorld(int x, int y, float planeZ) {
+	if (!activeCamera) return ofPoint(0, 0, 0);
+
+	// Convert screen coordinates to viewport-relative coordinates
+	float viewportX = x - cameraViewport.x;
+	float viewportY = y - cameraViewport.y;
+
+	// Use the camera's screenToWorld method
+	ofPoint screenPoint(viewportX, viewportY, 0);
+	ofPoint worldPoint = activeCamera->screenToWorld(screenPoint, cameraViewport);
+
+	return worldPoint;
+}
+
 void Canvas::update() {
 	if(hasModel) {
 		model3D.update();
@@ -283,10 +303,8 @@ void Canvas::mousePressed(int x, int y, int button) {
 		// Début du dessin d'une primitive 3D
 		drawingPrimitive = true;
 
-		// Maybe: Conversion de la position de l'écran au plan 3D
-		primitiveStartPos = ofPoint(x - drawingArea.getWidth()/2,
-									y - drawingArea.getHeight()/2,
-									0);
+		// On transforme les coordonnees 2D du click sur l'ecran en coordonnees 3D dans l'editeur
+		primitiveStartPos = customScreenToWorld(x + 224.0f, y, 0.0f);
 
 		// Construction d'une primitive temporaire pour voir ce que l'on dessine
 		tempPrimitive.type = currentPrimitiveMode;
@@ -296,6 +314,7 @@ void Canvas::mousePressed(int x, int y, int button) {
 		// Taille minimale affichable
 		tempPrimitive.size = 10.0f;
 		tempPrimitive.generateMesh();
+        std::cout << "mousePressed -> Primitives 3D Start Position: " << primitiveStartPos << std::endl;
 
 		return;
 	}
@@ -318,13 +337,9 @@ void Canvas::mouseDragged(int x, int y, int button) {
 	if (drawingPrimitive) {
 		end.set(x, y);
 
-		// Maybe: On calcule la taille en se basant sur la distance lors du drag de souris
-		float distance = start.distance(end);
-
 		// On update la taille primitive temp de preview
 		tempPrimitive.setSizeFromPoints(start, end);
-
-	} else if (drawing) {
+    } else if (drawing) {
 		end.set(x, y);
 		if (currentMode == ShapeMode::FREEFORM) {
 			tempShape.points.push_back(ofPoint(x, y));
@@ -451,38 +466,6 @@ void Canvas::calculateModelsPosition() {
 		models[i]->update();
 	}
 }
-/*
-void Canvas::setCurrentPrimitiveMode(Primitive3DType mode) {
-	currentPrimitiveMode = mode;
-	placingPrimitive = (mode != Primitive3DType::NONE);
-}
-
-void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position) {
-	Primitive3D primitive;
-	primitive.type = type;
-	primitive.position = position;
-	primitive.color = currentColor;
-	primitive.generateMesh();
-	primitives3D.push_back(primitive);
-}
-
-void Canvas::drawPrimitives3D() {
-	for (auto& primitive : primitives3D) {
-		ofPushMatrix();
-		ofTranslate(primitive.position);
-
-		if (primitive.isSelected) {
-			ofSetColor(255, 255, 0);
-		} else {
-			ofSetColor(primitive.color);
-		}
-
-		primitive.mesh.draw();
-		ofPopMatrix();
-	}
-}
-*/
-
 
 void Canvas::setCurrentPrimitiveMode(Primitive3DType mode) {
 	currentPrimitiveMode = mode;
@@ -510,7 +493,8 @@ void Canvas::drawPrimitives3D() {
 			ofSetColor(primitive.color);
 		}
 
-		primitive.mesh.draw();
+		// On dessine la primitive 3D
+        primitive.mesh.draw();
 		ofPopMatrix();
 	}
 }

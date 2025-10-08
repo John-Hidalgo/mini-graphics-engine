@@ -52,6 +52,11 @@ void Application::update() {
 //}
 
 void Application::mousePressed(int x, int y, int button) {
+	// A garder pour faire fonctionner les clics avec les primitives 3D
+	if(!cameras.empty()) {
+		canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
+	}
+
 	canvas.mousePressed(x, y, button);
 	sceneGraph.mousePressed(x, y, button);
 	bottomPanel.mousePressed(x, y, button);
@@ -61,6 +66,10 @@ void Application::mousePressed(int x, int y, int button) {
 	for (int i = 0; i < cameras.size(); i++) {
 		if (cameras[i].viewport.inside(x, y)) {
 			activeCameraIndex = i;
+
+			// On set la nouvelle camera active pour pouvoir la position des clics sur le canevas 2D en position du monde 3D
+			canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
+
 			return;
 		}
 	}
@@ -84,6 +93,9 @@ void Application::draw() {
 	
 	
 	if(!cameras.empty()) {
+		// Avant de commencer le draw call on set la camera active
+		canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
+
 		//pour la camera sur le caneva
 		ofPushView();
 		ofViewport(canvasArea);

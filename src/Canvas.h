@@ -26,10 +26,13 @@ public:
 	ShapeMode getCurrentMode() const { return currentMode; }
 	void setDrawingColor(ofColor color) { currentColor = color; }
 	vector<Shape>& getShapes() {return shapes;}
-	void setDrawingArea(const ofRectangle& area);
+    vector<std::unique_ptr<Model3D>>& getModels() {return models;}
+    vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
+
+    void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
 	
-	std::vector<std::unique_ptr<Model3D>> models;
+	vector<std::unique_ptr<Model3D>> models;
 	vector<Shape> shapes;
 	ofParameter<ofColor> color_picker_background;
 	ofParameter<ofColor> color_picker_ambient;
@@ -49,6 +52,10 @@ public:
 	void setCurrentPrimitiveMode(Primitive3DType mode);
 	Primitive3DType getCurrentPrimitiveMode() const { return currentPrimitiveMode; }
 
+	ofCamera* activeCamera = nullptr;
+	ofRectangle cameraViewport;
+	void setActiveCamera(ofCamera* cam, const ofRectangle& viewport);
+	ofPoint customScreenToWorld(int x, int y, float planeZ = 0.0f);
 private:
 	ofPoint start, end;
 	bool drawing = false;
@@ -81,16 +88,12 @@ private:
 	bool drawingPrimitive = false;
 	ofPoint primitiveStartPos;
 
-	// TEMP
 	Primitive3D tempPrimitive;
 
-	// TEMP
 	void addPrimitive3D(Primitive3DType type, const ofPoint& position, float size);
 
-	//void addPrimitive3D(Primitive3DType type, const ofPoint& position);
 	void drawPrimitives3D();
 
-	// TEMP
 	void drawPrimitivePreview();
 
 };
