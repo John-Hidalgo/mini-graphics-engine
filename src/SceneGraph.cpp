@@ -58,6 +58,10 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	//modelEditorPanel.add(color_picker_background.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
 	modelEditorPanel.add(color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
 	modelEditorPanel.add(color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+	
+	deleteButton3DModel.setup("Effacez");
+	deleteButton3DModel.addListener(this,&SceneGraph::deleteButton3DModelPressed);
+	modelEditorPanel.add(&deleteButton3DModel);
 
 	
 }
@@ -86,6 +90,21 @@ void SceneGraph::deleteButtonPressed() {
 		selectedShapeIndices.clear();
 	} else if (!shapes.empty()) {
 		shapes.pop_back();
+	}
+}
+void SceneGraph::deleteButton3DModelPressed() {
+	auto& models = canvasRef->getModels();
+	if (!selectedModelIndices.empty()) {
+		std::sort(selectedModelIndices.begin(), selectedModelIndices.end(), std::greater<int>());
+		
+		for (int index : selectedModelIndices) {
+			if (index >= 0 && index < models.size()) {
+				models.erase(models.begin() + index);
+			}
+		}
+		selectedModelIndices.clear();
+	} else if (!models.empty()) {
+		models.pop_back();
 	}
 }
 void SceneGraph::thicknessChanged(float & val) {

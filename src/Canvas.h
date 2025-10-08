@@ -3,6 +3,7 @@
 #include "ShapeDefs.h"
 #include "Model3D.h"
 #include "Primitives3DDefs.h"
+#include "Histogramme.h"
 #include <vector>
 #include <map>
 
@@ -26,10 +27,10 @@ public:
 	ShapeMode getCurrentMode() const { return currentMode; }
 	void setDrawingColor(ofColor color) { currentColor = color; }
 	vector<Shape>& getShapes() {return shapes;}
-    vector<std::unique_ptr<Model3D>>& getModels() {return models;}
-    vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
+  vector<std::unique_ptr<Model3D>>& getModels() {return models;}
+  vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
 
-    void setDrawingArea(const ofRectangle& area);
+  void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
 	
 	vector<std::unique_ptr<Model3D>> models;
@@ -38,6 +39,7 @@ public:
 	ofParameter<ofColor> color_picker_ambient;
 	ofParameter<ofColor> color_picker_diffuse;
 	
+	
 	void undo();
 	void clear();
 	void loadImage(const std::string & path);
@@ -45,6 +47,7 @@ public:
 	void drawModel();
 	void drawImage();
 	void calculateModelsPosition();
+	void setShowHistogram(bool show) { showHistogram = show; }
 	
 	void draw2d();
 	void draw3d();
@@ -72,6 +75,8 @@ private:
 	float zoomLevel = 1.0f;
 	float minZoom = 0.1f;
 	float maxZoom = 5.0f;
+	Histogramme histogram;
+	bool showHistogram = false;
 
 	void drawCanvas();
 	void drawShape(const Shape& s);

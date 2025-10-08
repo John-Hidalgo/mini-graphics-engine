@@ -33,6 +33,7 @@ private:
 	ofxFloatSlider thicknessSlider;
 	//ofxColorSlider colorSlider;
 	ofxButton deleteButton;
+	ofxButton deleteButton3DModel;
 	ofxFloatSlider hueSlider;
 	ofxFloatSlider satSlider;
 	ofxFloatSlider briSlider;
@@ -41,6 +42,7 @@ private:
 	
 
 	void deleteButtonPressed();
+	void deleteButton3DModelPressed();
 	void thicknessChanged(float & val);
 	void colorComponentChanged(int & value);
 	void drawShapeList();
