@@ -77,6 +77,67 @@ void SceneGraph::draw() {
 	drawModelList();
 }
 
+void SceneGraph::clearSelection() {
+	selectedShapeIndices.clear();
+}
+
+void SceneGraph::selectShapesInArea(const ofRectangle& selectionRect) {
+    if (!canvasRef) return;
+
+    auto& shapes = canvasRef->getShapes();
+    selectedShapeIndices.clear();
+
+    for (int i = 0; i < shapes.size(); i++) {
+        const auto& s = shapes[i];
+
+        ofRectangle shapeBounds;
+
+        if (s.type == ShapeMode::RECTANGLE || s.type == ShapeMode::SQUARE ||
+            s.type == ShapeMode::CIRCLE || s.type == ShapeMode::TRIANGLE || s.type == ShapeMode::LINE) {
+            float x1 = std::min(s.start.x, s.end.x);
+            float x2 = std::max(s.start.x, s.end.x);
+            float y1 = std::min(s.start.y, s.end.y);
+            float y2 = std::max(s.start.y, s.end.y);
+            shapeBounds.set(x1, y1, x2 - x1, y2 - y1);
+        }
+        else if (s.type == ShapeMode::POINT) {
+            shapeBounds.set(s.start.x - 3, s.start.y - 3, 6, 6);
+        }
+        else if (!s.points.empty()) {
+            float minX = s.points[0].x, maxX = s.points[0].x;
+            float minY = s.points[0].y, maxY = s.points[0].y;
+            for (auto& p : s.points) {
+                minX = std::min(minX, p.x);
+                maxX = std::max(maxX, p.x);
+                minY = std::min(minY, p.y);
+                maxY = std::max(maxY, p.y);
+            }
+            shapeBounds.set(minX, minY, maxX - minX, maxY - minY);
+        }
+        else {
+            continue;
+        }
+
+    	ofLog() << "SelectionRect: x=" << selectionRect.x
+			<< " y=" << selectionRect.y
+			<< " w=" << selectionRect.width
+			<< " h=" << selectionRect.height;
+
+    	ofLog() << "Shape " << i << " Bounds: x=" << shapeBounds.x
+				<< " y=" << shapeBounds.y
+				<< " w=" << shapeBounds.width
+				<< " h=" << shapeBounds.height;
+
+    	bool intersecting = selectionRect.intersects(shapeBounds);
+    	ofLog() << "→ Intersecting: " << (intersecting ? "YES" : "NO");
+
+        if (selectionRect.intersects(shapeBounds)) {
+            selectedShapeIndices.push_back(i);
+        }
+    }
+}
+
+
 void SceneGraph::deleteButtonPressed() {
 	auto& shapes = canvasRef->getShapes();
 	if (!selectedShapeIndices.empty()) {
@@ -189,6 +250,7 @@ void SceneGraph::setPanelArea(const ofRectangle& area) {
 	gui.setPosition(x + panelPadding, y + panelPadding);
 	gui.setDefaultWidth(width - 2 * panelPadding);
 }
+
 void SceneGraph::mousePressed(int mx, int my, int button) {
 	int listStartY = 450 - panelPadding;
 	int rowHeight = 15;

@@ -89,15 +89,13 @@ void Application::mousePressed(int x, int y, int button) {
 
 void Application::mouseDragged(int x, int y, int button) {
 	canvas.mouseDragged(x, y, button);
-	
-	if (selectionMode && isSelecting && button == OF_MOUSE_BUTTON_LEFT) {
+
+	if (selectionMode && isSelecting) {
 		selectionEnd = glm::vec2(x - canvasArea.x, y - canvasArea.y);
-		
 		float x1 = glm::min(selectionStart.x, selectionEnd.x);
 		float x2 = glm::max(selectionStart.x, selectionEnd.x);
 		float y1 = glm::min(selectionStart.y, selectionEnd.y);
 		float y2 = glm::max(selectionStart.y, selectionEnd.y);
-		
 		selectionRect.set(x1, y1, x2 - x1, y2 - y1);
 	}
 }
@@ -140,6 +138,15 @@ void Application::mouseMoved(int x, int y) {
 
 	lastX = x;
 	lastY = y;
+
+	if (shiftHeld && isSelecting) {
+		selectionEnd = glm::vec2(x - canvasArea.x, y - canvasArea.y);
+		float x1 = glm::min(selectionStart.x, selectionEnd.x);
+		float x2 = glm::max(selectionStart.x, selectionEnd.x);
+		float y1 = glm::min(selectionStart.y, selectionEnd.y);
+		float y2 = glm::max(selectionStart.y, selectionEnd.y);
+		selectionRect.set(x1, y1, x2 - x1, y2 - y1);
+	}
 }
 
 void Application::draw() {
@@ -151,8 +158,8 @@ void Application::draw() {
 	toolbar.draw();
 	// pour mettre le focus sur un partie du canevas
 	if (selectionMode && isSelecting && selectionRect.getWidth() > 0 && selectionRect.getHeight() > 0) {
-			drawSelectionBox();
-		}
+		drawSelectionBox();
+	}
 	
 	
 	if(!cameras.empty()) {
@@ -417,7 +424,45 @@ void Application::drawDebugAxes(float length, float thickness) {
 	ofSetLineWidth(1);
 }
 
+void Application::keyReleased(int key) {
+	if (key == OF_KEY_SHIFT) {
+		shiftHeld = false;
+
+		if (selectionMode && isSelecting) {
+			isSelecting = false;
+			selectionEnd = glm::vec2(ofGetMouseX() - canvasArea.x, ofGetMouseY() - canvasArea.y);
+
+			float x1 = glm::min(selectionStart.x, selectionEnd.x);
+			float x2 = glm::max(selectionStart.x, selectionEnd.x);
+			float y1 = glm::min(selectionStart.y, selectionEnd.y);
+			float y2 = glm::max(selectionStart.y, selectionEnd.y);
+			selectionRect.set(x1 + 225, y1, x2 - x1, y2 - y1);
+
+			selectShapesInArea();
+
+			selectionRect.set(0, 0, 0, 0);
+		}
+	}
+}
+
+void Application::selectShapesInArea() {
+	if (selectionRect.getWidth() <= 0 || selectionRect.getHeight() <= 0)
+		return;
+
+	sceneGraph.selectShapesInArea(selectionRect);
+}
+
 void Application::keyPressed(int key) {
+	if (key == OF_KEY_SHIFT) {
+		shiftHeld = true;
+		if (selectionMode && !isSelecting) {
+			isSelecting = true;
+			selectionStart = glm::vec2(ofGetMouseX() - canvasArea.x, ofGetMouseY() - canvasArea.y);
+			selectionEnd = selectionStart;
+			selectionRect.set(selectionStart.x, selectionStart.y, 0, 0);
+		}
+	}
+
 	if (key == 'r' || key == 'R') {
 		resetCamerasToSphere();
 	}

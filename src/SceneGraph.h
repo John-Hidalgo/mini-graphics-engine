@@ -10,6 +10,8 @@ public:
 	void draw();
 	void mousePressed(int x, int y, int button);
 	void setPanelArea(const ofRectangle& area);
+	void selectShapesInArea(const ofRectangle& selectionRect);
+	void clearSelection();
 	ofxFloatSlider scaleSlider;
 	ofxFloatSlider positionSlider;
 	ofxPanel modelEditorPanel;
@@ -39,6 +41,8 @@ private:
 	ofxFloatSlider briSlider;
 	ofxToggle contourToggle;
 	ofxToggle fillToggle;
+	ofPoint selectionStart;
+	ofRectangle selectionRect;
 	
 
 	void deleteButtonPressed();

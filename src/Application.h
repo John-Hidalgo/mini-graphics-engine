@@ -37,7 +37,9 @@ public:
 	void resetCamerasToSphere();
 	void drawDebugAxes(float length, float thickness);
 	void updateYawPitchFromCamera();
+	void selectShapesInArea();
 	void keyPressed(int key);
+	void keyReleased(int key);
 	bool orbitMode = false;
 	bool sphericalCoordinates = false;
 	bool sphericalTangentialMode = false;
@@ -84,6 +86,7 @@ private:
 	
 	bool selectionMode = false;
 	bool isSelecting = false;
+	bool shiftHeld = false;
 	glm::vec2 selectionStart, selectionEnd;
 	ofRectangle selectionRect;
 	
