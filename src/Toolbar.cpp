@@ -5,6 +5,9 @@ Toolbar::Toolbar() : canvasRef(nullptr) {}
 void Toolbar::setup(Canvas* canvas) {
 	canvasRef = canvas;
 
+	// On charge les possibles curseurs au debut
+	loadCursorIcons();
+
 	dessinez.setup("Dessinez");
 	dessinez.setPosition(220,0);
 	dessinez.setSize(200, 0);
@@ -118,6 +121,8 @@ void Toolbar::setup(Canvas* canvas) {
 	pyramidToggle.addListener(this, &Toolbar::pyramidToggleChanged);
 
 	primitives3DGroup.minimize();
+
+	updateCursorIcon();
 }
 
 void Toolbar::draw() {
@@ -125,6 +130,12 @@ void Toolbar::draw() {
 	importation.draw();
 	echantillonage.draw();
 	primitives3DGroup.draw();
+
+	// Si on dessine une forme/primitive on draw le curseur
+	if (isDrawingActive && selectedCursor.isAllocated()) {
+		ofSetColor(255);
+		selectedCursor.draw(ofGetMouseX() - 1.0f, ofGetMouseY(), 20, 20);
+	}
 }
 
 void Toolbar::rectangleToggleChanged(bool & val) {
@@ -132,6 +143,8 @@ void Toolbar::rectangleToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::RECTANGLE) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::circleToggleChanged(bool & val) {
@@ -139,6 +152,8 @@ void Toolbar::circleToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::CIRCLE) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::lineToggleChanged(bool & val) {
@@ -146,6 +161,8 @@ void Toolbar::lineToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::LINE) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::pointToggleChanged(bool & val) {
@@ -153,6 +170,8 @@ void Toolbar::pointToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::POINT) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::squareToggleChanged(bool & val) {
@@ -160,6 +179,8 @@ void Toolbar::squareToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::SQUARE) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::triangleToggleChanged(bool & val) {
@@ -167,6 +188,8 @@ void Toolbar::triangleToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::TRIANGLE) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::freeformToggleChanged(bool & val) {
@@ -174,6 +197,8 @@ void Toolbar::freeformToggleChanged(bool & val) {
 	else if (canvasRef->getCurrentMode() == ShapeMode::FREEFORM) {
 		canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::selectColourToggleChanged(bool & val) {
@@ -388,6 +413,8 @@ void Toolbar::sphereToggleChanged(bool &val) {
 	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::SPHERE) {
 		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::cubeToggleChanged(bool &val) {
@@ -395,6 +422,8 @@ void Toolbar::cubeToggleChanged(bool &val) {
 	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::CUBE) {
 		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::cylinderToggleChanged(bool &val) {
@@ -402,6 +431,8 @@ void Toolbar::cylinderToggleChanged(bool &val) {
 	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::CYLINDER) {
 		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::coneToggleChanged(bool &val) {
@@ -409,6 +440,8 @@ void Toolbar::coneToggleChanged(bool &val) {
 	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::CONE) {
 		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::torusToggleChanged(bool &val) {
@@ -416,6 +449,8 @@ void Toolbar::torusToggleChanged(bool &val) {
 	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::TORUS) {
 		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::pyramidToggleChanged(bool &val) {
@@ -423,6 +458,8 @@ void Toolbar::pyramidToggleChanged(bool &val) {
 	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::PYRAMID) {
 		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
 	}
+
+	updateCursorIcon();
 }
 
 void Toolbar::setExclusivePrimitiveToggle(Primitive3DType mode) {
@@ -454,5 +491,89 @@ void Toolbar::setExclusivePrimitiveToggle(Primitive3DType mode) {
 void Toolbar::histogramToggleChanged(bool& val) {
 	if (canvasRef) {
 		canvasRef->setShowHistogram(val);
+	}
+}
+
+void Toolbar::loadCursorIcons() {
+	std::filesystem::path cwd = std::filesystem::current_path();
+	std::cout << "Current working directory: " << cwd << std::endl;
+
+	std::string icons2DPath = cwd.string() + "/data/resources/icons/2D/";
+	std::string icons3DPath = cwd.string() + "/data/resources/icons/3D/";
+
+	// Shape 2D
+	availableCursorIcons["rectangle"] = ofImage(icons2DPath + "rectangle.png");
+	availableCursorIcons["circle"] = ofImage(icons2DPath + "circle.png");
+	availableCursorIcons["line"] = ofImage(icons2DPath + "line1.png");
+	availableCursorIcons["freeform"] = ofImage(icons2DPath + "pen1.png");
+	availableCursorIcons["point"] = ofImage(icons2DPath + "point1.png");
+	availableCursorIcons["square"] = ofImage(icons2DPath + "square.png");
+	availableCursorIcons["triangle"] = ofImage(icons2DPath + "triangle.png");
+
+	// Primitives 3D
+	availableCursorIcons["sphere"] = ofImage(icons3DPath + "sphere1.png");
+	availableCursorIcons["cube"] = ofImage(icons3DPath + "cube.png");
+	availableCursorIcons["cylinder"] = ofImage(icons3DPath + "cylinder.png");
+	availableCursorIcons["cone"] = ofImage(icons3DPath + "cone.png");
+	availableCursorIcons["torus"] = ofImage(icons3DPath + "torus-2D.png");
+	availableCursorIcons["pyramid"] = ofImage(icons3DPath + "pyramid-square-base.png");
+
+	for (auto& cursor : availableCursorIcons) {
+		cursor.second.setUseTexture(true);
+	}
+}
+
+void Toolbar::setCursor(const std::string& iconName) {
+	// Si on dessine on cache le curseur OS defaut
+	if (availableCursorIcons.find(iconName) != availableCursorIcons.end()) {
+		ofHideCursor();
+		selectedCursor = availableCursorIcons[iconName];
+	} else {
+		ofShowCursor();
+	}
+}
+
+void Toolbar::updateCursorIcon() {
+	isDrawingActive = (rectangleToggle || circleToggle || lineToggle ||
+					pointToggle || squareToggle || triangleToggle || freeformToggle ||
+					sphereToggle || cubeToggle || cylinderToggle ||
+					coneToggle || torusToggle || pyramidToggle || selectColourToggle);
+
+	if (isDrawingActive) {
+		//On cache le curseur par defaut de l'OS
+		ofHideCursor();
+
+		if (rectangleToggle) {
+			setCursor("rectangle");
+		} else if (circleToggle) {
+			setCursor("circle");
+		} else if (lineToggle) {
+			setCursor("line");
+		} else if (freeformToggle) {
+			setCursor("freeform");
+		} else if (pointToggle) {
+			setCursor("point");
+		} else if (squareToggle) {
+			setCursor("square");
+		} else if (triangleToggle) {
+			setCursor("triangle");
+		} else if (sphereToggle) {
+			setCursor("sphere");
+		} else if (cubeToggle) {
+			setCursor("cube");
+		} else if (cylinderToggle) {
+			setCursor("cylinder");
+		} else if (coneToggle) {
+			setCursor("cone");
+		} else if (torusToggle) {
+			setCursor("torus");
+		} else if (pyramidToggle) {
+			setCursor("pyramid");
+		} else {
+			setCursor("default");
+		}
+	}
+	else {
+		ofShowCursor();
 	}
 }

@@ -27,7 +27,11 @@ public:
 	string currentColorName;
 	ofxLabel currentColour;
 	void setColorFromCanvas(ofColor& color,std::string& name);
-	
+
+	void loadCursorIcons();
+	bool isDrawingActive = false;
+    ofImage selectedCursor;
+	std::map<std::string, ofImage> availableCursorIcons;
 private:
 	Canvas* canvasRef;
 	Model3D model3D;
@@ -86,4 +90,7 @@ private:
 	void torusToggleChanged(bool &val);
 	void pyramidToggleChanged(bool &val);
 	void setExclusivePrimitiveToggle(Primitive3DType mode);
+
+	void setCursor(const std::string& iconName);
+	void updateCursorIcon();
 };
