@@ -52,8 +52,12 @@ private:
 	ofxButton importModelButton;
 
 	ofxPanel echantillonage;
-	ofxButton echantillon1Button;
-	ofxButton echantillon2Button;
+	ofxButton echantillonageButton;
+	ofxIntSlider sampleXSlider;
+	ofxIntSlider sampleYSlider;
+	ofxIntSlider sampleWidthSlider;
+	ofxIntSlider sampleHeightSlider;
+
 
 	ofxPanel primitives3DGroup;
 	ofxToggle sphereToggle;
@@ -77,8 +81,7 @@ private:
 	void importImagePressed();
 	void undoButtonPressed();
 	void importModelPressed();
-	void echantillon1Pressed();
-	void echantillon2Pressed();
+	void echantillonagePressed();
 	void histogramToggleChanged(bool& val);
 
 	void setExclusiveToggle(ShapeMode mode);

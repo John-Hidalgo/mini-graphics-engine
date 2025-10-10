@@ -76,11 +76,13 @@ void Toolbar::setup(Canvas* canvas) {
 	echantillonage.setPosition(440,0);
 	echantillonage.setSize(200,0);
 
-	echantillonage.add(echantillon1Button.setup("Échantillonez une Image"));
-	echantillon1Button.addListener(this, &Toolbar::echantillon1Pressed);
+	echantillonage.add(echantillonageButton.setup("Echantillonez une Image"));
+	echantillonageButton.addListener(this, &Toolbar::echantillonagePressed);
 
-	echantillonage.add(echantillon2Button.setup("Échantillonez une Image"));
-	echantillon2Button.addListener(this, &Toolbar::echantillon2Pressed);
+	echantillonage.add(sampleXSlider.setup("Sample Pos X", 1, 1, 1200));
+	echantillonage.add(sampleYSlider.setup("Sample Pos Y", 1, 1, 1200));
+	echantillonage.add(sampleWidthSlider.setup("Sample Width", 1, 1, 1200));
+	echantillonage.add(sampleHeightSlider.setup("Sample Height", 1, 1, 1200));
 
 	echantillonage.minimize();
 	
@@ -222,7 +224,7 @@ void Toolbar::undoButtonPressed() {
 	}
 }
 void Toolbar::importImagePressed() {
-	ofFileDialogResult result = ofSystemLoadDialog("Choissisez un image");
+	ofFileDialogResult result = ofSystemLoadDialog("Choissisez une image");
 	if (result.bSuccess) {
 		std::string path = result.getPath();
 		if (canvasRef) {
@@ -283,67 +285,37 @@ void Toolbar::importModelPressed() {
 	
 }
 
-
-void Toolbar::echantillon1Pressed() {
-	std::cout << "echantillon1Pressed!" << "\n";
-
-	// On demande au user de choisir une image
-	ofFileDialogResult result = ofSystemLoadDialog("Choisissez une image à échantillonner");
+void Toolbar::echantillonagePressed() {
+	ofFileDialogResult result = ofSystemLoadDialog("Choisissez une image à echantillonner");
 	if (!result.bSuccess) return;
 
-	// On charge l'image source
 	ofImage source;
 	if (!source.load(result.getPath())) {
 		ofLogError() << "Impossible de charger l'image : " << result.getPath();
 		return;
 	}
 
-	// dimensions d'échantillon
-	int sampleWidth  = source.getWidth()  / 3;
-	int sampleHeight = source.getHeight() / 3;
+	int sampleWidth = sampleWidthSlider;
+	int sampleHeight = sampleHeightSlider;
+	int sampleX = sampleXSlider;
+	int sampleY = sampleYSlider;
 
-	// On crée une nouvelle image de destination
+	sampleX = ofClamp(sampleX, 0, source.getWidth() - 1);
+	sampleY = ofClamp(sampleY, 0, source.getHeight() - 1);
+	sampleWidth = ofClamp(sampleWidth, 1, source.getWidth() - sampleX);
+	sampleHeight = ofClamp(sampleHeight, 1, source.getHeight() - sampleY);
+
 	ofImage destination;
-	destination.allocate(sampleWidth * 2, sampleHeight * 2, OF_IMAGE_COLOR);
+	destination.cropFrom(source, sampleX, sampleY, sampleWidth, sampleHeight);
 
-	// 4 échantillons de l'image source
-	ofImage sample1, sample2, sample3, sample4;
-	sample1.cropFrom(source, 0, 0, sampleWidth, sampleHeight);
-	sample2.cropFrom(source, sampleWidth, 0, sampleWidth, sampleHeight);
-	sample3.cropFrom(source, 0, sampleHeight, sampleWidth, sampleHeight);
-	sample4.cropFrom(source, sampleWidth, sampleHeight, sampleWidth, sampleHeight);
-
-	// On dessine ces échantillons dans une fbo temporaire
-	ofFbo fbo;
-	fbo.allocate(destination.getWidth(), destination.getHeight(), GL_RGBA);
-	fbo.begin();
-	ofClear(0,0,0,0);
-
-	sample1.draw(0, 0, sampleWidth, sampleHeight);
-	sample2.draw(sampleWidth, 0, sampleWidth, sampleHeight);
-	sample3.draw(0, sampleHeight, sampleWidth, sampleHeight);
-	sample4.draw(sampleWidth, sampleHeight, sampleWidth, sampleHeight);
-
-	fbo.end();
-
-	// On cope le rendu du fbo vers destination
-	fbo.readToPixels(destination.getPixels());
-	destination.update();
-
-	// On sauvegarde l'image générée
 	destination.save("echantillon.png");
-	ofLogNotice() << "Image échantillonnée sauvegardée sous : data/echantillon.png";
+	ofLogNotice() << "Échantillon sauvegardé";
 
-	// Possiblement envoyer l'image dans le canvas
 	if (canvasRef) {
 		canvasRef->loadImage("echantillon.png");
 	}
 }
 
-
-void Toolbar::echantillon2Pressed() {
-	std::cout << "echantillon2Pressed!" << "\n";
-}
 
 void Toolbar::onRedPressed(){
 	currentColor = ofColor(255, 0, 0);
