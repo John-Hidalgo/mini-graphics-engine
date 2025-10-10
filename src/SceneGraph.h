@@ -21,6 +21,7 @@ public:
 	ofParameter<ofColor> color_picker_diffuse;
 	std::vector<int> selectedShapeIndices;
 	std::vector<int> selectedModelIndices;
+	std::vector<int> selectedPrimitiveIndices;
 	ofParameter<ofColor> colour2dShapes;
 	
 private:
@@ -57,4 +58,5 @@ private:
 	void fillToggled(bool & val);
 	
 	void drawModelList();
+	void drawPrimitivesList();
 };

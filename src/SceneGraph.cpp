@@ -75,6 +75,7 @@ void SceneGraph::draw() {
 	drawShapeList();
 	modelEditorPanel.draw();
 	drawModelList();
+	drawPrimitivesList();
 }
 
 void SceneGraph::clearSelection() {
@@ -285,11 +286,10 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 	}
 	
 	float panelX = this->x + panelWidth + panelPadding;
-	float panelY = 450;
 	float itemHeight = 15;
 
 	for (int i = 0; i < canvasRef->models.size(); i++) {
-		ofRectangle rect(panelX, panelY + i * itemHeight, panelWidth, itemHeight);
+		ofRectangle rect(panelX, listStartY + i * itemHeight, panelWidth, itemHeight);
 		if (rect.inside(mx, my)) {
 			auto it = std::find(selectedModelIndices.begin(), selectedModelIndices.end(), i);
 			if (it != selectedModelIndices.end()) {
@@ -305,8 +305,27 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 			break;
 		}
 	}
-}
+	float primitivesPanelX = x + 2 * panelWidth + panelPadding;
+	int numPrimitives = canvasRef->getPrimitives3D().size();
 
+	for (int i = 0; i < numPrimitives; i++) {
+		ofRectangle rect(primitivesPanelX, listStartY + i * rowHeight, panelWidth, rowHeight);
+		if (rect.inside(mx, my)) {
+			auto it = std::find(selectedPrimitiveIndices.begin(), selectedPrimitiveIndices.end(), i);
+			if (it != selectedPrimitiveIndices.end()) {
+				selectedPrimitiveIndices.erase(it);
+			} else {
+				if (ofGetKeyPressed(OF_KEY_COMMAND) || ofGetKeyPressed(OF_KEY_CONTROL)) {
+					selectedPrimitiveIndices.push_back(i);
+				} else {
+					selectedPrimitiveIndices.clear();
+					selectedPrimitiveIndices.push_back(i);
+				}
+			}
+			break;
+		}
+	}
+}
 void SceneGraph::drawShapeList() {
 	int listStartY = 450 - panelPadding;
 	int rowHeight = 15;
@@ -327,21 +346,38 @@ void SceneGraph::drawShapeList() {
 	}
 }
 void SceneGraph::drawModelList() {
-    int listStartY = 450 - panelPadding;
-    int rowHeight = 15;
-    int numPrimitives = canvasRef->getPrimitives3D().size();
-    float panelWidth = 175;
+	float panelWidth = 175;
+	float panelX = x + panelWidth + panelPadding;
+	float panelY = 450 - panelPadding;
+	float itemHeight = 15;
 
-	for(int i = 0; i < numPrimitives; i++) {
-		ofRectangle rect( x + panelWidth + panelPadding + 120, listStartY + i * rowHeight, panelWidth, rowHeight);
+	for(int i = 0; i < canvasRef->models.size(); i++) {
+		ofRectangle rect(panelX, panelY + i * itemHeight, panelWidth, itemHeight);
 		if(std::find(selectedModelIndices.begin(), selectedModelIndices.end(), i) != selectedModelIndices.end()){
 			ofSetColor(200, 200, 255);}
 		else{
 			ofSetColor(180);}
 		ofDrawRectangle(rect);
 		ofSetColor(0);
-		ofDrawBitmapString("Primitives 3D" + std::to_string(i+1), rect.x + 5, rect.y + rowHeight);
+		ofDrawBitmapString("Model " + std::to_string(i+1), rect.x + 5, rect.y + itemHeight);
 	}
 }
-
-
+void SceneGraph::drawPrimitivesList() {
+	float panelWidth = 175;
+	float panelX = x + 2 * panelWidth  + panelPadding;
+	float listStartY = 450 - panelPadding;
+	int rowHeight = 15;
+	int numPrimitives = canvasRef->getPrimitives3D().size();
+	
+	for(int i = 0; i < numPrimitives; i++) {
+		ofRectangle rect(panelX, listStartY + i * rowHeight, panelWidth, rowHeight);
+		if(std::find(selectedPrimitiveIndices.begin(), selectedPrimitiveIndices.end(), i) != selectedPrimitiveIndices.end()) {
+			ofSetColor(200, 200, 255);
+		} else {
+			ofSetColor(180);
+		}
+		ofDrawRectangle(rect);
+		ofSetColor(0);
+		ofDrawBitmapString("Primitive " + std::to_string(i+1), rect.x + 5, rect.y + rowHeight);
+	}
+}
