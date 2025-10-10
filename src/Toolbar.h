@@ -11,6 +11,11 @@ class Toolbar {
 public:
 	Toolbar();
 	void setup(Canvas* canvas);
+	void variantNonePressed();
+	void variantMetallicPressed();
+	void variantPlasticPressed();
+	void variantWireframePressed();
+	void variantTransparentPressed();
 	void draw();
 	
 	ofxPanel& getGui() { return dessinez; }
@@ -18,10 +23,21 @@ public:
 	
 	ofxButton redBtn, greenBtn, blueBtn, yellowBtn;
 	ofxToggle histogramToggle;
+	ofxGuiGroup variantGroup;
+	ofxButton variantNoneButton;
+	ofxButton variantMetallicButton;
+	ofxButton variantPlasticButton;
+	ofxButton variantWireframeButton;
+	ofxButton variantTransparentButton;
+
+	ModelVariant selectedVariant = ModelVariant::None;
 	void onRedPressed();
 	void onGreenPressed();
 	void onBluePressed();
 	void onYellowPressed();
+
+	void setSelectedVariant(ModelVariant variant);
+	void updateVariantButtonColors();
 	
 	ofColor currentColor;
 	string currentColorName;

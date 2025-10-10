@@ -18,6 +18,8 @@ void Model3D::setup()
   
 }
 
+
+
 void Model3D::update()
 {
 	// position au centre de la fenêtre d'affichage
@@ -59,8 +61,16 @@ void Model3D::draw()
 	shader.setUniform3f("color_diffuse",  color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
 	shader.setUniform3f("light_position", light.getGlobalPosition());
 
+	if (variant == ModelVariant::Transparent) {
+		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+	}
+
 	// dessiner le model
 	model.draw(OF_MESH_FILL);
+
+	if (variant == ModelVariant::Transparent) {
+		ofDisableBlendMode();
+	}
 
 	// désactiver le shader
 	shader.end();
@@ -73,6 +83,48 @@ void Model3D::draw()
 
 	// désactiver l'occlusion en profondeur
 	ofDisableDepthTest();
+}
+
+void Model3D::applyVariant(ModelVariant chosenVariant) {
+	variant = chosenVariant;
+	switch (chosenVariant) {
+	case ModelVariant::Metallic:
+		ofLogNotice() << "Metallic model";
+		color_ambient = ofColor(80, 80, 100);
+		color_diffuse = ofColor(200, 200, 255);
+		shader = shader_lambert;
+		break;
+
+	case ModelVariant::Plastic:
+		ofLogNotice() << "Plastic model";
+		color_ambient = ofColor(40, 0, 0);
+		color_diffuse = ofColor(240, 60, 60);
+		shader = shader_lambert;
+		break;
+
+	case ModelVariant::Wireframe:
+		ofLogNotice() << "Wireframe model";
+		color_ambient = ofColor(0, 0, 0);
+		color_diffuse = ofColor(255, 255, 255);
+		shader = shader_normal;
+		break;
+
+	case ModelVariant::Transparent:
+		ofLogNotice() << "Transparent model";
+		color_ambient = ofColor(100, 100, 100);
+		color_diffuse = ofColor(255, 255, 255, 120);
+		shader = shader_lambert;
+		break;
+
+	default:
+		shader = shader_lambert;
+		color_ambient = ofColor(50, 50, 50);
+		color_diffuse = ofColor(200, 200, 200);
+		break;
+	}
+
+	ofLogNotice() << "applyVariant() Ambient: "
+			  << color_ambient << " Diffuse: " << color_diffuse;
 }
 
 

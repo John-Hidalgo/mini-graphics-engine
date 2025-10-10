@@ -44,28 +44,38 @@ ofPoint Canvas::customScreenToWorld(int x, int y, float planeZ) {
 }
 
 void Canvas::update() {
-	if(hasModel) {
+	if (hasModel) {
 		model3D.update();
+
 		model3D.color_background = color_picker_background;
-		model3D.color_ambient = color_picker_ambient;
-		model3D.color_diffuse = color_picker_diffuse;
+		if (model3D.variant == ModelVariant::None) {
+			model3D.color_ambient = color_picker_ambient;
+			model3D.color_diffuse = color_picker_diffuse;
+		}
 	}
+
 	calculateModelsPosition();
 
-	if(!sceneGraphRef->selectedModelIndices.empty()) {
-		for(int idx : sceneGraphRef->selectedModelIndices) {
+	if (!sceneGraphRef->selectedModelIndices.empty()) {
+		for (int idx : sceneGraphRef->selectedModelIndices) {
 			auto& model = models[idx];
 			model->color_background = sceneGraphRef->color_picker_background;
-			model->color_ambient = sceneGraphRef->color_picker_ambient;
-			model->color_diffuse = sceneGraphRef->color_picker_diffuse;
 			model->scale_model = sceneGraphRef->scaleSlider;
+
+			if (model->variant == ModelVariant::None) {
+				model->color_ambient = sceneGraphRef->color_picker_ambient;
+				model->color_diffuse = sceneGraphRef->color_picker_diffuse;
+			}
 		}
 	} else {
-		for(auto &model : models) {
+		for (auto &model : models) {
 			model->color_background = sceneGraphRef->color_picker_background;
-			model->color_ambient = sceneGraphRef->color_picker_ambient;
-			model->color_diffuse = sceneGraphRef->color_picker_diffuse;
 			model->scale_model = sceneGraphRef->scaleSlider;
+
+			if (model->variant == ModelVariant::None) {
+				model->color_ambient = sceneGraphRef->color_picker_ambient;
+				model->color_diffuse = sceneGraphRef->color_picker_diffuse;
+			}
 		}
 	}
 }

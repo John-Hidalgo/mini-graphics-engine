@@ -95,6 +95,29 @@ void Toolbar::setup(Canvas* canvas) {
 
 	importation.add(importModelButton.setup("Importez Model 3D"));
 	importModelButton.addListener(this, &Toolbar::importModelPressed);
+
+	// --- Variant selector group ---
+	variantGroup.setup("3D Model Variant");
+
+	variantNoneButton.setup("None");
+	variantMetallicButton.setup("Metallic");
+	variantPlasticButton.setup("Plastic");
+	variantWireframeButton.setup("Wireframe");
+	variantTransparentButton.setup("Transparent");
+
+	variantNoneButton.addListener(this, &Toolbar::variantNonePressed);
+	variantMetallicButton.addListener(this, &Toolbar::variantMetallicPressed);
+	variantPlasticButton.addListener(this, &Toolbar::variantPlasticPressed);
+	variantWireframeButton.addListener(this, &Toolbar::variantWireframePressed);
+	variantTransparentButton.addListener(this, &Toolbar::variantTransparentPressed);
+
+	variantGroup.add(&variantNoneButton);
+	variantGroup.add(&variantMetallicButton);
+	variantGroup.add(&variantPlasticButton);
+	variantGroup.add(&variantWireframeButton);
+	variantGroup.add(&variantTransparentButton);
+
+	importation.add(&variantGroup);
 	
 	
 	importation.minimize();
@@ -124,7 +147,62 @@ void Toolbar::setup(Canvas* canvas) {
 
 	primitives3DGroup.minimize();
 
+	updateVariantButtonColors();
 	updateCursorIcon();
+}
+
+void Toolbar::setSelectedVariant(ModelVariant variant) {
+	selectedVariant = variant;
+	updateVariantButtonColors();
+}
+
+void Toolbar::updateVariantButtonColors() {
+	auto resetColor = ofColor(80);
+	variantNoneButton.setBackgroundColor(resetColor);
+	variantMetallicButton.setBackgroundColor(resetColor);
+	variantPlasticButton.setBackgroundColor(resetColor);
+	variantWireframeButton.setBackgroundColor(resetColor);
+	variantTransparentButton.setBackgroundColor(resetColor);
+
+	ofColor highlight(0, 120, 255);
+
+	switch (selectedVariant) {
+	case ModelVariant::None:
+		variantNoneButton.setBackgroundColor(highlight);
+		break;
+	case ModelVariant::Metallic:
+		variantMetallicButton.setBackgroundColor(highlight);
+		break;
+	case ModelVariant::Plastic:
+		variantPlasticButton.setBackgroundColor(highlight);
+		break;
+	case ModelVariant::Wireframe:
+		variantWireframeButton.setBackgroundColor(highlight);
+		break;
+	case ModelVariant::Transparent:
+		variantTransparentButton.setBackgroundColor(highlight);
+		break;
+	}
+}
+
+void Toolbar::variantNonePressed() {
+	setSelectedVariant(ModelVariant::None);
+}
+
+void Toolbar::variantMetallicPressed() {
+	setSelectedVariant(ModelVariant::Metallic);
+}
+
+void Toolbar::variantPlasticPressed() {
+	setSelectedVariant(ModelVariant::Plastic);
+}
+
+void Toolbar::variantWireframePressed() {
+	setSelectedVariant(ModelVariant::Wireframe);
+}
+
+void Toolbar::variantTransparentPressed() {
+	setSelectedVariant(ModelVariant::Transparent);
 }
 
 void Toolbar::draw() {
@@ -272,17 +350,23 @@ void Toolbar::importModelPressed() {
 		false,
 		defaultPath
 	);
+
 	if (result.bSuccess) {
 		auto newModel = std::make_unique<Model3D>();
 		newModel->setup();
 		newModel->loadModel(result.getPath());
+
 		newModel->color_background = canvasRef->color_picker_background;
 		newModel->color_ambient = canvasRef->color_picker_ambient;
 		newModel->color_diffuse = canvasRef->color_picker_diffuse;
+
+		newModel->applyVariant(selectedVariant);
+
 		canvasRef->models.push_back(std::move(newModel));
-		ofLogNotice() << "Imported model: " << result.getPath();
+
+		ofLogNotice() << "Imported model: " << result.getPath()
+					  << " | Variant: " << static_cast<int>(selectedVariant);
 	}
-	
 }
 
 void Toolbar::echantillonagePressed() {
