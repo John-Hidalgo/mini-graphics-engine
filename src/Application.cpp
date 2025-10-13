@@ -503,6 +503,10 @@ void Application::keyPressed(int key) {
 			}
 		}
 	}
+	if (key == 'e' || key == 'E') {
+		std::string timestamp = ofGetTimestampString("%Y%m%d-%H%M%S");
+		exportSceneAsImage();
+	}
 	if (key == '1') {
 			selectionMode = !selectionMode;
 			if (selectionMode) {
@@ -684,4 +688,22 @@ void Application::focusToSelection() {
 	cam.dolly(-dollyDistance);
 	
 	ofLog() << "Centered and dollied in by: " << dollyDistance;
+}
+
+void Application::exportSceneAsImage() {
+	const ofRectangle& viewport = canvas.cameraViewport;
+
+	ofFileDialogResult saveFileResult = ofSystemSaveDialog(
+		"scene_" + ofGetTimestampString("%Y-%m-%d_%H%M%S") + ".png",
+		"Save Scene Screenshot"
+	);
+
+	if (!saveFileResult.bSuccess) {
+		return;
+	}
+
+	ofImage screenshot;
+	screenshot.grabScreen(viewport.x, viewport.y, viewport.getWidth(), viewport.getHeight());
+
+	screenshot.save(saveFileResult.getPath());
 }

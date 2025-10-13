@@ -92,6 +92,7 @@ private:
 	ofRectangle selectionRect;
 	
 	void focusToSelection();
+	void exportSceneAsImage();
 	void drawSelectionBox();
 
 };

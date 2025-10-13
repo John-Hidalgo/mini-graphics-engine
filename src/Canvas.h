@@ -75,6 +75,8 @@ public:
 	void previousImage();
 	void deleteCurrentImage();
 
+	ofRectangle drawingAreaForCameras;
+
 	ofImage& getCurrentImage();
 	int getCurrentImageIndex() const { return currentImageIndex; }
 	int getImageCount() const { return importedImages.size(); }
@@ -90,7 +92,6 @@ private:
 	Shape tempShape;
 	Toolbar* toolbarRef = nullptr;
 	ofRectangle drawingArea;
-	ofRectangle drawingAreaForCameras;
 	ofColor currentColor = ofColor(0, 0, 0);
 	ofImage importedImage;
 	Model3D model3D;
