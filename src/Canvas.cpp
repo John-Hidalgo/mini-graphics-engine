@@ -5,10 +5,11 @@
 
 Canvas::Canvas() {}
 
-void Canvas::setup(const ofRectangle& area,Toolbar* toolbar,SceneGraph* sceneGraph){
+void Canvas::setup(const ofRectangle& area,const ofRectangle& areaForCameras,Toolbar* toolbar,SceneGraph* sceneGraph){
 	toolbarRef = toolbar;
 	sceneGraphRef = sceneGraph;
 	drawingArea = area;
+	drawingAreaForCameras = areaForCameras;
 	ofSetLineWidth(2);
 	model3D.setup();
 	color_picker_background.set("background color", ofColor(255, 255, 0), ofColor(0, 0), ofColor(255, 255));
@@ -81,10 +82,10 @@ void Canvas::update() {
 }
 void Canvas::drawCanvas(){
 	if(hasImage){
-		ofSetColor(255,255,255);
+		ofSetColor(bgColor);
 	}
 	else{
-		ofSetColor(255,255,255);
+		ofSetColor(bgColor);
 	}
 	ofFill();
 	ofDrawRectangle(drawingArea);
@@ -93,7 +94,7 @@ void Canvas::drawCanvas(){
 void Canvas::draw2d(){
 	ofPushStyle();
 	drawCanvas();
-	drawImage();
+	drawImage(drawingArea);
 	drawImageThumbnails();
 	for (auto &s : shapes) {
 		drawShape(s);
@@ -113,6 +114,27 @@ void Canvas::draw2d(){
 		}
 	ofPopStyle();
 }
+void Canvas::draw2DInViewport(const ofRectangle& viewport) {
+	ofPushStyle();
+	ofSetColor(bgColor);
+	ofFill();
+	if(hasImage){
+		ofSetColor(bgColor);
+	}
+	else{
+		ofSetColor(bgColor);
+	}
+	ofFill();
+	ofDrawRectangle(drawingAreaForCameras);
+	ofNoFill();
+	drawImage(drawingAreaForCameras);
+	for (auto &s : shapes) {
+		drawShape(s);
+	}
+	drawPreview();
+	ofPopStyle();
+}
+
 void Canvas::draw3d(){
 	for (auto &m : models) {
 		m->draw();
@@ -124,10 +146,7 @@ void Canvas::draw3d(){
 	// TEMP
 	// Dessin de la primtive en train d'etre tracé a la souris
 	drawPrimitivePreview();
-	// TODO: Juste pour tester la camera
-	ofDrawBox(-100, 0, 0, 100);
 }
-
 void Canvas::draw() {
 	draw2d();
 	draw3d();
@@ -432,13 +451,15 @@ void Canvas::clear() {
 void Canvas::setDrawingArea(const ofRectangle& area) {
 	drawingArea = area;
 }
-
-void Canvas::drawImage() {
+void Canvas::setCanvasAreaForCameras(const ofRectangle& area) {
+	drawingArea = area;
+}
+void Canvas::drawImage(const ofRectangle& area) {
 	if (hasImage && currentImageIndex >= 0 && currentImageIndex < importedImages.size()) {
 		ofImage& currentImage = importedImages[currentImageIndex];
 		
-		float canvasW = drawingArea.getWidth();
-		float canvasH = drawingArea.getHeight();
+		float canvasW = area.getWidth();
+		float canvasH = area.getHeight();
 		float imgW = currentImage.getWidth();
 		float imgH = currentImage.getHeight();
 
@@ -449,14 +470,11 @@ void Canvas::drawImage() {
 		float drawW = imgW * scale;
 		float drawH = imgH * scale;
 
-		float drawX = drawingArea.x + (canvasW - drawW) / 2;
-		float drawY = drawingArea.y + (canvasH - drawH) / 2;
+		float drawX = area.x + (canvasW - drawW) / 2;
+		float drawY = area.y + (canvasH - drawH) / 2;
 
 		ofSetColor(255, 255, 255);
 		currentImage.draw(drawX, drawY, drawW, drawH);
-		
-		ofSetColor(0, 0, 0);
-		//ofDrawBitmapString("Image " + ofToString(currentImageIndex + 1) +" of " + ofToString(importedImages.size()),drawX, drawY - 10);
 	}
 }
 
@@ -510,7 +528,7 @@ void Canvas::calculateModelsPosition() {
 	float centerX = 0;
 	float centerZ = 0;
 
-	ofLog() << "=== Calculating positions for " << n << " models ===";
+	//ofLog() << "=== Calculating positions for " << n << " models ===";
 	
 	for (int i = 0; i < n; i++) {
 		float angle = TWO_PI * i / n;
@@ -520,10 +538,10 @@ void Canvas::calculateModelsPosition() {
 		models[i]->position.set(x, 0, z);
 		models[i]->update();
 		
-		ofLog() << "Model " << i << " position set to: "
-				<< "x=" << x << ", y=0, z=" << z;
-		ofLog() << "Model " << i << " actual position: "
-				<< models[i]->position;
+		//ofLog() << "Model " << i << " position set to: "
+				//<< "x=" << x << ", y=0, z=" << z;
+		//ofLog() << "Model " << i << " actual position: "
+				//<< models[i]->position;
 	}
 }
 
@@ -585,7 +603,7 @@ void Canvas::setCurrentImage(int index) {
 		imagePaths.push_back(selectedPath);
 		histogram.calculateColours(importedImages.back());
 		
-		ofLogNotice() << "Set current image to index: " << index << " (now at position: " << getCurrentImageIndex() << ")";
+		//ofLogNotice() << "Set current image to index: " << index << " (now at position: " << getCurrentImageIndex() << ")";
 	}
 }
 
@@ -598,7 +616,7 @@ void Canvas::removeImage(int index) {
 			histogram.calculateColours(importedImages.back());
 		}
 		
-		ofLogNotice() << "Removed image at index: " << index << " (Remaining: " << importedImages.size() << ")";
+		//ofLogNotice() << "Removed image at index: " << index << " (Remaining: " << importedImages.size() << ")";
 	}
 }
 
@@ -606,7 +624,7 @@ void Canvas::clearAllImages() {
 	importedImages.clear();
 	imagePaths.clear();
 	hasImage = false;
-	ofLogNotice() << "Cleared all images";
+	//ofLogNotice() << "Cleared all images";
 }
 
 ofImage& Canvas::getCurrentImage() {

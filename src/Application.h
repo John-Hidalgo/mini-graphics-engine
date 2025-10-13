@@ -74,6 +74,7 @@ private:
 	ofRectangle sceneGraphArea;
 	ofRectangle leftPanelArea;
 	ofRectangle bottomPanelArea;
+	ofRectangle canvasAreaForCameras;
 
 	float leftPanelWidth = 224.0f;
 	float rightPanelWidth = 500.0f;

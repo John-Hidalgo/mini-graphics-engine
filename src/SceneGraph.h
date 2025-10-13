@@ -44,6 +44,7 @@ private:
 	ofxToggle fillToggle;
 	ofPoint selectionStart;
 	ofRectangle selectionRect;
+	ofxToggle backgroundToggle;
 	
 
 	void deleteButtonPressed();
@@ -59,4 +60,7 @@ private:
 	
 	void drawModelList();
 	void drawPrimitivesList();
+	void backgroundColorChanged(ofColor& color);
+	void backgroundToggled(bool& val);
+	void ensureSingleToggle();
 };

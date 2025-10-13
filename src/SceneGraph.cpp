@@ -29,6 +29,10 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	contourToggle.setup("Contour", true);
 	contourToggle.addListener(this, &SceneGraph::contourToggled);
 	gui.add(&contourToggle);
+	
+	backgroundToggle.setup("Fond", false);
+	backgroundToggle.addListener(this, &SceneGraph::backgroundToggled);
+	gui.add(&backgroundToggle);
 
 	fillToggle.setup("Zone du remplissage", false);
 	fillToggle.addListener(this, &SceneGraph::fillToggled);
@@ -178,16 +182,25 @@ void SceneGraph::thicknessChanged(float & val) {
 	}
 }
 
-void SceneGraph::colorChanged(ofColor & col) {
-	for (int index : selectedShapeIndices) {
-		if (index >= 0 && index < canvasRef->getShapes().size()) {
-			auto& s = canvasRef->getShapes()[index];
-			if (contourToggle) {
-				s.contourColor = col;
-			}
-			else if (fillToggle) {
-				s.fillColor = col;
-				s.hasFill = true;
+void SceneGraph::colorChanged(ofColor& col) {
+
+	if (backgroundToggle) {
+		// Change canvas background color
+		if (canvasRef) {
+			ofLog() << "calling setBackgroundColor from SceneGraph ColorChanged! ";
+			canvasRef->setBackgroundColor(col);
+		}
+	} else {
+		// Existing shape color logic
+		for (int index : selectedShapeIndices) {
+			if (index >= 0 && index < canvasRef->getShapes().size()) {
+				auto& s = canvasRef->getShapes()[index];
+				if (contourToggle) {
+					s.contourColor = col;
+				} else if (fillToggle) {
+					s.fillColor = col;
+					s.hasFill = true;
+				}
 			}
 		}
 	}
@@ -197,47 +210,80 @@ void SceneGraph::colorChanged(ofColor & col) {
 	briSlider = col.getBrightness();
 }
 
-void SceneGraph::hsbChanged(float & val) {
+void SceneGraph::hsbChanged(float& val) {
 	ofColor c = ofColor::fromHsb(hueSlider, satSlider, briSlider);
-	for (int index : selectedShapeIndices) {
-		if (index >= 0 && index < canvasRef->getShapes().size()) {
-			auto& s = canvasRef->getShapes()[index];
-
-			if (contourToggle) {
-				s.contourColor = c;
-			}
-			else if (fillToggle) {
-				s.fillColor = c;
-				s.hasFill = true;
+	
+	if (backgroundToggle) {
+		if (canvasRef) {
+			//ofLog() << "calling setBackgroundColor from SceneGraph hsbChanged! ";
+		}
+	} else {
+		for (int index : selectedShapeIndices) {
+			if (index >= 0 && index < canvasRef->getShapes().size()) {
+				auto& s = canvasRef->getShapes()[index];
+				if (contourToggle) {
+					s.contourColor = c;
+				} else if (fillToggle) {
+					s.fillColor = c;
+					s.hasFill = true;
+				}
 			}
 		}
 	}
+	
 	colour2dShapes = c;
-	//colorSlider = c;
 }
 
 void SceneGraph::contourToggled(bool& val){
 	if (val) {
 		fillToggle = false;
+		backgroundToggle = false;
 		if (!selectedShapeIndices.empty()) {
 			const auto& s = canvasRef->getShapes()[selectedShapeIndices.back()];
-			//colorSlider = s.contourColor;
 			hueSlider = s.contourColor.getHue();
 			satSlider = s.contourColor.getSaturation();
 			briSlider = s.contourColor.getBrightness();
+			colour2dShapes = s.contourColor;
+		}
+	} else {
+		if (!fillToggle && !backgroundToggle) {
+			backgroundToggle = true;
 		}
 	}
 }
 
-void SceneGraph::fillToggled(bool & val) {
+void SceneGraph::fillToggled(bool& val) {
 	if (val) {
 		contourToggle = false;
+		backgroundToggle = false;
 		if (!selectedShapeIndices.empty()) {
 			const auto& s = canvasRef->getShapes()[selectedShapeIndices.back()];
-			//colorSlider = s.fillColor;
 			hueSlider = s.fillColor.getHue();
 			satSlider = s.fillColor.getSaturation();
 			briSlider = s.fillColor.getBrightness();
+			colour2dShapes = s.fillColor;
+		}
+	} else {
+		if (!contourToggle && !backgroundToggle) {
+			backgroundToggle = true;
+		}
+	}
+}
+
+void SceneGraph::backgroundToggled(bool& val) {
+	if (val) {
+		contourToggle = false;
+		fillToggle = false;
+		if (canvasRef) {
+			ofColor bgColor = canvasRef->getBackgroundColor();
+			colour2dShapes = bgColor;
+			hueSlider = bgColor.getHue();
+			satSlider = bgColor.getSaturation();
+			briSlider = bgColor.getBrightness();
+		}
+	} else {
+		if (!contourToggle && !fillToggle) {
+			contourToggle = true;
 		}
 	}
 }
@@ -379,5 +425,17 @@ void SceneGraph::drawPrimitivesList() {
 		ofDrawRectangle(rect);
 		ofSetColor(0);
 		ofDrawBitmapString("Primitive " + std::to_string(i+1), rect.x + 5, rect.y + rowHeight);
+	}
+}
+
+void SceneGraph::ensureSingleToggle() {
+	int activeCount = (int)contourToggle + (int)fillToggle + (int)backgroundToggle;
+	if (activeCount > 1) {
+		contourToggle = false;
+		fillToggle = false;
+		backgroundToggle = false;
+		contourToggle = true;
+	} else if (activeCount == 0) {
+		contourToggle = true;
 	}
 }

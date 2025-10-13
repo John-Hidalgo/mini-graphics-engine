@@ -9,8 +9,11 @@ void Application::setup() {
 	
 	canvasArea.set(leftPanelWidth, 0, ofGetWidth() - leftPanelWidth - rightPanelWidth,
 				   ofGetHeight() - bottomPanelHeight);
-	canvas.setup(canvasArea, &toolbar, &sceneGraph);
+	canvasAreaForCameras.set(0, 0, ofGetWidth(),ofGetHeight());
+	canvas.setup(canvasArea,canvasAreaForCameras, &toolbar, &sceneGraph);
 	canvas.setDrawingArea(canvasArea);
+
+	canvas.setCanvasAreaForCameras(canvasAreaForCameras);
 	
 	sceneGraphArea.set(ofGetWidth() - rightPanelWidth, 0, rightPanelWidth, ofGetHeight());
 	sceneGraph.setup(&canvas, sceneGraphArea);
@@ -30,7 +33,7 @@ void Application::windowResized(int w, int h) {
 	canvasArea.set(leftPanelWidth, 0,
 				   w - leftPanelWidth - rightPanelWidth,
 				   h - bottomPanelHeight);
-	canvas.setup(canvasArea, &toolbar, &sceneGraph);
+	canvas.setup(canvasArea, canvasAreaForCameras, &toolbar, &sceneGraph);
 	canvas.setDrawingArea(canvasArea);
 	
 	sceneGraphArea.set(w - rightPanelWidth, 0, rightPanelWidth, h);
@@ -170,11 +173,11 @@ void Application::draw() {
 		ofPushView();
 		ofViewport(canvasArea);
 		cameras[activeCameraIndex].cam.begin();
-
+		
 		canvas.draw3d();
-		//DEBUG////////////////////////////////////////////////////
-		drawDebugAxes(300.0f, 4.0f);
-		//DEBUG////////////////////////////////////////////////////
+//		//DEBUG////////////////////////////////////////////////////
+//		drawDebugAxes(300.0f, 4.0f);
+//		//DEBUG////////////////////////////////////////////////////
 		cameras[activeCameraIndex].cam.end();
 		ofPopView();
 		
@@ -182,11 +185,13 @@ void Application::draw() {
 		for(int i = 0; i < cameras.size(); i++) {
 			ofPushView();
 			ofViewport(cameras[i].viewport);
+			
+			canvas.draw2DInViewport(cameras[i].viewport);
 			cameras[i].cam.begin();
 			canvas.draw3d();
-			//DEBUG////////////////////////////////////////////////////
-			drawDebugAxes(300.0f, 4.0f);
-			//DEBUG////////////////////////////////////////////////////
+//			//DEBUG////////////////////////////////////////////////////
+//			drawDebugAxes(300.0f, 4.0f);
+//			//DEBUG////////////////////////////////////////////////////
 			cameras[i].cam.end();
 			ofPopView();
 			
@@ -388,7 +393,7 @@ void Application::resetCamerasToSphere() {
 	yaw = 0.0f;
 	pitch = 0.0f;
 	
-	ofLog() << "Cameras reset to spherical arrangement :)";
+	//ofLog() << "Cameras reset to spherical arrangement :)";
 }
 void Application::updateYawPitchFromCamera() {
 	if (cameras.empty() || !orbitMode) return;

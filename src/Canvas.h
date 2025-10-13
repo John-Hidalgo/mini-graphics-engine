@@ -14,7 +14,7 @@ class Toolbar;
 class Canvas {
 public:
 	Canvas();
-	void setup(const ofRectangle& area,Toolbar* toolbar,SceneGraph* sceneGraph);
+	void setup(const ofRectangle& area,const ofRectangle& areaForCameras,Toolbar* toolbar,SceneGraph* sceneGraph);
 	void update();
 	void draw();
 	void drawPreview();
@@ -32,6 +32,7 @@ public:
 
   void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
+	void setCanvasAreaForCameras(const ofRectangle& area);
 	
 	vector<std::unique_ptr<Model3D>> models;
 	vector<Shape> shapes;
@@ -45,12 +46,13 @@ public:
 	void loadImage(const std::string & path);
 	void loadModel(const std::string& path);
 	void drawModel();
-	void drawImage();
+	void drawImage(const ofRectangle& area);
 	void calculateModelsPosition();
 	void setShowHistogram(bool show) { showHistogram = show; }
 	
 	void draw2d();
 	void draw3d();
+	void draw2DInViewport(const ofRectangle& viewport);
 
 	void setCurrentPrimitiveMode(Primitive3DType mode);
 	Primitive3DType getCurrentPrimitiveMode() const { return currentPrimitiveMode; }
@@ -77,6 +79,9 @@ public:
 	int getCurrentImageIndex() const { return currentImageIndex; }
 	int getImageCount() const { return importedImages.size(); }
 	
+	void setBackgroundColor(const ofColor& color) {bgColor = color;ofLog() << "Canvas background color set to: " << color;}
+	const ofColor& getBackgroundColor() const { return bgColor; }
+	
 	
 private:
 	ofPoint start, end;
@@ -85,6 +90,7 @@ private:
 	Shape tempShape;
 	Toolbar* toolbarRef = nullptr;
 	ofRectangle drawingArea;
+	ofRectangle drawingAreaForCameras;
 	ofColor currentColor = ofColor(0, 0, 0);
 	ofImage importedImage;
 	Model3D model3D;
@@ -123,7 +129,6 @@ private:
 
 	void drawPrimitivePreview();
 
-	
-	
+	ofColor bgColor = ofColor(255, 255, 255);
 	
 };
