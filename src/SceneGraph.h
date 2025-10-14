@@ -19,11 +19,19 @@ public:
 	ofParameter<ofColor> color_picker_background;
 	ofParameter<ofColor> color_picker_ambient;
 	ofParameter<ofColor> color_picker_diffuse;
+	ofParameter<ofColor> color_picker_background_primitives3D;
+	ofParameter<ofColor> color_picker_ambient_primitives3D;
+	ofParameter<ofColor> color_picker_diffuse_primitives3D;
 	std::vector<int> selectedShapeIndices;
 	std::vector<int> selectedModelIndices;
 	std::vector<int> selectedPrimitiveIndices;
 	ofParameter<ofColor> colour2dShapes;
-	
+
+	ofxPanel primitives3DEditorPanel;
+	ofxFloatSlider primitives3DSizeSlider;
+	ofxIntSlider primitives3DPosXSlider;
+	ofxIntSlider primitives3DPosYSlider;
+	ofxIntSlider primitives3DPosZSlider;
 private:
 	Canvas* canvasRef;
 	ofRectangle panelArea;
@@ -37,6 +45,7 @@ private:
 	//ofxColorSlider colorSlider;
 	ofxButton deleteButton;
 	ofxButton deleteButton3DModel;
+	ofxButton deleteButtonPrimitives3D;
 	ofxFloatSlider hueSlider;
 	ofxFloatSlider satSlider;
 	ofxFloatSlider briSlider;
@@ -45,10 +54,10 @@ private:
 	ofPoint selectionStart;
 	ofRectangle selectionRect;
 	ofxToggle backgroundToggle;
-	
 
 	void deleteButtonPressed();
 	void deleteButton3DModelPressed();
+	void deleteButtonPrimitives3DPressed();
 	void thicknessChanged(float & val);
 	void colorComponentChanged(int & value);
 	void drawShapeList();

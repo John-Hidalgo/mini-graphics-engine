@@ -68,6 +68,19 @@ void Canvas::update() {
 				model->color_diffuse = sceneGraphRef->color_picker_diffuse;
 			}
 		}
+	}
+	else if (!sceneGraphRef->selectedPrimitiveIndices.empty()) {
+		for (int idx : sceneGraphRef->selectedPrimitiveIndices) {
+			auto& primitive3D = primitives3D[idx];
+			primitive3D.size = sceneGraphRef->primitives3DSizeSlider;
+			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider, sceneGraphRef->primitives3DPosYSlider, sceneGraphRef->primitives3DPosZSlider);
+			primitive3D.color = sceneGraphRef->color_picker_background_primitives3D;
+			primitive3D.generateMesh();
+			// if (primitive3D->variant == ModelVariant::None) {
+				// primitive3D->color_ambient = sceneGraphRef->color_picker_ambient_primitives3D;
+				// primitive3D->color_diffuse = sceneGraphRef->color_picker_diffuse_primitives3D;
+			// }
+		}
 	} else {
 		for (auto &model : models) {
 			model->color_background = sceneGraphRef->color_picker_background;
