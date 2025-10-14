@@ -2,6 +2,7 @@
 #include "Toolbar.h"
 #include "SceneGraph.h"
 #include "of3dUtils.h"
+#include "Quadtree.h"
 
 Canvas::Canvas() {}
 
@@ -104,27 +105,47 @@ void Canvas::drawCanvas(){
 	ofDrawRectangle(drawingArea);
 	ofNoFill();
 }
-void Canvas::draw2d(){
+void Canvas::draw2d() {
 	ofPushStyle();
+
 	drawCanvas();
 	drawImage(drawingArea);
 	drawImageThumbnails();
+
+	Quadtree quadtree(drawingArea, 5);
 	for (auto &s : shapes) {
+		quadtree.insert(s);
+	}
+
+	std::vector<Shape> visibleShapes;
+	quadtree.query(drawingArea, visibleShapes);
+
+	for (auto &s : visibleShapes) {
 		drawShape(s);
 	}
+
 	drawPreview();
+
 	if (hasImage) {
-			if (showHistogram) {
-				histogram.draw(drawingArea.getX() + 650, drawingArea.getY() + 825, 300, 150);
-			}
-			ofSetColor(0, 0, 0);
-			ofDrawBitmapString("Images: " + ofToString(importedImages.size()) +
-							  " | Courant: " + ofToString(currentImageIndex + 1),
-							  drawingArea.x + 10, drawingArea.y + 20);
-			
-			ofDrawBitmapString("GAUCHE/DROITE : Parcourir les images | RETOUR ARRIÈRE : Supprimer l'image actuelle",
-							  drawingArea.x + 10, drawingArea.y + 40);
+		if (showHistogram) {
+			histogram.draw(drawingArea.getX() + 650, drawingArea.getY() + 825, 300, 150);
 		}
+
+		ofSetColor(0, 0, 0);
+		ofDrawBitmapString(
+			"Images: " + ofToString(importedImages.size()) +
+			" | Courant: " + ofToString(currentImageIndex + 1),
+			drawingArea.x + 10, drawingArea.y + 20
+		);
+
+		ofDrawBitmapString(
+			"GAUCHE/DROITE : Parcourir les images | RETOUR ARRIÈRE : Supprimer l'image actuelle",
+			drawingArea.x + 10, drawingArea.y + 40
+		);
+	}
+
+	quadtree.draw();
+
 	ofPopStyle();
 }
 void Canvas::draw2DInViewport(const ofRectangle& viewport) {
