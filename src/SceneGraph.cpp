@@ -67,6 +67,23 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	deleteButton3DModel.addListener(this,&SceneGraph::deleteButton3DModelPressed);
 	modelEditorPanel.add(&deleteButton3DModel);
 
+
+	primitives3DEditorPanel.setup("Editez Primitives 3D");
+	primitives3DEditorPanel.setPosition(x + panelPadding + 350, y + panelPadding);
+	primitives3DEditorPanel.setSize(175,0);
+
+	primitives3DEditorPanel.add(primitives3DSizeSlider.setup("Size", 100.0f, 1.0f, 300.0f));
+	primitives3DEditorPanel.add(primitives3DPosXSlider.setup("Position X", 100, 0, 1000));
+	primitives3DEditorPanel.add(primitives3DPosYSlider.setup("Position Y", 100, 0, 1000));
+	primitives3DEditorPanel.add(primitives3DPosZSlider.setup("Position Z", 100, 0, 1000));
+
+	primitives3DEditorPanel.add(color_picker_background_primitives3D.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
+	primitives3DEditorPanel.add(color_picker_ambient_primitives3D.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
+	primitives3DEditorPanel.add(color_picker_diffuse_primitives3D.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+
+	deleteButtonPrimitives3D.setup("Effacez");
+	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
+	primitives3DEditorPanel.add(&deleteButtonPrimitives3D);
 	
 }
 void SceneGraph::draw() {
@@ -80,6 +97,7 @@ void SceneGraph::draw() {
 	modelEditorPanel.draw();
 	drawModelList();
 	drawPrimitivesList();
+	primitives3DEditorPanel.draw();
 }
 
 void SceneGraph::clearSelection() {
@@ -437,5 +455,22 @@ void SceneGraph::ensureSingleToggle() {
 		contourToggle = true;
 	} else if (activeCount == 0) {
 		contourToggle = true;
+	}
+}
+
+
+void SceneGraph::deleteButtonPrimitives3DPressed() {
+	auto& primitives3D = canvasRef->getPrimitives3D();
+	if (!selectedPrimitiveIndices.empty()) {
+		std::sort(selectedPrimitiveIndices.begin(), selectedPrimitiveIndices.end(), std::greater<int>());
+
+		for (int index : selectedPrimitiveIndices) {
+			if (index >= 0 && index < primitives3D.size()) {
+				primitives3D.erase(primitives3D.begin() + index);
+			}
+		}
+		selectedPrimitiveIndices.clear();
+	} else if (!primitives3D.empty()) {
+		primitives3D.pop_back();
 	}
 }
