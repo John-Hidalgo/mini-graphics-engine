@@ -60,6 +60,9 @@ private:
 	ofxToggle triangleToggle;
 	ofxToggle squareToggle;
 	ofxToggle freeformToggle;
+	ofxToggle houseToggle;
+	ofxToggle treeToggle;
+	ofxToggle targetToggle;
 	ofxToggle selectColourToggle;
 	ofxButton undoButton;
 	
@@ -92,6 +95,9 @@ private:
 	void triangleToggleChanged(bool & val);
 	void squareToggleChanged(bool & val);
 	void freeformToggleChanged(bool & val);
+	void houseToggleChanged(bool & val);
+	void treeToggleChanged(bool & val);
+	void targetToggleChanged(bool & val);
 	void selectColourToggleChanged(bool& val);
 	void colorChanged(ofColor& col);
 	void importImagePressed();

@@ -115,6 +115,9 @@ private:
 	void drawPoint(const Shape& s);
 	void drawTriangle(const Shape& s);
 	void drawSquare(const Shape& s);
+	void drawHouse(const Shape& s);
+	void drawTree(const Shape& s);
+	void drawTarget(const Shape& s);
 
 	std::vector<Primitive3D> primitives3D;
 	Primitive3DType currentPrimitiveMode = Primitive3DType::NONE;

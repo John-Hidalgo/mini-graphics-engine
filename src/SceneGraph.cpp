@@ -112,20 +112,26 @@ void SceneGraph::selectShapesInArea(const ofRectangle& selectionRect) {
 
     for (int i = 0; i < shapes.size(); i++) {
         const auto& s = shapes[i];
-
         ofRectangle shapeBounds;
 
+        // --- Basic shapes ---
         if (s.type == ShapeMode::RECTANGLE || s.type == ShapeMode::SQUARE ||
-            s.type == ShapeMode::CIRCLE || s.type == ShapeMode::TRIANGLE || s.type == ShapeMode::LINE) {
+            s.type == ShapeMode::CIRCLE || s.type == ShapeMode::TRIANGLE ||
+            s.type == ShapeMode::LINE) {
+
             float x1 = std::min(s.start.x, s.end.x);
             float x2 = std::max(s.start.x, s.end.x);
             float y1 = std::min(s.start.y, s.end.y);
             float y2 = std::max(s.start.y, s.end.y);
             shapeBounds.set(x1, y1, x2 - x1, y2 - y1);
         }
+
+        // --- Point ---
         else if (s.type == ShapeMode::POINT) {
             shapeBounds.set(s.start.x - 3, s.start.y - 3, 6, 6);
         }
+
+        // --- Freeform shapes (based on points) ---
         else if (!s.points.empty()) {
             float minX = s.points[0].x, maxX = s.points[0].x;
             float minY = s.points[0].y, maxY = s.points[0].y;
@@ -137,28 +143,40 @@ void SceneGraph::selectShapesInArea(const ofRectangle& selectionRect) {
             }
             shapeBounds.set(minX, minY, maxX - minX, maxY - minY);
         }
+
+        // --- Composite shapes ---
+        else if (s.type == ShapeMode::HOUSE || s.type == ShapeMode::TREE || s.type == ShapeMode::TARGET) {
+            float x1 = std::min(s.start.x, s.end.x);
+            float x2 = std::max(s.start.x, s.end.x);
+            float y1 = std::min(s.start.y, s.end.y);
+            float y2 = std::max(s.start.y, s.end.y);
+            shapeBounds.set(x1, y1, x2 - x1, y2 - y1);
+        }
+
         else {
             continue;
         }
 
-    	ofLog() << "SelectionRect: x=" << selectionRect.x
-			<< " y=" << selectionRect.y
-			<< " w=" << selectionRect.width
-			<< " h=" << selectionRect.height;
+        // Logging for debugging
+        ofLog() << "SelectionRect: x=" << selectionRect.x
+                << " y=" << selectionRect.y
+                << " w=" << selectionRect.width
+                << " h=" << selectionRect.height;
 
-    	ofLog() << "Shape " << i << " Bounds: x=" << shapeBounds.x
-				<< " y=" << shapeBounds.y
-				<< " w=" << shapeBounds.width
-				<< " h=" << shapeBounds.height;
+        ofLog() << "Shape " << i << " Bounds: x=" << shapeBounds.x
+                << " y=" << shapeBounds.y
+                << " w=" << shapeBounds.width
+                << " h=" << shapeBounds.height;
 
-    	bool intersecting = selectionRect.intersects(shapeBounds);
-    	ofLog() << "→ Intersecting: " << (intersecting ? "YES" : "NO");
+        bool intersecting = selectionRect.intersects(shapeBounds);
+        ofLog() << "→ Intersecting: " << (intersecting ? "YES" : "NO");
 
-        if (selectionRect.intersects(shapeBounds)) {
+        if (intersecting) {
             selectedShapeIndices.push_back(i);
         }
     }
 }
+
 
 
 void SceneGraph::deleteButtonPressed() {

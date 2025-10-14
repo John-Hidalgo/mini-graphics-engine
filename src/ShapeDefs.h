@@ -2,7 +2,8 @@
 #include "ofMain.h"
 #include <vector>
 
-enum class ShapeMode { NONE, RECTANGLE, CIRCLE, LINE, FREEFORM, SQUARE, POINT, TRIANGLE };
+enum class ShapeMode { NONE, RECTANGLE, CIRCLE, LINE, FREEFORM, SQUARE, POINT, TRIANGLE, HOUSE,
+	TREE, TARGET };
 
 struct Shape {
 	ShapeMode type;

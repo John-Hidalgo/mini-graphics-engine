@@ -24,7 +24,7 @@ void Toolbar::setup(Canvas* canvas) {
 	dessinez.add(pointToggle.setup("Point", false));
 	pointToggle.addListener(this, &Toolbar::pointToggleChanged);
 
-	dessinez.add(squareToggle.setup("Carré", false));
+	dessinez.add(squareToggle.setup("Carre", false));
 	squareToggle.addListener(this, &Toolbar::squareToggleChanged);
 
 	dessinez.add(triangleToggle.setup("Triangle", false));
@@ -32,6 +32,15 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.add(freeformToggle.setup("Libre", false));
 	freeformToggle.addListener(this, &Toolbar::freeformToggleChanged);
+
+	dessinez.add(houseToggle.setup("Maison", false));
+	houseToggle.addListener(this, &Toolbar::houseToggleChanged);
+
+	dessinez.add(treeToggle.setup("Arbre", false));
+	treeToggle.addListener(this, &Toolbar::treeToggleChanged);
+
+	dessinez.add(targetToggle.setup("Cible", false));
+	targetToggle.addListener(this, &Toolbar::targetToggleChanged);
 	
 	dessinez.add(selectColourToggle.setup("Couleur du canevas", false));
 
@@ -245,6 +254,33 @@ void Toolbar::lineToggleChanged(bool & val) {
 	updateCursorIcon();
 }
 
+void Toolbar::houseToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::HOUSE);
+	else if (canvasRef->getCurrentMode() == ShapeMode::HOUSE) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+
+	updateCursorIcon();
+}
+
+void Toolbar::treeToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::TREE);
+	else if (canvasRef->getCurrentMode() == ShapeMode::TREE) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+
+	updateCursorIcon();
+}
+
+void Toolbar::targetToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::TARGET);
+	else if (canvasRef->getCurrentMode() == ShapeMode::TARGET) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+
+	updateCursorIcon();
+}
+
 void Toolbar::pointToggleChanged(bool & val) {
 	if (val) setExclusiveToggle(ShapeMode::POINT);
 	else if (canvasRef->getCurrentMode() == ShapeMode::POINT) {
@@ -292,6 +328,9 @@ void Toolbar::selectColourToggleChanged(bool & val) {
 		pointToggle = false;
 		triangleToggle = false;
 		squareToggle    = false;
+		houseToggle     = false;
+		treeToggle      = false;
+		targetToggle   = false;
 		if (canvasRef) canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
 }
@@ -319,6 +358,9 @@ void Toolbar::setExclusiveToggle(ShapeMode mode) {
 	pointToggle     = (mode == ShapeMode::POINT);
 	triangleToggle  = (mode == ShapeMode::TRIANGLE);
 	freeformToggle  = (mode == ShapeMode::FREEFORM);
+	houseToggle     = (mode == ShapeMode::HOUSE);
+	treeToggle      = (mode == ShapeMode::TREE);
+	targetToggle    = (mode == ShapeMode::TARGET);
 	selectColourToggle = false;
 
 	// On désactive toutes toggle de primitives 3D primitive
