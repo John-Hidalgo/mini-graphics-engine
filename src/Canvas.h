@@ -39,8 +39,6 @@ public:
 	ofParameter<ofColor> color_picker_background;
 	ofParameter<ofColor> color_picker_ambient;
 	ofParameter<ofColor> color_picker_diffuse;
-	
-	
 	void undo();
 	void clear();
 	void loadImage(const std::string & path);
@@ -84,8 +82,14 @@ public:
 	
 	void setBackgroundColor(const ofColor& color) {bgColor = color;ofLog() << "Canvas background color set to: " << color;}
 	const ofColor& getBackgroundColor() const { return bgColor; }
-	
-	
+
+	// Pour le sampling
+	float imageDisplayScale = 1.0f;
+	bool keepAspectRatio = true;
+	ofPoint imageDisplayOffset;
+
+	void setImageDisplayScale(float scale) { imageDisplayScale = scale; }
+	void setMaintainAspectRatio(bool maintain) { keepAspectRatio = maintain; }
 private:
 	ofPoint start, end;
 	bool drawing = false;

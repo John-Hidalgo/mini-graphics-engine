@@ -72,6 +72,13 @@ private:
 
 	ofxPanel echantillonage;
 	ofxButton echantillonageButton;
+	ofxToggle echantillonageUniqueToggle;
+	ofxToggle echantillonageMultipleToggle;
+	ofxIntSlider gridColumnsSlider;
+	ofxIntSlider gridRowsSlider;
+	ofxFloatSlider imageDisplayScaleSlider;
+	ofxToggle maintainAspectRatioToggle;
+
 	ofxIntSlider sampleXSlider;
 	ofxIntSlider sampleYSlider;
 	ofxIntSlider sampleWidthSlider;
@@ -104,8 +111,12 @@ private:
 	void undoButtonPressed();
 	void importModelPressed();
 	void echantillonagePressed();
+	void echantillonageUniquePressed();
+	void echantillonageMultiplePressed();
+	void processEchantillonMultiple(const std::string& folderPath);
+	void imageDisplayScaleChanged(float &val);
+	void maintainAspectRatioToggled(bool &val);
 	void histogramToggleChanged(bool& val);
-
 	void setExclusiveToggle(ShapeMode mode);
 
 	void sphereToggleChanged(bool &val);
