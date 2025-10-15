@@ -85,13 +85,28 @@ void Toolbar::setup(Canvas* canvas) {
 	echantillonage.setPosition(440,0);
 	echantillonage.setSize(200,0);
 
-	echantillonage.add(echantillonageButton.setup("Echantillonez une Image"));
+	// Deux modes d'échantillonnage
+	echantillonage.add(echantillonageUniqueToggle.setup("Unique Image", true));
+	echantillonage.add(echantillonageMultipleToggle.setup("Image Folder", false));
+
+	echantillonage.add(echantillonageButton.setup("Echantillonez Image(s)"));
 	echantillonageButton.addListener(this, &Toolbar::echantillonagePressed);
 
-	echantillonage.add(sampleXSlider.setup("Sample Pos X", 1, 1, 1200));
-	echantillonage.add(sampleYSlider.setup("Sample Pos Y", 1, 1, 1200));
-	echantillonage.add(sampleWidthSlider.setup("Sample Width", 1, 1, 1200));
-	echantillonage.add(sampleHeightSlider.setup("Sample Height", 1, 1, 1200));
+	echantillonage.add(sampleXSlider.setup("Sample Pos X", 100, 1, 1200));
+	echantillonage.add(sampleYSlider.setup("Sample Pos Y", 100, 1, 1200));
+	echantillonage.add(sampleWidthSlider.setup("Sample Width", 200, 1, 1200));
+	echantillonage.add(sampleHeightSlider.setup("Sample Height", 200, 1, 1200));
+
+	// Paramètres pour le mode multiple (pour les dossiers d'images)
+	echantillonage.add(gridColumnsSlider.setup("Colonnes Grille", 2, 1, 8));
+	echantillonage.add(gridRowsSlider.setup("Lignes Grille", 2, 1, 8));
+
+	// Pour le display
+	echantillonage.add(imageDisplayScaleSlider.setup("Taille affichage UI", 1.0f, 0.1f, 3.0f));
+	echantillonage.add(maintainAspectRatioToggle.setup("Garder Aspect Ratio", true));
+
+	imageDisplayScaleSlider.addListener(this, &Toolbar::imageDisplayScaleChanged);
+	maintainAspectRatioToggle.addListener(this, &Toolbar::maintainAspectRatioToggled);
 
 	echantillonage.minimize();
 	
@@ -412,11 +427,19 @@ void Toolbar::importModelPressed() {
 }
 
 void Toolbar::echantillonagePressed() {
-	ofFileDialogResult result = ofSystemLoadDialog("Choisissez une image à echantillonner");
+	if (echantillonageUniqueToggle) {
+		echantillonageUniquePressed();
+	} else {
+		echantillonageMultiplePressed();
+	}
+}
+
+void Toolbar::echantillonageUniquePressed() {
+	ofFileDialogResult result = ofSystemLoadDialog("Choisissez une image a echantillonner");
 	if (!result.bSuccess) return;
 
-	ofImage source;
-	if (!source.load(result.getPath())) {
+	ofImage sourceImage;
+	if (!sourceImage.load(result.getPath())) {
 		ofLogError() << "Impossible de charger l'image : " << result.getPath();
 		return;
 	}
@@ -426,22 +449,144 @@ void Toolbar::echantillonagePressed() {
 	int sampleX = sampleXSlider;
 	int sampleY = sampleYSlider;
 
-	sampleX = ofClamp(sampleX, 0, source.getWidth() - 1);
-	sampleY = ofClamp(sampleY, 0, source.getHeight() - 1);
-	sampleWidth = ofClamp(sampleWidth, 1, source.getWidth() - sampleX);
-	sampleHeight = ofClamp(sampleHeight, 1, source.getHeight() - sampleY);
+	// Controle / validation des params
+	sampleX = ofClamp(sampleX, 0, sourceImage.getWidth() - 1);
+	sampleY = ofClamp(sampleY, 0, sourceImage.getHeight() - 1);
+	sampleWidth = ofClamp(sampleWidth, 1, sourceImage.getWidth() - sampleX);
+	sampleHeight = ofClamp(sampleHeight, 1, sourceImage.getHeight() - sampleY);
 
+	// On creer l'image
 	ofImage destination;
-	destination.cropFrom(source, sampleX, sampleY, sampleWidth, sampleHeight);
+	destination.cropFrom(sourceImage, sampleX, sampleY, sampleWidth, sampleHeight);
 
-	destination.save("echantillon.png");
-	ofLogNotice() << "Échantillon sauvegardé";
+	// Sauvegarde
+	std::string outputPath = "echantillon_unique_" + ofGetTimestampString() + ".png";
+	destination.save(outputPath);
+	ofLogNotice() << "Échantillon unique sauvegardé: " << outputPath;
 
+	// Load de l'image dans le canvas
 	if (canvasRef) {
-		canvasRef->loadImage("echantillon.png");
+		canvasRef->loadImage(outputPath);
 	}
 }
 
+void Toolbar::echantillonageMultiplePressed() {
+	// Puisque ofSystemLoadDialog ne permet pas la selection de plusieurs images paths,
+	// On load un path de dossier avec des images
+	ofFileDialogResult result = ofSystemLoadDialog("Sélectionnez un dossier d'images", true); // true = select folder
+	if (!result.bSuccess) return;
+
+	std::string imageFolderPath = result.getPath();
+	processEchantillonMultiple(imageFolderPath);
+}
+
+
+void Toolbar::processEchantillonMultiple(const std::string& folderPath) {
+	// On chasrge toutes les images du dossier en limitant aux types permis par ofImage
+	ofDirectory dir(folderPath);
+	dir.allowExt("jpg");
+	dir.allowExt("jpeg");
+	dir.allowExt("png");
+	dir.allowExt("gif");
+	dir.listDir();
+
+	// Si on a aucune image
+	if (dir.size() == 0) {
+		ofLogError() << "Aucune image trouvée dans le dossier: " << folderPath;
+		return;
+	}
+
+	std::vector<std::string> imagePaths;
+	for (int i = 0; i < dir.size(); i++) {
+		imagePaths.push_back(dir.getPath(i));
+	}
+
+	ofLogNotice() << "Chargement de " << imagePaths.size() << " images depuis: " << folderPath;
+
+	int gridCols = gridColumnsSlider;
+	int gridRows = gridRowsSlider;
+	int nbCells = gridCols * gridRows;
+
+	// pour imiter le nombre d'images utilisées à la capacité de la grille
+	int numImagesToUse = std::min((int)imagePaths.size(), nbCells);
+
+	int sampleWidth = sampleWidthSlider;
+	int sampleHeight = sampleHeightSlider;
+
+	// Calcul des dimensions de l'echantillon final
+	int finalWidth = sampleWidth * gridCols;
+	int finalHeight = sampleHeight * gridRows;
+
+	// Création de l'image finale avec un FBO
+	ofFbo finalFbo;
+	finalFbo.allocate(finalWidth, finalHeight, GL_RGBA);
+
+	finalFbo.begin();
+	// Transparent background au cas ou pour certain type de fichier
+	ofClear(0, 0, 0, 0);
+
+	int currentImageIndex = 0;
+
+	// Pour chaque cellule de notre "collage" en grid
+	for (int row = 0; row < gridRows; row++) {
+		for (int col = 0; col < gridCols; col++) {
+			if (currentImageIndex >= numImagesToUse) break;
+
+			std::string imagePath = imagePaths[currentImageIndex];
+			ofImage sourceImage;
+
+			if (sourceImage.load(imagePath)) {
+				// On redimensionne l'image pour qu'elle fit avec la cellule
+				sourceImage.resize(sampleWidth, sampleHeight);
+
+				// Position dans l'image finale
+				int destX = col * sampleWidth;
+				int destY = row * sampleHeight;
+
+				// Dessiner l'image resized
+				sourceImage.draw(destX, destY);
+
+				ofLogNotice() << "Image " << currentImageIndex + 1 << " ajoutée à la position (" << col << "," << row << ")";
+			} else {
+				ofLogError() << "Impossible de charger l'image: " << imagePath;
+			}
+
+			currentImageIndex++;
+		}
+	}
+
+	finalFbo.end();
+
+	// Sauvegarde de l'echantillon multiple fini
+	ofImage finalImage;
+	finalFbo.readToPixels(finalImage.getPixels());
+	finalImage.update();
+
+	std::string outputPath = "echantillon_multiple_" + ofGetTimestampString() + ".png";
+	finalImage.save(outputPath);
+	ofLogNotice() << "Collage multiple sauvegardé: " << outputPath;
+	ofLogNotice() << "Dimensions: " << finalWidth << "x" << finalHeight;
+	ofLogNotice() << "Images utilisées: " << numImagesToUse << "/" << imagePaths.size();
+
+	// Chargement dans le canvas
+	if (canvasRef) {
+		canvasRef->loadImage(outputPath);
+	}
+}
+
+// Le display scale est la responsabilité du canvas
+void Toolbar::imageDisplayScaleChanged(float &val) {
+	if (canvasRef) {
+		canvasRef->setImageDisplayScale(val);
+	}
+}
+
+// Le aspect ratio est la responsabilité du canvas
+void Toolbar::maintainAspectRatioToggled(bool &val) {
+	if (canvasRef) {
+		canvasRef->setMaintainAspectRatio(val);
+	}
+}
 
 void Toolbar::onRedPressed(){
 	currentColor = ofColor(255, 0, 0);

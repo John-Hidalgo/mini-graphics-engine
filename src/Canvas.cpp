@@ -611,24 +611,38 @@ void Canvas::setCanvasAreaForCameras(const ofRectangle& area) {
 void Canvas::drawImage(const ofRectangle& area) {
 	if (hasImage && currentImageIndex >= 0 && currentImageIndex < importedImages.size()) {
 		ofImage& currentImage = importedImages[currentImageIndex];
-		
-		float canvasW = area.getWidth();
-		float canvasH = area.getHeight();
-		float imgW = currentImage.getWidth();
-		float imgH = currentImage.getHeight();
 
-		float scaleX = canvasW / imgW;
-		float scaleY = canvasH / imgH;
-		float scale = std::min(scaleX, scaleY);
+		float canvasWidth = area.getWidth();
+		float canvasHeight = area.getHeight();
+		float imageWidth = currentImage.getWidth();
+		float imegeHeight = currentImage.getHeight();
 
-		float drawW = imgW * scale;
-		float drawH = imgH * scale;
+		// On calcule le scale de base sans param du user
+		float baseScaleX = canvasWidth / imageWidth;
+		float baseScaleY = canvasHeight / imegeHeight;
+		float baseScale = std::min(baseScaleX, baseScaleY);
 
-		float drawX = area.x + (canvasW - drawW) / 2;
-		float drawY = area.y + (canvasH - drawH) / 2;
+		// On applique le display scale venant du slider de sample
+		float finalScale = baseScale * imageDisplayScale;
+
+		float drawWidth, drawHeight;
+
+		if (keepAspectRatio) {
+			// On garde le aspect ratio d'origine
+			drawWidth = imageWidth * finalScale;
+			drawHeight = imegeHeight * finalScale;
+		} else {
+			// On permet de la distortion potentielle en laissant un aspect ratio libre
+			drawWidth = imageWidth * baseScaleX * imageDisplayScale;
+			drawHeight = imegeHeight * baseScaleY * imageDisplayScale;
+		}
+
+		// On calcule la position avec un offset
+		float drawX = area.x + (canvasWidth - drawWidth) / 2 + imageDisplayOffset.x;
+		float drawY = area.y + (canvasHeight - drawHeight) / 2 + imageDisplayOffset.y;
 
 		ofSetColor(255, 255, 255);
-		currentImage.draw(drawX, drawY, drawW, drawH);
+		currentImage.draw(drawX, drawY, drawWidth, drawHeight);
 	}
 }
 
