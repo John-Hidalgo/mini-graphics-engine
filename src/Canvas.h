@@ -134,5 +134,5 @@ private:
 	void drawPrimitivePreview();
 
 	ofColor bgColor = ofColor(255, 255, 255);
-	
+	ofLight canvasLight;
 };

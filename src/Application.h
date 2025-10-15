@@ -76,8 +76,8 @@ private:
 	ofRectangle bottomPanelArea;
 	ofRectangle canvasAreaForCameras;
 
-	float leftPanelWidth = 224.0f;
-	float rightPanelWidth = 500.0f;
+	float leftPanelWidth = 220.0f;
+	float rightPanelWidth = 540.0f;
 	float bottomPanelHeight = 160.0f;
 
 	float yaw = 0.0f;   // Orientation a gauche et a droite

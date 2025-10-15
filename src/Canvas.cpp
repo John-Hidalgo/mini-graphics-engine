@@ -7,6 +7,9 @@
 Canvas::Canvas() {}
 
 void Canvas::setup(const ofRectangle& area,const ofRectangle& areaForCameras,Toolbar* toolbar,SceneGraph* sceneGraph){
+	canvasLight.setPointLight();
+	canvasLight.setDiffuseColor(255);
+	canvasLight.setGlobalPosition(ofGetWidth() / 2.0f, ofGetHeight() / 2.0f, 255.0f);
 	toolbarRef = toolbar;
 	sceneGraphRef = sceneGraph;
 	drawingArea = area;
@@ -22,6 +25,7 @@ void Canvas::setup(const ofRectangle& area,const ofRectangle& areaForCameras,Too
 				  << " h=" << drawingArea.getHeight()
 				  << " bottom=" << drawingArea.getBottom()
 				  << " window height=" << ofGetHeight();
+	tempPrimitive.setup();
 
 }
 
@@ -76,11 +80,9 @@ void Canvas::update() {
 			primitive3D.size = sceneGraphRef->primitives3DSizeSlider;
 			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider, sceneGraphRef->primitives3DPosYSlider, sceneGraphRef->primitives3DPosZSlider);
 			primitive3D.color = sceneGraphRef->color_picker_background_primitives3D;
+			primitive3D.color_ambient = sceneGraphRef->color_picker_ambient_primitives3D;
+			primitive3D.color_diffuse = sceneGraphRef->color_picker_diffuse_primitives3D;
 			primitive3D.generateMesh();
-			// if (primitive3D->variant == ModelVariant::None) {
-				// primitive3D->color_ambient = sceneGraphRef->color_picker_ambient_primitives3D;
-				// primitive3D->color_diffuse = sceneGraphRef->color_picker_diffuse_primitives3D;
-			// }
 		}
 	} else {
 		for (auto &model : models) {
@@ -499,7 +501,7 @@ void Canvas::mousePressed(int x, int y, int button) {
 		tempPrimitive.type = currentPrimitiveMode;
 		tempPrimitive.position = primitiveStartPos;
 		tempPrimitive.color = currentColor;
-
+		//tempPrimitive.setup();
 		// Taille minimale affichable
 		tempPrimitive.size = 10.0f;
 		tempPrimitive.generateMesh();
@@ -706,6 +708,7 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 	primitive.type = type;
 	primitive.position = position;
 	primitive.color = currentColor;
+	primitive.setup(); 
 	primitive.size = size;
 	primitive.generateMesh();
 	primitives3D.push_back(primitive);
@@ -713,30 +716,14 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 
 void Canvas::drawPrimitives3D() {
 	for (auto& primitive : primitives3D) {
-		ofPushMatrix();
-		ofTranslate(primitive.position);
-
-		if (primitive.isSelected) {
-			// Si la primitive sélectionné on la met en jaune
-			ofSetColor(255, 255, 0);
-		} else {
-			ofSetColor(primitive.color);
-		}
-
-		// On dessine la primitive 3D
-        primitive.mesh.draw();
-		ofPopMatrix();
+		primitive.draw(canvasLight);
 	}
 }
 
 void Canvas::drawPrimitivePreview() {
 	if (drawingPrimitive && currentPrimitiveMode != Primitive3DType::NONE) {
-		ofPushMatrix();
-		ofTranslate(tempPrimitive.position);
-		ofSetColor(currentColor);
-		tempPrimitive.mesh.draw();
-		ofPopMatrix();
-  }
+		tempPrimitive.draw(canvasLight);  // Same simple call for preview
+	}
 }
 
 void Canvas::loadMultipleImages(const std::vector<std::string>& paths) {
