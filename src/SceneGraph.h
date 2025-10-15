@@ -11,6 +11,7 @@ public:
 	void mousePressed(int x, int y, int button);
 	void setPanelArea(const ofRectangle& area);
 	void selectShapesInArea(const ofRectangle& selectionRect);
+	void select3DObjectsInArea(const ofRectangle& selectionRect);
 	void clearSelection();
 	ofxFloatSlider scaleSlider;
 	ofxFloatSlider positionSlider;

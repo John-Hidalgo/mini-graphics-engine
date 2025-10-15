@@ -74,6 +74,7 @@ public:
 	void nextImage();
 	void previousImage();
 	void deleteCurrentImage();
+	bool showBoundingBoxes = false;
 
 	ofRectangle drawingAreaForCameras;
 

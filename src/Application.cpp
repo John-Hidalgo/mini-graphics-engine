@@ -503,7 +503,10 @@ void Application::keyPressed(int key) {
 			}
 		}
 	}
-	if (key == 'e' || key == 'E') {
+	if (key == '3') {
+		canvas.showBoundingBoxes = !canvas.showBoundingBoxes;
+	}
+	if (key == '2') {
 		std::string timestamp = ofGetTimestampString("%Y%m%d-%H%M%S");
 		exportSceneAsImage();
 	}

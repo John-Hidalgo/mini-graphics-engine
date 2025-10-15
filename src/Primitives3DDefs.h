@@ -1,5 +1,6 @@
 #pragma once
 #include "ofMain.h"
+#include "BoundingBox.h"
 
 enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID };
 
@@ -13,6 +14,7 @@ struct Primitive3D {
 	ofShader shader_lambert;
 	ofColor color_ambient;
 	ofColor color_diffuse;
+	BoundingBox bbox;
 	//ofLight light;Object of type 'Primitive3D' cannot be assigned because its copy assignment operator is implicitly deleted
 
 	void setup() {
@@ -21,29 +23,42 @@ struct Primitive3D {
 		color_diffuse = ofColor(200, 200, 200);
 	}
 	
-	void draw(ofLight& canvasLight) {
+	void draw(ofLight& canvasLight, bool showBoundingBox = false) {
 		ofEnableDepthTest();
 		ofEnableLighting();
-		
 		canvasLight.enable();
-		
+
 		shader_lambert.begin();
-		shader_lambert.setUniform3f("color_ambient", color_ambient.r / 255.0f, color_ambient.g / 255.0f, color_ambient.b / 255.0f);
-		shader_lambert.setUniform3f("color_diffuse", color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
+		shader_lambert.setUniform3f("color_ambient", color_ambient.r / 255.0f,
+									color_ambient.g / 255.0f,
+									color_ambient.b / 255.0f);
+		shader_lambert.setUniform3f("color_diffuse", color_diffuse.r / 255.0f,
+									color_diffuse.g / 255.0f,
+									color_diffuse.b / 255.0f);
 		shader_lambert.setUniform3f("light_position", canvasLight.getGlobalPosition());
-		
+
 		ofPushMatrix();
 		ofTranslate(position);
 		ofSetColor(color);
 		mesh.draw();
-		//mesh.drawWireframe();
+
+		if (showBoundingBox) {
+			ofPushStyle();
+			ofNoFill();
+			ofSetColor(0, 255, 0);
+			ofSetLineWidth(2);
+			bbox.draw();
+			ofPopStyle();
+		}
+
 		ofPopMatrix();
-		
+
 		shader_lambert.end();
 		canvasLight.disable();
 		ofDisableLighting();
 		ofDisableDepthTest();
 	}
+
 
 	void generateMesh() {
 		mesh.clear();
@@ -68,6 +83,10 @@ struct Primitive3D {
 				break;
 			default:
 				break;
+		}
+		bbox.reset();
+		for (auto &v : mesh.getVertices()) {
+			bbox.expandToInclude(v);
 		}
 	}
 

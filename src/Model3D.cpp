@@ -41,22 +41,12 @@ void Model3D::update()
 
 void Model3D::draw()
 {
-	// couleur de l'arrière-plan
 	ofSetBackgroundColor(color_background.r, color_background.g, color_background.b);
-
-	// activer l'occlusion en profondeur
 	ofEnableDepthTest();
-
-	// activer l'éclairage dynamique
 	ofEnableLighting();
-
-	// activer la lumière
 	light.enable();
 
-	// activer le shader
 	shader.begin();
-
-	// passer les attributs uniformes du shader
 	shader.setUniform3f("color_ambient",  color_ambient.r / 255.0f, color_ambient.g / 255.0f, color_ambient.b / 255.0f);
 	shader.setUniform3f("color_diffuse",  color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
 	shader.setUniform3f("light_position", light.getGlobalPosition());
@@ -65,25 +55,30 @@ void Model3D::draw()
 		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 	}
 
-	// dessiner le model
 	model.draw(OF_MESH_FILL);
+
+	if (showBoundingBox) {
+		ofPushMatrix();
+		ofMultMatrix(model.getModelMatrix());
+		ofPushStyle();
+		ofNoFill();
+		ofSetColor(0, 255, 0);
+		ofSetLineWidth(2);
+		bbox.draw();
+		ofPopStyle();
+		ofPopMatrix();
+	}
 
 	if (variant == ModelVariant::Transparent) {
 		ofDisableBlendMode();
 	}
 
-	// désactiver le shader
 	shader.end();
-
-	// désactiver la lumière
 	light.disable();
-
-	// désactiver l'éclairage dynamique
 	ofDisableLighting();
-
-	// désactiver l'occlusion en profondeur
 	ofDisableDepthTest();
 }
+
 
 void Model3D::applyVariant(ModelVariant chosenVariant) {
 	variant = chosenVariant;
@@ -128,20 +123,37 @@ void Model3D::applyVariant(ModelVariant chosenVariant) {
 }
 
 
-void Model3D::loadModel(const std::string& path){
+void Model3D::loadModel(const std::string& path) {
 	std::string modelPath = path.empty() ? "enneperSurface.obj" : path;
 	model.clear();
-	if(model.load(ofToDataPath(modelPath, true))) {
-		ofLogNotice() << "Loaded model: " << ofToDataPath(modelPath, true);
+
+	if (model.load(ofToDataPath(modelPath, true))) {
+		ofLogNotice() << "✅ Loaded model: " << ofToDataPath(modelPath, true);
 		model.disableMaterials();
 
-		if(model.hasMeshes()) {
+		if (model.hasMeshes()) {
 			ofLogNotice() << "Model has " << model.getNumMeshes() << " meshes";
-		} else {
+
+			bbox.reset();
+
+			for (int i = 0; i < model.getNumMeshes(); ++i) {
+				const ofMesh& mesh = model.getMesh(i);
+
+				for (auto& v : mesh.getVertices()) {
+					ofVec3f worldV = v * model.getScale();
+					bbox.expandToInclude(worldV);
+				}
+			}
+
+			ofLogNotice() << "BoundingBox min: " << bbox.min << " max: " << bbox.max;
+		}
+		else {
 			ofLogError() << "Model has no meshes after loading!";
 		}
-	} else {
-		ofLogError() << "Failed to load model: " << modelPath;
+	}
+	else {
+		ofLogError() << "❌ Failed to load model: " << modelPath;
 	}
 }
+
 

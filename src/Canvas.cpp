@@ -172,7 +172,8 @@ void Canvas::draw2DInViewport(const ofRectangle& viewport) {
 }
 
 void Canvas::draw3d(){
-	for (auto &m : models) {
+	for (auto& m : models) {
+		m->showBoundingBox = showBoundingBoxes;
 		m->draw();
 	}
 
@@ -716,7 +717,7 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 
 void Canvas::drawPrimitives3D() {
 	for (auto& primitive : primitives3D) {
-		primitive.draw(canvasLight);
+		primitive.draw(canvasLight, showBoundingBoxes);
 	}
 }
 

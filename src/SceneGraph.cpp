@@ -157,22 +157,88 @@ void SceneGraph::selectShapesInArea(const ofRectangle& selectionRect) {
             continue;
         }
 
-        // Logging for debugging
-        ofLog() << "SelectionRect: x=" << selectionRect.x
-                << " y=" << selectionRect.y
-                << " w=" << selectionRect.width
-                << " h=" << selectionRect.height;
-
-        ofLog() << "Shape " << i << " Bounds: x=" << shapeBounds.x
-                << " y=" << shapeBounds.y
-                << " w=" << shapeBounds.width
-                << " h=" << shapeBounds.height;
-
         bool intersecting = selectionRect.intersects(shapeBounds);
         ofLog() << "→ Intersecting: " << (intersecting ? "YES" : "NO");
 
         if (intersecting) {
             selectedShapeIndices.push_back(i);
+        }
+    }
+
+	select3DObjectsInArea(selectionRect);
+}
+
+void SceneGraph::select3DObjectsInArea(const ofRectangle& selectionRect) {
+    if (!canvasRef) return;
+
+    selectedModelIndices.clear();
+    selectedPrimitiveIndices.clear();
+
+    // Access camera for projection
+    ofCamera* cam = canvasRef->activeCamera;
+    if (!cam) return;
+
+    // --- Select 3D Models ---
+    auto& models = canvasRef->getModels();
+    for (int i = 0; i < models.size(); i++) {
+        auto& m = models[i];
+        ofVec3f min = m->bbox.min;
+        ofVec3f max = m->bbox.max;
+
+        // Get the 8 corners of the 3D bounding box
+        std::vector<ofVec3f> corners = {
+            {min.x, min.y, min.z}, {max.x, min.y, min.z},
+            {min.x, max.y, min.z}, {max.x, max.y, min.z},
+            {min.x, min.y, max.z}, {max.x, min.y, max.z},
+            {min.x, max.y, max.z}, {max.x, max.y, max.z}
+        };
+
+        // Project them to 2D screen coordinates
+        ofRectangle projectedBox;
+        bool first = true;
+        for (auto& c : corners) {
+            glm::vec3 screenPt = cam->worldToScreen(c);
+            if (first) {
+                projectedBox.set(screenPt.x, screenPt.y, 0, 0);
+                first = false;
+            } else {
+                projectedBox.growToInclude(screenPt.x, screenPt.y);
+            }
+        }
+
+        if (selectionRect.intersects(projectedBox)) {
+            selectedModelIndices.push_back(i);
+        }
+    }
+
+    // --- Select 3D Primitives ---
+    auto& primitives = canvasRef->getPrimitives3D();
+    for (int i = 0; i < primitives.size(); i++) {
+        auto& p = primitives[i];
+        ofVec3f min = p.bbox.min;
+        ofVec3f max = p.bbox.max;
+
+        std::vector<ofVec3f> corners = {
+            {min.x, min.y, min.z}, {max.x, min.y, min.z},
+            {min.x, max.y, min.z}, {max.x, max.y, min.z},
+            {min.x, min.y, max.z}, {max.x, min.y, max.z},
+            {min.x, max.y, max.z}, {max.x, max.y, max.z}
+        };
+
+        ofRectangle projectedBox;
+        bool first = true;
+        for (auto& c : corners) {
+            glm::vec3 screenPt = cam->worldToScreen(c);
+            if (first) {
+                projectedBox.set(screenPt.x, screenPt.y, 0, 0);
+                first = false;
+            } else {
+                projectedBox.growToInclude(screenPt.x, screenPt.y);
+            }
+        }
+
+        if (selectionRect.intersects(projectedBox)) {
+            selectedPrimitiveIndices.push_back(i);
         }
     }
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "ofMain.h"
 #include "ofxAssimpModelLoader.h"
+#include "BoundingBox.h"
 
 enum class ModelVariant {
 	None = 0,
@@ -17,6 +18,9 @@ public:
 	ofShader shader_normal;
 
 	ofLight light;
+
+	BoundingBox bbox;
+	bool showBoundingBox = false;
 
 	ofxAssimpModelLoader model;
 
