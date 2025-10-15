@@ -122,11 +122,13 @@ void Canvas::draw2d() {
 	std::vector<Shape> visibleShapes;
 	quadtree.query(drawingArea, visibleShapes);
 
-	for (auto &s : visibleShapes) {
-		drawShape(s);
+//	for (auto &s : visibleShapes) {
+//		ShapeRenderer::drawShape(s);
+//	}
+	for (auto &s : shapes) {
+		ShapeRenderer::drawShape(s);
 	}
-
-	drawPreview();
+	ShapeRenderer::drawPreview(currentMode, start, end, currentColor, tempShape.points, drawing);
 
 	if (hasImage) {
 		if (showHistogram) {
@@ -165,9 +167,9 @@ void Canvas::draw2DInViewport(const ofRectangle& viewport) {
 	ofNoFill();
 	drawImage(drawingAreaForCameras);
 	for (auto &s : shapes) {
-		drawShape(s);
+		ShapeRenderer::drawShape(s);
 	}
-	drawPreview();
+	ShapeRenderer::drawPreview(currentMode, start, end, currentColor, tempShape.points, drawing);
 	ofPopStyle();
 }
 
@@ -188,287 +190,287 @@ void Canvas::draw() {
 	draw2d();
 	draw3d();
 }
-void Canvas::drawPreview(){
-	if (drawing) {
-	ofSetColor(currentColor);
-	ofNoFill();
-
-	switch (currentMode) {
-		case ShapeMode::RECTANGLE: {
-			float x = std::min(start.x, end.x);
-			float y = std::min(start.y, end.y);
-			float w = std::abs(end.x - start.x);
-			float h = std::abs(end.y - start.y);
-			ofDrawRectangle(x, y, w, h);
-			break;
-		}
-		case ShapeMode::POINT: {
-			float pointSize = 5.0f;
-			ofDrawCircle(start.x, start.y, pointSize);
-			break;
-		}
-		case ShapeMode::SQUARE: {
-			float x = std::min(start.x, end.x);
-			float y = std::min(start.y, end.y);
-			float w = std::abs(end.x - start.x);
-			float h = std::abs(end.y - start.y);
-			float size = std::min(w, h);
-			if (end.x < start.x) x = start.x - size;
-			if (end.y < start.y) y = start.y - size;
-			ofDrawRectangle(x, y, size, size);
-			break;
-		}
-		case ShapeMode::TRIANGLE: {
-			ofPoint p1 = start;
-			ofPoint p2 = ofPoint(end.x, start.y);
-			ofPoint p3 = ofPoint((start.x + end.x) / 2, end.y);
-			ofDrawTriangle(p1, p2, p3);
-			break;
-		}
-		case ShapeMode::CIRCLE: {
-			float radius = start.distance(end);
-			ofDrawCircle(start, radius);
-			break;
-		}
-		case ShapeMode::LINE: {
-			ofDrawLine(start, end);
-			break;
-		}
-		case ShapeMode::FREEFORM: {
-			ofBeginShape();
-			for (auto &p : tempShape.points) {
-				ofVertex(p.x, p.y);
-			}
-			ofEndShape(false);
-			break;
-		}
-
-		case ShapeMode::HOUSE: {
-			float x = std::min(start.x, end.x);
-			float y = std::min(start.y, end.y);
-			float w = std::abs(end.x - start.x);
-			float h = std::abs(end.y - start.y);
-
-			ofDrawTriangle(
-				ofPoint(x, y + h * 0.3),
-				ofPoint(x + w / 2, y),
-				ofPoint(x + w, y + h * 0.3)
-			);
-
-			ofDrawRectangle(x, y + h * 0.3, w, h * 0.7);
-			break;
-		}
-		case ShapeMode::TREE: {
-			float x = std::min(start.x, end.x);
-			float y = std::min(start.y, end.y);
-			float w = std::abs(end.x - start.x);
-			float h = std::abs(end.y - start.y);
-
-			ofDrawCircle(x + w / 2, y + h * 0.4, w * 0.4);
-
-			ofDrawRectangle(x + w * 0.4, y + h * 0.6, w * 0.2, h * 0.4);
-			break;
-		}
-		case ShapeMode::TARGET: {
-			float radius = start.distance(end);
-			for (int i = 0; i < 5; ++i) {
-				float r = radius * (1.0 - i * 0.2);
-				ofDrawCircle(start, r);
-			}
-			break;
-		}
-
-		default:
-			break;
-	}
-}
-}
-void Canvas::drawRectangle(const Shape& s) {
-	float x = std::min(s.start.x, s.end.x);
-	float y = std::min(s.start.y, s.end.y);
-	float w = std::abs(s.end.x - s.start.x);
-	float h = std::abs(s.end.y - s.start.y);
-
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawRectangle(x, y, w, h);
-
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofDrawRectangle(x, y, w, h);
-}
-void Canvas::drawCircle(const Shape& s) {
-	float radius = s.start.distance(s.end);
-
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawCircle(s.start, radius);
-
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofDrawCircle(s.start, radius);
-}
-void Canvas::drawPoint(const Shape& s) {
-	float pointSize = 5.0f;
-
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawCircle(s.start, pointSize);
-
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofDrawCircle(s.start, pointSize);
-}
-void Canvas::drawTriangle(const Shape& s) {
-	ofPoint p1 = s.start;
-	ofPoint p2 = ofPoint(s.end.x, s.start.y);
-	ofPoint p3 = ofPoint((s.start.x + s.end.x) / 2, s.end.y);
-
-	// Fill
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawTriangle(p1, p2, p3);
-
-	// Outline
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofDrawTriangle(p1, p2, p3);
-}
-void Canvas::drawSquare(const Shape& s) {
-	float w = std::abs(s.end.x - s.start.x);
-	float h = std::abs(s.end.y - s.start.y);
-	float size = std::min(w, h);
-	float x = s.start.x;
-	float y = s.start.y;
-	if (s.end.x < s.start.x) x = s.start.x - size;
-	if (s.end.y < s.start.y) y = s.start.y - size;
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawRectangle(x, y, size, size);
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofDrawRectangle(x, y, size, size);
-}
-void Canvas::drawFreeForm(const Shape& s) {
-	if (!s.points.empty()) {
-		ofFill();
-		ofSetColor(s.fillColor);
-		ofBeginShape();
-		for (auto& p : s.points) {
-			ofVertex(p.x, p.y);
-		}
-		ofEndShape(true);
-	}
-
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofBeginShape();
-	for (auto& p : s.points) {
-		ofVertex(p.x, p.y);
-	}
-	ofEndShape(false);
-}
-
-void Canvas::drawHouse(const Shape& s) {
-	float x = std::min(s.start.x, s.end.x);
-	float y = std::min(s.start.y, s.end.y);
-	float w = std::abs(s.end.x - s.start.x);
-	float h = std::abs(s.end.y - s.start.y);
-
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawRectangle(x, y + h * 0.3, w, h * 0.7);
-
-	ofNoFill();
-	ofSetColor(s.contourColor);
-	ofSetLineWidth(s.thickness);
-	ofDrawRectangle(x, y + h * 0.3, w, h * 0.7);
-
-	ofFill();
-	ofSetColor(s.fillColor);
-	ofDrawTriangle(
-		ofPoint(x, y + h * 0.3),
-		ofPoint(x + w / 2, y),
-		ofPoint(x + w, y + h * 0.3)
-	);
-
-	ofNoFill();
-	ofSetColor(s.contourColor);
-	ofSetLineWidth(s.thickness);
-	ofDrawTriangle(
-		ofPoint(x, y + h * 0.3),
-		ofPoint(x + w / 2, y),
-		ofPoint(x + w, y + h * 0.3)
-	);
-}
-
-void Canvas::drawTree(const Shape& s) {
-	float x = std::min(s.start.x, s.end.x);
-	float y = std::min(s.start.y, s.end.y);
-	float w = std::abs(s.end.x - s.start.x);
-	float h = std::abs(s.end.y - s.start.y);
-
-	ofFill();
-	ofSetColor(139, 69, 19); // brown
-	ofDrawRectangle(x + w * 0.4, y + h * 0.6, w * 0.2, h * 0.4);
-
-	ofFill();
-	ofSetColor(34, 139, 34); // green
-	ofDrawCircle(x + w / 2, y + h * 0.4, w * 0.4);
-
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(s.contourColor);
-	ofDrawRectangle(x + w * 0.4, y + h * 0.6, w * 0.2, h * 0.4);
-	ofDrawCircle(x + w / 2, y + h * 0.4, w * 0.4);
-}
-
-void Canvas::drawTarget(const Shape& s) {
-	float radius = s.start.distance(s.end);
-
-	for (int i = 0; i < 5; ++i) {
-		float r = radius * (1.0 - i * 0.2);
-		if (i % 2 == 0)
-			ofSetColor(s.fillColor);
-		else
-			ofSetColor(s.contourColor);
-
-		ofFill();
-		ofDrawCircle(s.start, r);
-	}
-
-	ofNoFill();
-	ofSetLineWidth(s.thickness);
-	ofSetColor(0);
-	ofDrawCircle(s.start, radius);
-}
-
-void Canvas::drawShape(const Shape& s) {
-	switch (s.type) {
-		case ShapeMode::RECTANGLE: drawRectangle(s); break;
-		case ShapeMode::CIRCLE: drawCircle(s); break;
-		case ShapeMode::LINE: {
-			ofSetLineWidth(s.thickness);
-			ofSetColor(s.contourColor);
-			ofDrawLine(s.start, s.end);
-			break;
-		}
-		case ShapeMode::FREEFORM: drawFreeForm(s); break;
-		case ShapeMode::POINT: drawPoint(s); break;
-		case ShapeMode::TRIANGLE: drawTriangle(s); break;
-		case ShapeMode::SQUARE: drawSquare(s); break;
-		case ShapeMode::HOUSE: drawHouse(s); break;
-		case ShapeMode::TREE: drawTree(s); break;
-		case ShapeMode::TARGET: drawTarget(s); break;
-		default: break;
-	}
-}
+//void Canvas::drawPreview(){
+//	if (drawing) {
+//	ofSetColor(currentColor);
+//	ofNoFill();
+//
+//	switch (currentMode) {
+//		case ShapeMode::RECTANGLE: {
+//			float x = std::min(start.x, end.x);
+//			float y = std::min(start.y, end.y);
+//			float w = std::abs(end.x - start.x);
+//			float h = std::abs(end.y - start.y);
+//			ofDrawRectangle(x, y, w, h);
+//			break;
+//		}
+//		case ShapeMode::POINT: {
+//			float pointSize = 5.0f;
+//			ofDrawCircle(start.x, start.y, pointSize);
+//			break;
+//		}
+//		case ShapeMode::SQUARE: {
+//			float x = std::min(start.x, end.x);
+//			float y = std::min(start.y, end.y);
+//			float w = std::abs(end.x - start.x);
+//			float h = std::abs(end.y - start.y);
+//			float size = std::min(w, h);
+//			if (end.x < start.x) x = start.x - size;
+//			if (end.y < start.y) y = start.y - size;
+//			ofDrawRectangle(x, y, size, size);
+//			break;
+//		}
+//		case ShapeMode::TRIANGLE: {
+//			ofPoint p1 = start;
+//			ofPoint p2 = ofPoint(end.x, start.y);
+//			ofPoint p3 = ofPoint((start.x + end.x) / 2, end.y);
+//			ofDrawTriangle(p1, p2, p3);
+//			break;
+//		}
+//		case ShapeMode::CIRCLE: {
+//			float radius = start.distance(end);
+//			ofDrawCircle(start, radius);
+//			break;
+//		}
+//		case ShapeMode::LINE: {
+//			ofDrawLine(start, end);
+//			break;
+//		}
+//		case ShapeMode::FREEFORM: {
+//			ofBeginShape();
+//			for (auto &p : tempShape.points) {
+//				ofVertex(p.x, p.y);
+//			}
+//			ofEndShape(false);
+//			break;
+//		}
+//
+//		case ShapeMode::HOUSE: {
+//			float x = std::min(start.x, end.x);
+//			float y = std::min(start.y, end.y);
+//			float w = std::abs(end.x - start.x);
+//			float h = std::abs(end.y - start.y);
+//
+//			ofDrawTriangle(
+//				ofPoint(x, y + h * 0.3),
+//				ofPoint(x + w / 2, y),
+//				ofPoint(x + w, y + h * 0.3)
+//			);
+//
+//			ofDrawRectangle(x, y + h * 0.3, w, h * 0.7);
+//			break;
+//		}
+//		case ShapeMode::TREE: {
+//			float x = std::min(start.x, end.x);
+//			float y = std::min(start.y, end.y);
+//			float w = std::abs(end.x - start.x);
+//			float h = std::abs(end.y - start.y);
+//
+//			ofDrawCircle(x + w / 2, y + h * 0.4, w * 0.4);
+//
+//			ofDrawRectangle(x + w * 0.4, y + h * 0.6, w * 0.2, h * 0.4);
+//			break;
+//		}
+//		case ShapeMode::TARGET: {
+//			float radius = start.distance(end);
+//			for (int i = 0; i < 5; ++i) {
+//				float r = radius * (1.0 - i * 0.2);
+//				ofDrawCircle(start, r);
+//			}
+//			break;
+//		}
+//
+//		default:
+//			break;
+//	}
+//}
+//}
+//void Canvas::drawRectangle(const Shape& s) {
+//	float x = std::min(s.start.x, s.end.x);
+//	float y = std::min(s.start.y, s.end.y);
+//	float w = std::abs(s.end.x - s.start.x);
+//	float h = std::abs(s.end.y - s.start.y);
+//
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawRectangle(x, y, w, h);
+//
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofDrawRectangle(x, y, w, h);
+//}
+//void Canvas::drawCircle(const Shape& s) {
+//	float radius = s.start.distance(s.end);
+//
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawCircle(s.start, radius);
+//
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofDrawCircle(s.start, radius);
+//}
+//void Canvas::drawPoint(const Shape& s) {
+//	float pointSize = 5.0f;
+//
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawCircle(s.start, pointSize);
+//
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofDrawCircle(s.start, pointSize);
+//}
+//void Canvas::drawTriangle(const Shape& s) {
+//	ofPoint p1 = s.start;
+//	ofPoint p2 = ofPoint(s.end.x, s.start.y);
+//	ofPoint p3 = ofPoint((s.start.x + s.end.x) / 2, s.end.y);
+//
+//	// Fill
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawTriangle(p1, p2, p3);
+//
+//	// Outline
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofDrawTriangle(p1, p2, p3);
+//}
+//void Canvas::drawSquare(const Shape& s) {
+//	float w = std::abs(s.end.x - s.start.x);
+//	float h = std::abs(s.end.y - s.start.y);
+//	float size = std::min(w, h);
+//	float x = s.start.x;
+//	float y = s.start.y;
+//	if (s.end.x < s.start.x) x = s.start.x - size;
+//	if (s.end.y < s.start.y) y = s.start.y - size;
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawRectangle(x, y, size, size);
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofDrawRectangle(x, y, size, size);
+//}
+//void Canvas::drawFreeForm(const Shape& s) {
+//	if (!s.points.empty()) {
+//		ofFill();
+//		ofSetColor(s.fillColor);
+//		ofBeginShape();
+//		for (auto& p : s.points) {
+//			ofVertex(p.x, p.y);
+//		}
+//		ofEndShape(true);
+//	}
+//
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofBeginShape();
+//	for (auto& p : s.points) {
+//		ofVertex(p.x, p.y);
+//	}
+//	ofEndShape(false);
+//}
+//
+//void Canvas::drawHouse(const Shape& s) {
+//	float x = std::min(s.start.x, s.end.x);
+//	float y = std::min(s.start.y, s.end.y);
+//	float w = std::abs(s.end.x - s.start.x);
+//	float h = std::abs(s.end.y - s.start.y);
+//
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawRectangle(x, y + h * 0.3, w, h * 0.7);
+//
+//	ofNoFill();
+//	ofSetColor(s.contourColor);
+//	ofSetLineWidth(s.thickness);
+//	ofDrawRectangle(x, y + h * 0.3, w, h * 0.7);
+//
+//	ofFill();
+//	ofSetColor(s.fillColor);
+//	ofDrawTriangle(
+//		ofPoint(x, y + h * 0.3),
+//		ofPoint(x + w / 2, y),
+//		ofPoint(x + w, y + h * 0.3)
+//	);
+//
+//	ofNoFill();
+//	ofSetColor(s.contourColor);
+//	ofSetLineWidth(s.thickness);
+//	ofDrawTriangle(
+//		ofPoint(x, y + h * 0.3),
+//		ofPoint(x + w / 2, y),
+//		ofPoint(x + w, y + h * 0.3)
+//	);
+//}
+//
+//void Canvas::drawTree(const Shape& s) {
+//	float x = std::min(s.start.x, s.end.x);
+//	float y = std::min(s.start.y, s.end.y);
+//	float w = std::abs(s.end.x - s.start.x);
+//	float h = std::abs(s.end.y - s.start.y);
+//
+//	ofFill();
+//	ofSetColor(139, 69, 19); // brown
+//	ofDrawRectangle(x + w * 0.4, y + h * 0.6, w * 0.2, h * 0.4);
+//
+//	ofFill();
+//	ofSetColor(34, 139, 34); // green
+//	ofDrawCircle(x + w / 2, y + h * 0.4, w * 0.4);
+//
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(s.contourColor);
+//	ofDrawRectangle(x + w * 0.4, y + h * 0.6, w * 0.2, h * 0.4);
+//	ofDrawCircle(x + w / 2, y + h * 0.4, w * 0.4);
+//}
+//
+//void Canvas::drawTarget(const Shape& s) {
+//	float radius = s.start.distance(s.end);
+//
+//	for (int i = 0; i < 5; ++i) {
+//		float r = radius * (1.0 - i * 0.2);
+//		if (i % 2 == 0)
+//			ofSetColor(s.fillColor);
+//		else
+//			ofSetColor(s.contourColor);
+//
+//		ofFill();
+//		ofDrawCircle(s.start, r);
+//	}
+//
+//	ofNoFill();
+//	ofSetLineWidth(s.thickness);
+//	ofSetColor(0);
+//	ofDrawCircle(s.start, radius);
+//}
+//
+//void Canvas::drawShape(const Shape& s) {
+//	switch (s.type) {
+//		case ShapeMode::RECTANGLE: drawRectangle(s); break;
+//		case ShapeMode::CIRCLE: drawCircle(s); break;
+//		case ShapeMode::LINE: {
+//			ofSetLineWidth(s.thickness);
+//			ofSetColor(s.contourColor);
+//			ofDrawLine(s.start, s.end);
+//			break;
+//		}
+//		case ShapeMode::FREEFORM: drawFreeForm(s); break;
+//		case ShapeMode::POINT: drawPoint(s); break;
+//		case ShapeMode::TRIANGLE: drawTriangle(s); break;
+//		case ShapeMode::SQUARE: drawSquare(s); break;
+//		case ShapeMode::HOUSE: drawHouse(s); break;
+//		case ShapeMode::TREE: drawTree(s); break;
+//		case ShapeMode::TARGET: drawTarget(s); break;
+//		default: break;
+//	}
+//}
 void Canvas::mousePressed(int x, int y, int button) {
 	ofPushStyle();
 	if (!drawingArea.inside(x, y)) return;

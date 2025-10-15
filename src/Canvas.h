@@ -18,8 +18,7 @@ public:
 	void setup(const ofRectangle& area,const ofRectangle& areaForCameras,Toolbar* toolbar,SceneGraph* sceneGraph);
 	void update();
 	void draw();
-	void drawPreview();
-	
+
 	void mousePressed(int x, int y, int button);
 	void mouseDragged(int x, int y, int button);
 	void mouseReleased(int x, int y, int button);
@@ -114,16 +113,6 @@ private:
 	int currentImageIndex = -1;
 
 	void drawCanvas();
-	void drawShape(const Shape& s);
-	void drawCircle(const Shape& s);
-	void drawFreeForm(const Shape& s);
-	void drawRectangle(const Shape& s);
-	void drawPoint(const Shape& s);
-	void drawTriangle(const Shape& s);
-	void drawSquare(const Shape& s);
-	void drawHouse(const Shape& s);
-	void drawTree(const Shape& s);
-	void drawTarget(const Shape& s);
 
 	std::vector<Primitive3D> primitives3D;
 	Primitive3DType currentPrimitiveMode = Primitive3DType::NONE;
