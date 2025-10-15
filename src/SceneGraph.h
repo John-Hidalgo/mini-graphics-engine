@@ -33,6 +33,12 @@ public:
 	ofxIntSlider primitives3DPosXSlider;
 	ofxIntSlider primitives3DPosYSlider;
 	ofxIntSlider primitives3DPosZSlider;
+	
+	ofxFloatSlider translateShapeXSlider;
+	ofxFloatSlider translateShapeYSlider;
+	ofxButton rotateShapeRightButton;
+	ofxButton rotateShapeLeftButton;
+	ofxFloatSlider scaleShapeSlider;
 private:
 	Canvas* canvasRef;
 	ofRectangle panelArea;
@@ -40,6 +46,7 @@ private:
 	float x, y, width, height;
 	float panelPadding = 10;
 	int selectedIndex = -1;
+	int listsStartHeight = 550;
 	
 	ofxPanel gui;
 	ofxFloatSlider thicknessSlider;
@@ -73,4 +80,9 @@ private:
 	void backgroundColorChanged(ofColor& color);
 	void backgroundToggled(bool& val);
 	void ensureSingleToggle();
+	
+	void translationShapeChanged(float& val);
+	void rotateShapeRightPressed();
+	void rotateShapeLeftPressed();
+	void scaleShapeChanged(float& val);
 };

@@ -63,9 +63,6 @@ void ShapeRenderer::drawShape(const Shape& s) {
 	}
 }
 
-// COPY ALL YOUR EXISTING DRAWING METHODS EXACTLY AS THEY ARE
-// Just replace "Canvas::" with "ShapeRenderer::"
-
 void ShapeRenderer::drawRectanglePreview(const ofPoint& start, const ofPoint& end, const ofColor& color) {
 	float x = std::min(start.x, end.x);
 	float y = std::min(start.y, end.y);
@@ -146,13 +143,6 @@ void ShapeRenderer::drawTargetPreview(const ofPoint& start, const ofPoint& end, 
 	}
 }
 
-// COPY ALL YOUR EXISTING SHAPE DRAWING METHODS HERE EXACTLY AS THEY ARE
-// Just change "Canvas::drawRectangle" to "ShapeRenderer::drawRectangle", etc.
-
-
-// Continue copying ALL your other draw methods exactly as they are...
-// drawCircle, drawPoint, drawTriangle, drawSquare, drawLine, drawFreeForm,
-// drawHouse, drawTree, drawTarget - ALL OF THEM
 void ShapeRenderer::drawRectangle(const Shape& s) {
 	ofPushMatrix();
 	float x = std::min(s.start.x, s.end.x);
@@ -235,14 +225,11 @@ void ShapeRenderer::drawTriangle(const Shape& s) {
 }
 void ShapeRenderer::drawSquare(const Shape& s) {
 	ofPushMatrix();
-	
-	// Apply transformations
 	ofPoint center = s.getCenter();
 	ofTranslate(center);
 	ofRotateDeg(s.rotation);
 	ofScale(s.scale, s.scale);
 	ofTranslate(-center);
-	
 	float w = std::abs(s.end.x - s.start.x);
 	float h = std::abs(s.end.y - s.start.y);
 	float size = std::min(w, h);

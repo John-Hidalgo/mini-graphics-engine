@@ -66,6 +66,21 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	deleteButton3DModel.setup("Effacez");
 	deleteButton3DModel.addListener(this,&SceneGraph::deleteButton3DModelPressed);
 	modelEditorPanel.add(&deleteButton3DModel);
+	
+	gui.add(translateShapeXSlider.setup("Position X", 0, -500, 500));
+	gui.add(translateShapeYSlider.setup("Position Y", 0, -500, 500));
+	gui.add(scaleShapeSlider.setup("Proportion", 1.0f, 0.1f, 5.0f));
+		
+	rotateShapeRightButton.setup("Rotation Droite");
+	rotateShapeLeftButton.setup("Rotation Gauche");
+	gui.add(&rotateShapeRightButton);
+	gui.add(&rotateShapeLeftButton);
+		
+	translateShapeXSlider.addListener(this, &SceneGraph::translationShapeChanged);
+	translateShapeYSlider.addListener(this, &SceneGraph::translationShapeChanged);
+	scaleShapeSlider.addListener(this, &SceneGraph::scaleShapeChanged);
+	rotateShapeRightButton.addListener(this, &SceneGraph::rotateShapeRightPressed);
+	rotateShapeLeftButton.addListener(this, &SceneGraph::rotateShapeLeftPressed);
 
 
 	primitives3DEditorPanel.setup("Editez Primitives 3D");
@@ -401,7 +416,7 @@ void SceneGraph::setPanelArea(const ofRectangle& area) {
 }
 
 void SceneGraph::mousePressed(int mx, int my, int button) {
-	int listStartY = 450 - panelPadding;
+	int listStartY = listsStartHeight - panelPadding;
 	int rowHeight = 15;
 	float panelWidth = 175;
 
@@ -475,7 +490,7 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 	}
 }
 void SceneGraph::drawShapeList() {
-	int listStartY = 450 - panelPadding;
+	int listStartY = listsStartHeight - panelPadding;
 	int rowHeight = 15;
 	int numShapes = canvasRef->getShapes().size();
 	float panelWidth = 175;
@@ -490,13 +505,28 @@ void SceneGraph::drawShapeList() {
 		}
 		ofDrawRectangle(rect);
 		ofSetColor(0);
-		ofDrawBitmapString("Shape " + std::to_string(i+1), rect.x + 5, rect.y + rowHeight);
+		string shapeType;
+		switch(canvasRef->getShapes()[i].type) {
+			case ShapeMode::RECTANGLE: shapeType = "Rectangle"; break;
+			case ShapeMode::CIRCLE: shapeType = "Cercle"; break;
+			case ShapeMode::LINE: shapeType = "Ligne"; break;
+			case ShapeMode::FREEFORM: shapeType = "Libre"; break;
+			case ShapeMode::SQUARE: shapeType = "Carre"; break;
+			case ShapeMode::POINT: shapeType = "Point"; break;
+			case ShapeMode::TRIANGLE: shapeType = "Triangle"; break;
+			case ShapeMode::HOUSE: shapeType = "Maison";break;
+			case ShapeMode::TREE: shapeType = "Arbre";break;
+			case ShapeMode::TARGET: shapeType = "Cible"; break;
+			default: shapeType = "Unknown"; break;
+		}
+		
+		ofDrawBitmapString(shapeType + " " + std::to_string(i+1), rect.x + 5, rect.y + rowHeight);
 	}
 }
 void SceneGraph::drawModelList() {
 	float panelWidth = 175;
 	float panelX = x + panelWidth + panelPadding;
-	float panelY = 450 - panelPadding;
+	float panelY = listsStartHeight - panelPadding;
 	float itemHeight = 15;
 
 	for(int i = 0; i < canvasRef->models.size(); i++) {
@@ -513,7 +543,7 @@ void SceneGraph::drawModelList() {
 void SceneGraph::drawPrimitivesList() {
 	float panelWidth = 175;
 	float panelX = x + 2 * panelWidth  + panelPadding;
-	float listStartY = 450 - panelPadding;
+	float listStartY = listsStartHeight - panelPadding;
 	int rowHeight = 15;
 	int numPrimitives = canvasRef->getPrimitives3D().size();
 	
@@ -556,5 +586,43 @@ void SceneGraph::deleteButtonPrimitives3DPressed() {
 		selectedPrimitiveIndices.clear();
 	} else if (!primitives3D.empty()) {
 		primitives3D.pop_back();
+	}
+}
+
+void SceneGraph::translationShapeChanged(float& val) {
+	for (int index : selectedShapeIndices) {
+		if (index >= 0 && index < canvasRef->getShapes().size()) {
+			auto& s = canvasRef->getShapes()[index];
+			s.position.set(translateShapeXSlider, translateShapeYSlider);
+		}
+	}
+}
+
+void SceneGraph::scaleShapeChanged(float& val) {
+	for (int index : selectedShapeIndices) {
+		if (index >= 0 && index < canvasRef->getShapes().size()) {
+			auto& s = canvasRef->getShapes()[index];
+			s.scale = scaleShapeSlider;
+		}
+	}
+}
+
+void SceneGraph::rotateShapeRightPressed() {
+	for (int index : selectedShapeIndices) {
+		if (index >= 0 && index < canvasRef->getShapes().size()) {
+			auto& s = canvasRef->getShapes()[index];
+			s.rotation += 15.0f;
+			if (s.rotation >= 360.0f) s.rotation -= 360.0f;
+		}
+	}
+}
+
+void SceneGraph::rotateShapeLeftPressed() {
+	for (int index : selectedShapeIndices) {
+		if (index >= 0 && index < canvasRef->getShapes().size()) {
+			auto& s = canvasRef->getShapes()[index];
+			s.rotation -= 15.0f;
+			if (s.rotation < 0.0f) s.rotation += 360.0f;
+		}
 	}
 }
