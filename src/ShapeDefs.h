@@ -13,4 +13,20 @@ struct Shape {
 	bool hasFill = false;
 	float thickness = 2.0f;
 	std::vector<ofPoint> points;
+	ofPoint position{0, 0};
+	float rotation{0.0f};
+	float scale{1.0f};
+	
+	ofPoint getCenter() const {
+			if (type == ShapeMode::POINT) return start + position;
+			if (type == ShapeMode::FREEFORM && !points.empty()) {
+				ofPoint center;
+				for (auto& p : points) {
+					center += p;
+				}
+				center /= points.size();
+				return center + position;
+			}
+			return (start + end) * 0.5f + position;
+		}
 };

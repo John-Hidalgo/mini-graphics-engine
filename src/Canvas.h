@@ -4,6 +4,7 @@
 #include "Model3D.h"
 #include "Primitives3DDefs.h"
 #include "Histogramme.h"
+#include "ShapeRenderer.h"
 #include <vector>
 #include <map>
 
