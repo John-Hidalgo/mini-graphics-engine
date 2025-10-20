@@ -129,7 +129,7 @@ void Canvas::draw2d() {
 
 	if (hasImage) {
 		if (showHistogram) {
-			histogram.draw(drawingArea.getX() + 650, drawingArea.getY() + 825, 300, 150);
+			histogram.draw(drawingArea.getX() + 700, drawingArea.getY() + 900, 240, 80);
 		}
 
 		ofSetColor(0, 0, 0);
