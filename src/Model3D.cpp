@@ -128,7 +128,6 @@ void Model3D::loadModel(const std::string& path) {
 	model.clear();
 
 	if (model.load(ofToDataPath(modelPath, true))) {
-		ofLogNotice() << "✅ Loaded model: " << ofToDataPath(modelPath, true);
 		model.disableMaterials();
 
 		if (model.hasMeshes()) {
@@ -150,9 +149,6 @@ void Model3D::loadModel(const std::string& path) {
 		else {
 			ofLogError() << "Model has no meshes after loading!";
 		}
-	}
-	else {
-		ofLogError() << "❌ Failed to load model: " << modelPath;
 	}
 }
 
