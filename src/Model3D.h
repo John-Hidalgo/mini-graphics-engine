@@ -10,12 +10,23 @@ enum class ModelVariant {
 	Wireframe,
 	Transparent
 };
+enum class Lighting{
+	LAMBERT,
+	GOURAUD,
+	PHONG,
+	BLINNPHONG,
+	CELL
+};
 
 class Model3D {
 public:
 	ofShader shader;
 	ofShader shader_lambert;
 	ofShader shader_normal;
+	ofShader shader_gouraud;
+	ofShader shader_phong;
+	ofShader shader_blinnPhong;
+	ofShader shader_cell;
 
 	ofLight light;
 
@@ -27,24 +38,28 @@ public:
 	ofColor color_background;
 	ofColor color_ambient;
 	ofColor color_diffuse;
+	ofParameter<int> celBands;
+	ofParameter<float> celSpecularSize;
+	ofParameter<float> celOutlineWidth;
+	ofParameter<ofColor> celOutlineColor;
 	
 	ofVec3f position;
 
 	ModelVariant variant = ModelVariant::None;
+	Lighting ligthing = Lighting::LAMBERT;
 	ofTexture texture;
 
 	float center_x;
 	float center_y;
-
 	float scale_model;
-
 	float rotation_speed;
-
 	bool use_rotation;
 
 	void setup();
-	void applyVariant(ModelVariant variant);
+	//void applyVariant(ModelVariant variant);
 	void update();
 	void draw();
+	void setShader(Lighting lighting);
 	void loadModel(const std::string & path);
+	void drawBoundingBox();
 };

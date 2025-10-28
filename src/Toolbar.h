@@ -29,7 +29,7 @@ public:
 	ofxButton variantPlasticButton;
 	ofxButton variantWireframeButton;
 	ofxButton variantTransparentButton;
-
+	Lighting lighting = Lighting::LAMBERT;
 	ModelVariant selectedVariant = ModelVariant::None;
 	void onRedPressed();
 	void onGreenPressed();

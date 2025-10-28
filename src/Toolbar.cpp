@@ -121,13 +121,13 @@ void Toolbar::setup(Canvas* canvas) {
 	importModelButton.addListener(this, &Toolbar::importModelPressed);
 
 	// --- Variant selector group ---
-	variantGroup.setup("3D Model Variant");
+	variantGroup.setup("3D model lighting");
 
-	variantNoneButton.setup("None");
-	variantMetallicButton.setup("Metallic");
-	variantPlasticButton.setup("Plastic");
-	variantWireframeButton.setup("Wireframe");
-	variantTransparentButton.setup("Transparent");
+	variantNoneButton.setup("Lambert");
+	variantMetallicButton.setup("Gouraud");
+	variantPlasticButton.setup("Phong");
+	variantWireframeButton.setup("Blinn-Phong");
+	variantTransparentButton.setup("Cell-Shaded");
 
 	variantNoneButton.addListener(this, &Toolbar::variantNonePressed);
 	variantMetallicButton.addListener(this, &Toolbar::variantMetallicPressed);
@@ -211,22 +211,27 @@ void Toolbar::updateVariantButtonColors() {
 
 void Toolbar::variantNonePressed() {
 	setSelectedVariant(ModelVariant::None);
+	lighting = Lighting::LAMBERT;
 }
 
 void Toolbar::variantMetallicPressed() {
 	setSelectedVariant(ModelVariant::Metallic);
+	lighting = Lighting::GOURAUD;
 }
 
 void Toolbar::variantPlasticPressed() {
 	setSelectedVariant(ModelVariant::Plastic);
+	lighting = Lighting::PHONG;
 }
 
 void Toolbar::variantWireframePressed() {
 	setSelectedVariant(ModelVariant::Wireframe);
+	lighting = Lighting::BLINNPHONG;
 }
 
 void Toolbar::variantTransparentPressed() {
 	setSelectedVariant(ModelVariant::Transparent);
+	lighting = Lighting::CELL;
 }
 
 void Toolbar::draw() {
@@ -416,9 +421,8 @@ void Toolbar::importModelPressed() {
 		newModel->color_background = canvasRef->color_picker_background;
 		newModel->color_ambient = canvasRef->color_picker_ambient;
 		newModel->color_diffuse = canvasRef->color_picker_diffuse;
-
-		newModel->applyVariant(selectedVariant);
-
+		//newModel->applyVariant(selectedVariant);
+		newModel->setShader(lighting);
 		canvasRef->models.push_back(std::move(newModel));
 
 		ofLogNotice() << "Imported model: " << result.getPath()
