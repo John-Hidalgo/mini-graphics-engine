@@ -63,6 +63,15 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	modelEditorPanel.add(color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
 	modelEditorPanel.add(color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
 	
+	textureGroup.setup("textures");
+	textureInversionButton.setup("Inversion du cercle");
+	textureWeierstrassButton.setup("Weierstrass");
+	textureInversionButton.addListener(this, &SceneGraph::textureInversionPressed);
+	textureWeierstrassButton.addListener(this, &SceneGraph::textureWeierstrassPressed);
+	textureGroup.add(&textureInversionButton);
+	textureGroup.add(&textureWeierstrassButton);
+	modelEditorPanel.add(&textureGroup);
+	
 	deleteButton3DModel.setup("Effacez");
 	deleteButton3DModel.addListener(this,&SceneGraph::deleteButton3DModelPressed);
 	modelEditorPanel.add(&deleteButton3DModel);
@@ -623,6 +632,28 @@ void SceneGraph::rotateShapeLeftPressed() {
 			auto& s = canvasRef->getShapes()[index];
 			s.rotation -= 15.0f;
 			if (s.rotation < 0.0f) s.rotation += 360.0f;
+		}
+	}
+}
+
+void SceneGraph::textureInversionPressed() {
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->toggleProceduralTexture(ProceduralTexture::INVERSION);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+
+void SceneGraph::textureWeierstrassPressed(){
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->toggleProceduralTexture(ProceduralTexture::WEIERSTRASS);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
 		}
 	}
 }

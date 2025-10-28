@@ -18,6 +18,13 @@ enum class Lighting{
 	CELL
 };
 
+enum class ProceduralTexture {
+		NONE,
+		INVERSION,
+		WEIERSTRASS
+	};
+
+
 class Model3D {
 public:
 	ofShader shader;
@@ -27,7 +34,9 @@ public:
 	ofShader shader_phong;
 	ofShader shader_blinnPhong;
 	ofShader shader_cell;
-
+	ofShader shader_inversion;
+	ofShader shader_weierstrass;
+	
 	ofLight light;
 
 	BoundingBox bbox;
@@ -62,4 +71,14 @@ public:
 	void setShader(Lighting lighting);
 	void loadModel(const std::string & path);
 	void drawBoundingBox();
+	
+	void setProceduralTexture(ProceduralTexture texture);
+	void toggleProceduralTexture(ProceduralTexture texture);
+
+	Lighting getCurrentLighting() const { return currentLighting; }
+	ProceduralTexture getCurrentTexture() const { return currentTexture; }
+
+	Lighting currentLighting;
+	ProceduralTexture currentTexture;
+	Lighting previousLighting;
 };

@@ -7,12 +7,17 @@ void Model3D::setup()
 	rotation_speed = 0.3f;
 	use_rotation = true;
 
-	shader_lambert.load("lambert_330_vs.glsl", "lambert_330_fs.glsl");
-	shader_gouraud.load("gouraud_330_vs.glsl", "gouraud_330_fs.glsl");
-	shader_phong.load("phong_330_vs.glsl", "phong_330_fs.glsl");
-	shader_blinnPhong.load("blinn_phong_330_vs.glsl", "blinn_phong_330_fs.glsl");
-	shader_cell.load("CellShaded_330_vertex.glsl", "CellShaded_330_fragment.glsl");
+	shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
+	shader_gouraud.load("shaders/gouraud_330_vs.glsl", "shaders/gouraud_330_fs.glsl");
+	shader_phong.load("shaders/phong_330_vs.glsl", "shaders/phong_330_fs.glsl");
+	shader_blinnPhong.load("shaders/blinn_phong_330_vs.glsl", "shaders/blinn_phong_330_fs.glsl");
+	shader_cell.load("shaders/CellShaded_330_vertex.glsl", "shaders/CellShaded_330_fragment.glsl");
+	shader_inversion.load("shaders/CircleInversion_330_vertex.glsl","shaders/CircleInversion_330_fragment.glsl");
+	shader_weierstrass.load("shaders/Weierstrass_330_vertex.glsl","shaders/Weierstrass_330_fragment.glsl");
 	shader = shader_lambert;
+	currentLighting = Lighting::LAMBERT;
+	currentTexture = ProceduralTexture::NONE;
+	previousLighting = Lighting::LAMBERT;
 	celBands.set("Color Bands", 3, 2, 6);
 	celSpecularSize.set("Specular Size", 0.3, 0.5, 1.0);
 	celOutlineWidth.set("Outline Threshold", 0.1, 0.0, 1.0);
@@ -44,53 +49,119 @@ void Model3D::draw()
 {
 	ofSetBackgroundColor(color_background.r, color_background.g, color_background.b);
 	ofEnableDepthTest();
-	ofEnableLighting();
-	light.enable();
-	shader.begin();
-	shader.setUniform3f("color_ambient", color_ambient.r / 255.0f, color_ambient.g / 255.0f, color_ambient.b / 255.0f);
-	shader.setUniform3f("color_diffuse", color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
-	shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
-	shader.setUniform1f("brightness", 0.5f);
-	shader.setUniform3f("light_position", light.getGlobalPosition());
 	
-	if(shader == shader_cell) {
-		shader.setUniform1i("bands", celBands);
-		shader.setUniform1f("outline_threshold", celOutlineWidth);
-		shader.setUniform3f("outline_color",
-			celOutlineColor->r / 255.0f,
-			celOutlineColor->g / 255.0f,
-			celOutlineColor->b / 255.0f);
-		shader.setUniform3f("color_specular", 1.0f, 1.0f, 1.0f);
+	// Only enable lighting for non-procedural shaders
+	if (currentTexture == ProceduralTexture::NONE) {
+		ofEnableLighting();
+		light.enable();
 	}
-
+	
+	shader.begin();
+	
+	// Only set lighting uniforms for non-procedural shaders
+	if (currentTexture == ProceduralTexture::NONE) {
+		shader.setUniform3f("color_ambient", color_ambient.r / 255.0f, color_ambient.g / 255.0f, color_ambient.b / 255.0f);
+		shader.setUniform3f("color_diffuse", color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
+		shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
+		shader.setUniform1f("brightness", 0.5f);
+		shader.setUniform3f("light_position", light.getGlobalPosition());
+		
+		if(shader == shader_cell) {
+			shader.setUniform1i("bands", celBands);
+			shader.setUniform1f("outline_threshold", celOutlineWidth);
+			shader.setUniform3f("outline_color",
+				celOutlineColor->r / 255.0f,
+				celOutlineColor->g / 255.0f,
+				celOutlineColor->b / 255.0f);
+			shader.setUniform3f("color_specular", 1.0f, 1.0f, 1.0f);
+		}
+	} else {
+		// Procedural texture uniforms
+		shader.setUniform1f("u_time", ofGetElapsedTimef());
+		shader.setUniform2f("u_resolution", ofGetWidth(), ofGetHeight());
+	}
+	
 	model.draw(OF_MESH_FILL);
 	drawBoundingBox();
 	shader.end();
-	light.disable();
-	ofDisableLighting();
+	
+	if (currentTexture == ProceduralTexture::NONE) {
+		light.disable();
+		ofDisableLighting();
+	}
+	
 	ofDisableDepthTest();
 }
-void Model3D::setShader(Lighting lighting){
+void Model3D::setShader(Lighting lighting)
+{
+	currentLighting = lighting;
+	currentTexture = ProceduralTexture::NONE; // Reset texture when changing lighting
+	
 	switch (lighting) {
-		case Lighting::LAMBERT :
+		case Lighting::LAMBERT:
 			shader = shader_lambert;
 			break;
-		case Lighting::GOURAUD :
+		case Lighting::GOURAUD:
 			shader = shader_gouraud;
 			break;
-		case Lighting::PHONG :
+		case Lighting::PHONG:
 			shader = shader_phong;
 			break;
-		case Lighting::BLINNPHONG :
+		case Lighting::BLINNPHONG:
 			shader = shader_blinnPhong;
 			break;
-		case Lighting::CELL :
+		case Lighting::CELL:
 			shader = shader_cell;
+			break;
 		default:
-			shader = shader_cell;
+			shader = shader_lambert;
 			break;
 	}
 	
+	ofLogNotice() << "Set shader to: " << static_cast<int>(lighting);
+}
+
+void Model3D::setProceduralTexture(ProceduralTexture texture)
+{
+	if (texture == currentTexture && texture != ProceduralTexture::NONE) {
+		// If clicking the same texture again, toggle it off
+		toggleProceduralTexture(texture);
+		return;
+	}
+	
+	// Store current lighting before applying procedural texture
+	if (texture != ProceduralTexture::NONE && currentTexture == ProceduralTexture::NONE) {
+		previousLighting = currentLighting;
+	}
+	
+	currentTexture = texture;
+	
+	switch (texture) {
+		case ProceduralTexture::INVERSION:
+			shader = shader_inversion;
+			ofLogNotice() << "Applied Circle Inversion texture over " << static_cast<int>(previousLighting);
+			break;
+		case ProceduralTexture::WEIERSTRASS:
+			shader = shader_weierstrass;
+			ofLogNotice() << "Applied Weierstrass texture over " << static_cast<int>(previousLighting);
+			break;
+		case ProceduralTexture::NONE:
+			// Restore previous lighting shader
+			setShader(previousLighting);
+			ofLogNotice() << "Removed procedural texture, restored to " << static_cast<int>(previousLighting);
+			break;
+	}
+}
+
+void Model3D::toggleProceduralTexture(ProceduralTexture texture)
+{
+	if (currentTexture == texture) {
+		// If this texture is already active, remove it
+		setProceduralTexture(ProceduralTexture::NONE);
+	} else {
+		// Otherwise apply this texture
+		setProceduralTexture(texture);
+	}
 }
 
 //void Model3D::applyVariant(ModelVariant chosenVariant) {

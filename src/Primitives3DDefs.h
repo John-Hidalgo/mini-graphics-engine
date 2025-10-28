@@ -18,7 +18,7 @@ struct Primitive3D {
 	//ofLight light;Object of type 'Primitive3D' cannot be assigned because its copy assignment operator is implicitly deleted
 
 	void setup() {
-		shader_lambert.load("lambert_330_vs.glsl", "lambert_330_fs.glsl");
+		shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
 		color_ambient = ofColor(50, 50, 50);
 		color_diffuse = ofColor(200, 200, 200);
 	}

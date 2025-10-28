@@ -23,6 +23,9 @@ public:
 	ofParameter<ofColor> color_picker_background_primitives3D;
 	ofParameter<ofColor> color_picker_ambient_primitives3D;
 	ofParameter<ofColor> color_picker_diffuse_primitives3D;
+	ofxButton textureInversionButton;
+	ofxButton textureWeierstrassButton;
+	ofxGuiGroup textureGroup;
 	std::vector<int> selectedShapeIndices;
 	std::vector<int> selectedModelIndices;
 	std::vector<int> selectedPrimitiveIndices;
@@ -85,4 +88,6 @@ private:
 	void rotateShapeRightPressed();
 	void rotateShapeLeftPressed();
 	void scaleShapeChanged(float& val);
+	void textureInversionPressed();
+	void textureWeierstrassPressed();
 };
