@@ -24,6 +24,7 @@ void Application::setup() {
 	toolbar.setup(&canvas);
 	setupCameras();
 	updateCameraViewports(ofGetWidth(), ofGetHeight());
+	skybox.setup();
 }
 
 void Application::windowResized(int w, int h) {
@@ -153,48 +154,36 @@ void Application::mouseMoved(int x, int y) {
 }
 
 void Application::draw() {
-	canvas.draw2d();
-	
 	leftPanel.draw();
 	sceneGraph.draw();
-	//bottomPanel.draw();
-	toolbar.draw();
-	// pour mettre le focus sur un partie du canevas
+	
 	if (selectionMode && isSelecting && selectionRect.getWidth() > 0 && selectionRect.getHeight() > 0) {
 		drawSelectionBox();
 	}
-	
-	
+	drawCamerasViews();
+	canvas.draw2d();
+	toolbar.draw();
+}
+void Application::drawCamerasViews(){
 	if(!cameras.empty()) {
-		// Avant de commencer le draw call on set la camera active
 		canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
-
-		// Pour la camera sur le canevas
 		ofPushView();
 		ofViewport(canvasArea);
 		cameras[activeCameraIndex].cam.begin();
-		
+		ofCamera& cam = cameras[activeCameraIndex].cam;
+		skybox.draw(cam);
 		canvas.draw3d();
-//		//DEBUG////////////////////////////////////////////////////
-//		drawDebugAxes(300.0f, 4.0f);
-//		//DEBUG////////////////////////////////////////////////////
 		cameras[activeCameraIndex].cam.end();
 		ofPopView();
-		
-		// Pour les autres cameras
 		for(int i = 0; i < cameras.size(); i++) {
 			ofPushView();
 			ofViewport(cameras[i].viewport);
-			
-			canvas.draw2DInViewport(cameras[i].viewport);
 			cameras[i].cam.begin();
+			skybox.draw(cameras[i].cam);
 			canvas.draw3d();
-//			//DEBUG////////////////////////////////////////////////////
-//			drawDebugAxes(300.0f, 4.0f);
-//			//DEBUG////////////////////////////////////////////////////
 			cameras[i].cam.end();
+			canvas.draw2DInViewport(cameras[i].viewport);
 			ofPopView();
-			
 			ofNoFill();
 			if(i == activeCameraIndex) {
 				ofSetColor(255, 255, 0);
@@ -210,7 +199,6 @@ void Application::draw() {
 		}
 	}
 }
-
 void Application::setupCameras(){
 	int numCameras = 4;
 	int bottomMargin = 0;
@@ -710,3 +698,16 @@ void Application::exportSceneAsImage() {
 
 	screenshot.save(saveFileResult.getPath());
 }
+
+//void Application::draw() {
+//	testCam.begin();
+//	
+//	// Draw skybox
+//	skybox.draw(testCam);
+//	
+//
+//	testcam.end();
+//	
+//	// Draw instructions
+//	ofSetColor(255);
+//}

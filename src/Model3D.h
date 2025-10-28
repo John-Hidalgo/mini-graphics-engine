@@ -65,7 +65,7 @@ public:
 	bool use_rotation;
 
 	void setup();
-	//void applyVariant(ModelVariant variant);
+	void applyVariant(ModelVariant variant);
 	void update();
 	void draw();
 	void setShader(Lighting lighting);

@@ -6,7 +6,7 @@ class CameraView {
 public:
 	CameraView();
 
-	// ofEasyCam cam;
+	//ofEasyCam cam;
 	ofCamera cam;
 	ofRectangle viewport;
 	void setup();

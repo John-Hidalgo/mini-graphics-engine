@@ -100,6 +100,9 @@ void Canvas::drawCanvas(){
 	if(hasImage){
 		ofSetColor(bgColor);
 	}
+	else if(skyBoxDisplayed){
+		ofSetColor(bgColor.r, bgColor.g, bgColor.b, 0);
+	}
 	else{
 		ofSetColor(bgColor);
 	}
@@ -155,6 +158,9 @@ void Canvas::draw2DInViewport(const ofRectangle& viewport) {
 	ofFill();
 	if(hasImage){
 		ofSetColor(bgColor);
+	}
+	else if(skyBoxDisplayed){
+		ofSetColor(bgColor.r, bgColor.g, bgColor.b, 0);
 	}
 	else{
 		ofSetColor(bgColor);

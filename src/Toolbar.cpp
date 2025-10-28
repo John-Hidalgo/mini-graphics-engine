@@ -78,6 +78,9 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.add(histogramToggle.setup("Affichez l'histogramme", false));
 	histogramToggle.addListener(this, &Toolbar::histogramToggleChanged);
+	
+	dessinez.add(skyBoxToggle.setup("Affichez les etoiles", false));
+	skyBoxToggle.addListener(this, &Toolbar::skyBoxToggleChanged);
 
 	dessinez.minimize();
 
@@ -210,27 +213,27 @@ void Toolbar::updateVariantButtonColors() {
 }
 
 void Toolbar::variantNonePressed() {
-	setSelectedVariant(ModelVariant::None);
+	//setSelectedVariant(ModelVariant::None);
 	lighting = Lighting::LAMBERT;
 }
 
 void Toolbar::variantMetallicPressed() {
-	setSelectedVariant(ModelVariant::Metallic);
+	//setSelectedVariant(ModelVariant::Metallic);
 	lighting = Lighting::GOURAUD;
 }
 
 void Toolbar::variantPlasticPressed() {
-	setSelectedVariant(ModelVariant::Plastic);
+	//setSelectedVariant(ModelVariant::Plastic);
 	lighting = Lighting::PHONG;
 }
 
 void Toolbar::variantWireframePressed() {
-	setSelectedVariant(ModelVariant::Wireframe);
+	//setSelectedVariant(ModelVariant::Wireframe);
 	lighting = Lighting::BLINNPHONG;
 }
 
 void Toolbar::variantTransparentPressed() {
-	setSelectedVariant(ModelVariant::Transparent);
+	//setSelectedVariant(ModelVariant::Transparent);
 	lighting = Lighting::CELL;
 }
 
@@ -738,6 +741,11 @@ void Toolbar::setExclusivePrimitiveToggle(Primitive3DType mode) {
 void Toolbar::histogramToggleChanged(bool& val) {
 	if (canvasRef) {
 		canvasRef->setShowHistogram(val);
+	}
+}
+void Toolbar::skyBoxToggleChanged(bool& val) {
+	if (canvasRef) {
+		canvasRef->setDisplaySkyBox(val);
 	}
 }
 

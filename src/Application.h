@@ -7,6 +7,7 @@
 #include "LeftPanel.h"
 #include "Model3D.h"
 #include "CameraView.h"
+#include "SkyBox.h"
 
 enum Coordinates {
 	EUCLIDEAN,
@@ -75,6 +76,7 @@ private:
 	ofRectangle leftPanelArea;
 	ofRectangle bottomPanelArea;
 	ofRectangle canvasAreaForCameras;
+	Skybox skybox;
 
 	float leftPanelWidth = 220.0f;
 	float rightPanelWidth = 540.0f;
@@ -94,5 +96,7 @@ private:
 	void focusToSelection();
 	void exportSceneAsImage();
 	void drawSelectionBox();
-
+	void drawCamerasViews();
+	
+	ofEasyCam testCam;
 };

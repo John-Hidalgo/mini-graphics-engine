@@ -50,15 +50,12 @@ void Model3D::draw()
 	ofSetBackgroundColor(color_background.r, color_background.g, color_background.b);
 	ofEnableDepthTest();
 	
-	// Only enable lighting for non-procedural shaders
 	if (currentTexture == ProceduralTexture::NONE) {
 		ofEnableLighting();
 		light.enable();
 	}
 	
 	shader.begin();
-	
-	// Only set lighting uniforms for non-procedural shaders
 	if (currentTexture == ProceduralTexture::NONE) {
 		shader.setUniform3f("color_ambient", color_ambient.r / 255.0f, color_ambient.g / 255.0f, color_ambient.b / 255.0f);
 		shader.setUniform3f("color_diffuse", color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
@@ -76,7 +73,6 @@ void Model3D::draw()
 			shader.setUniform3f("color_specular", 1.0f, 1.0f, 1.0f);
 		}
 	} else {
-		// Procedural texture uniforms
 		shader.setUniform1f("u_time", ofGetElapsedTimef());
 		shader.setUniform2f("u_resolution", ofGetWidth(), ofGetHeight());
 	}
@@ -95,7 +91,7 @@ void Model3D::draw()
 void Model3D::setShader(Lighting lighting)
 {
 	currentLighting = lighting;
-	currentTexture = ProceduralTexture::NONE; // Reset texture when changing lighting
+	currentTexture = ProceduralTexture::NONE;
 	
 	switch (lighting) {
 		case Lighting::LAMBERT:
@@ -124,12 +120,9 @@ void Model3D::setShader(Lighting lighting)
 void Model3D::setProceduralTexture(ProceduralTexture texture)
 {
 	if (texture == currentTexture && texture != ProceduralTexture::NONE) {
-		// If clicking the same texture again, toggle it off
 		toggleProceduralTexture(texture);
 		return;
 	}
-	
-	// Store current lighting before applying procedural texture
 	if (texture != ProceduralTexture::NONE && currentTexture == ProceduralTexture::NONE) {
 		previousLighting = currentLighting;
 	}
@@ -146,7 +139,6 @@ void Model3D::setProceduralTexture(ProceduralTexture texture)
 			ofLogNotice() << "Applied Weierstrass texture over " << static_cast<int>(previousLighting);
 			break;
 		case ProceduralTexture::NONE:
-			// Restore previous lighting shader
 			setShader(previousLighting);
 			ofLogNotice() << "Removed procedural texture, restored to " << static_cast<int>(previousLighting);
 			break;
@@ -164,47 +156,47 @@ void Model3D::toggleProceduralTexture(ProceduralTexture texture)
 	}
 }
 
-//void Model3D::applyVariant(ModelVariant chosenVariant) {
-//	variant = chosenVariant;
-//	switch (chosenVariant) {
-//	case ModelVariant::Metallic:
-//		ofLogNotice() << "Metallic model";
-//		color_ambient = ofColor(80, 80, 100);
-//		color_diffuse = ofColor(200, 200, 255);
-//		shader = shader_lambert;
-//		break;
-//
-//	case ModelVariant::Plastic:
-//		ofLogNotice() << "Plastic model";
-//		color_ambient = ofColor(40, 0, 0);
-//		color_diffuse = ofColor(240, 60, 60);
-//		shader = shader_lambert;
-//		break;
-//
-//	case ModelVariant::Wireframe:
-//		ofLogNotice() << "Wireframe model";
-//		color_ambient = ofColor(0, 0, 0);
-//		color_diffuse = ofColor(255, 255, 255);
-//		shader = shader_normal;
-//		break;
-//
-//	case ModelVariant::Transparent:
-//		ofLogNotice() << "Transparent model";
-//		color_ambient = ofColor(100, 100, 100);
-//		color_diffuse = ofColor(255, 255, 255, 120);
-//		shader = shader_lambert;
-//		break;
-//
-//	default:
-//		shader = shader_lambert;
-//		color_ambient = ofColor(50, 50, 50);
-//		color_diffuse = ofColor(200, 200, 200);
-//		break;
-//	}
-//
-//	ofLogNotice() << "applyVariant() Ambient: "
-//			  << color_ambient << " Diffuse: " << color_diffuse;
-//}
+void Model3D::applyVariant(ModelVariant chosenVariant) {
+	variant = chosenVariant;
+	switch (chosenVariant) {
+	case ModelVariant::Metallic:
+		ofLogNotice() << "Metallic model";
+		color_ambient = ofColor(80, 80, 100);
+		color_diffuse = ofColor(200, 200, 255);
+		shader = shader_lambert;
+		break;
+
+	case ModelVariant::Plastic:
+		ofLogNotice() << "Plastic model";
+		color_ambient = ofColor(40, 0, 0);
+		color_diffuse = ofColor(240, 60, 60);
+		shader = shader_lambert;
+		break;
+
+	case ModelVariant::Wireframe:
+		ofLogNotice() << "Wireframe model";
+		color_ambient = ofColor(0, 0, 0);
+		color_diffuse = ofColor(255, 255, 255);
+		shader = shader_normal;
+		break;
+
+	case ModelVariant::Transparent:
+		ofLogNotice() << "Transparent model";
+		color_ambient = ofColor(100, 100, 100);
+		color_diffuse = ofColor(255, 255, 255, 120);
+		shader = shader_lambert;
+		break;
+
+	default:
+		shader = shader_lambert;
+		color_ambient = ofColor(50, 50, 50);
+		color_diffuse = ofColor(200, 200, 200);
+		break;
+	}
+
+	ofLogNotice() << "applyVariant() Ambient: "
+			  << color_ambient << " Diffuse: " << color_diffuse;
+}
 void Model3D::loadModel(const std::string& path) {
 	std::string modelPath = path.empty() ? "enneperSurface.obj" : path;
 	model.clear();

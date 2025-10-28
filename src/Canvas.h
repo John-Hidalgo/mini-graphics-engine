@@ -47,7 +47,7 @@ public:
 	void drawImage(const ofRectangle& area);
 	void calculateModelsPosition();
 	void setShowHistogram(bool show) { showHistogram = show; }
-	
+	void setDisplaySkyBox(bool val){skyBoxDisplayed = val;}
 	void draw2d();
 	void draw3d();
 	void draw2DInViewport(const ofRectangle& viewport);
@@ -130,4 +130,5 @@ private:
 
 	ofColor bgColor = ofColor(255, 255, 255);
 	ofLight canvasLight;
+	bool skyBoxDisplayed = false;
 };

@@ -23,6 +23,7 @@ public:
 	
 	ofxButton redBtn, greenBtn, blueBtn, yellowBtn;
 	ofxToggle histogramToggle;
+	ofxToggle skyBoxToggle;
 	ofxGuiGroup variantGroup;
 	ofxButton variantNoneButton;
 	ofxButton variantMetallicButton;
@@ -117,6 +118,7 @@ private:
 	void imageDisplayScaleChanged(float &val);
 	void maintainAspectRatioToggled(bool &val);
 	void histogramToggleChanged(bool& val);
+	void skyBoxToggleChanged(bool& val);
 	void setExclusiveToggle(ShapeMode mode);
 
 	void sphereToggleChanged(bool &val);
