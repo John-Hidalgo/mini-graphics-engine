@@ -152,50 +152,86 @@ void Application::mouseMoved(int x, int y) {
 		selectionRect.set(x1, y1, x2 - x1, y2 - y1);
 	}
 }
-
 void Application::draw() {
 	leftPanel.draw();
 	sceneGraph.draw();
-	
+	drawSelectionBoxWrapper();
+	if (canvas.getSkyBoxDisplayed()) {
+		drawMainView();
+		drawScaledViews();
+		canvas.draw2d();
+	}
+	else {
+		canvas.draw2d();
+		drawMainView();
+		drawScaledViews();
+	}
+	toolbar.draw();
+}
+
+void Application::drawSelectionBoxWrapper() {
 	if (selectionMode && isSelecting && selectionRect.getWidth() > 0 && selectionRect.getHeight() > 0) {
 		drawSelectionBox();
 	}
-	drawCamerasViews();
-	canvas.draw2d();
-	toolbar.draw();
 }
-void Application::drawCamerasViews(){
-	if(!cameras.empty()) {
-		canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
-		ofPushView();
-		ofViewport(canvasArea);
-		cameras[activeCameraIndex].cam.begin();
-		ofCamera& cam = cameras[activeCameraIndex].cam;
+void Application::drawMainView(){
+	canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
+	ofPushView();
+	ofViewport(canvasArea);
+	cameras[activeCameraIndex].cam.begin();
+	ofCamera& cam = cameras[activeCameraIndex].cam;
+	if(canvas.getSkyBoxDisplayed()){
 		skybox.draw(cam);
-		canvas.draw3d();
-		cameras[activeCameraIndex].cam.end();
-		ofPopView();
+	}
+	canvas.draw3d();
+	cameras[activeCameraIndex].cam.end();
+	ofPopView();
+}
+void Application::drawScaledViews(){
+	if(canvas.getSkyBoxDisplayed()){
 		for(int i = 0; i < cameras.size(); i++) {
 			ofPushView();
 			ofViewport(cameras[i].viewport);
+			canvas.draw2DInViewport(cameras[i].viewport);
 			cameras[i].cam.begin();
-			skybox.draw(cameras[i].cam);
+			ofCamera& cam = cameras[activeCameraIndex].cam;
+			skybox.draw(cam);
 			canvas.draw3d();
 			cameras[i].cam.end();
 			canvas.draw2DInViewport(cameras[i].viewport);
 			ofPopView();
 			ofNoFill();
-			if(i == activeCameraIndex) {
-				ofSetColor(255, 255, 0);
-			} else {
+			i == activeCameraIndex?
+				ofSetColor(255, 255, 0):
 				ofSetColor(255);
-			}
 			ofDrawRectangle(cameras[i].viewport);
 			ofFill();
 			ofSetColor(0,0,0);
 			ofDrawBitmapString("Cam " + ofToString(i+1),
 							 cameras[i].viewport.x + 5,
 							 cameras[i].viewport.y + 15);
+		}
+	}
+	else{
+		for(int i = 0; i < cameras.size(); i++) {
+			ofPushView();
+			ofViewport(cameras[i].viewport);
+			canvas.draw2DInViewport(cameras[i].viewport);
+			cameras[i].cam.begin();
+			ofCamera& cam = cameras[activeCameraIndex].cam;
+			canvas.draw3d();
+			cameras[i].cam.end();
+			ofPopView();
+			ofNoFill();
+			i == activeCameraIndex?
+			ofSetColor(255, 255, 0):
+			ofSetColor(255);
+			ofDrawRectangle(cameras[i].viewport);
+			ofFill();
+			ofSetColor(0,0,0);
+			ofDrawBitmapString("Cam " + ofToString(i+1),
+							   cameras[i].viewport.x + 5,
+							   cameras[i].viewport.y + 15);
 		}
 	}
 }
@@ -698,16 +734,3 @@ void Application::exportSceneAsImage() {
 
 	screenshot.save(saveFileResult.getPath());
 }
-
-//void Application::draw() {
-//	testCam.begin();
-//	
-//	// Draw skybox
-//	skybox.draw(testCam);
-//	
-//
-//	testcam.end();
-//	
-//	// Draw instructions
-//	ofSetColor(255);
-//}

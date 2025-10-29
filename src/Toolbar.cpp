@@ -213,27 +213,27 @@ void Toolbar::updateVariantButtonColors() {
 }
 
 void Toolbar::variantNonePressed() {
-	//setSelectedVariant(ModelVariant::None);
+	setSelectedVariant(ModelVariant::None);
 	lighting = Lighting::LAMBERT;
 }
 
 void Toolbar::variantMetallicPressed() {
-	//setSelectedVariant(ModelVariant::Metallic);
+	setSelectedVariant(ModelVariant::Metallic);
 	lighting = Lighting::GOURAUD;
 }
 
 void Toolbar::variantPlasticPressed() {
-	//setSelectedVariant(ModelVariant::Plastic);
+	setSelectedVariant(ModelVariant::Plastic);
 	lighting = Lighting::PHONG;
 }
 
 void Toolbar::variantWireframePressed() {
-	//setSelectedVariant(ModelVariant::Wireframe);
+	setSelectedVariant(ModelVariant::Wireframe);
 	lighting = Lighting::BLINNPHONG;
 }
 
 void Toolbar::variantTransparentPressed() {
-	//setSelectedVariant(ModelVariant::Transparent);
+	setSelectedVariant(ModelVariant::Transparent);
 	lighting = Lighting::CELL;
 }
 
@@ -635,26 +635,26 @@ void Toolbar::setColorFromCanvas(ofColor& color,std::string& name){
 	currentColour.setBackgroundColor(color);
 	currentColour = name;
 	currentColor = color;
-		currentColour = name;
-		currentColour.setBackgroundColor(currentColor);
+	currentColour = name;
+	currentColour.setBackgroundColor(currentColor);
 
-		redBtn.setBackgroundColor(ofColor(150, 50, 50));
-		greenBtn.setBackgroundColor(ofColor(50, 150, 50));
-		blueBtn.setBackgroundColor(ofColor(50, 50, 150));
-		yellowBtn.setBackgroundColor(ofColor(150, 150, 50));
-		if (color == ofColor(255, 0, 0)) {
-			redBtn.setBackgroundColor(ofColor(255, 100, 100));
-		} else if (color == ofColor(0, 255, 0)) {
-			greenBtn.setBackgroundColor(ofColor(100, 255, 100));
-		} else if (color == ofColor(0, 0, 255)) {
-			blueBtn.setBackgroundColor(ofColor(100, 100, 255));
-		} else if (color == ofColor(255, 255, 0)) {
-			yellowBtn.setBackgroundColor(ofColor(255, 255, 100));
-		}
-		
-		if (canvasRef) {
-			canvasRef->setDrawingColor(currentColor);
-		}
+	redBtn.setBackgroundColor(ofColor(150, 50, 50));
+	greenBtn.setBackgroundColor(ofColor(50, 150, 50));
+	blueBtn.setBackgroundColor(ofColor(50, 50, 150));
+	yellowBtn.setBackgroundColor(ofColor(150, 150, 50));
+	if (color == ofColor(255, 0, 0)) {
+		redBtn.setBackgroundColor(ofColor(255, 100, 100));
+	} else if (color == ofColor(0, 255, 0)) {
+		greenBtn.setBackgroundColor(ofColor(100, 255, 100));
+	} else if (color == ofColor(0, 0, 255)) {
+		blueBtn.setBackgroundColor(ofColor(100, 100, 255));
+	} else if (color == ofColor(255, 255, 0)) {
+		yellowBtn.setBackgroundColor(ofColor(255, 255, 100));
+	}
+	
+	if (canvasRef) {
+		canvasRef->setDrawingColor(currentColor);
+	}
 };
 
 

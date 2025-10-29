@@ -27,10 +27,11 @@ public:
 	ShapeMode getCurrentMode() const { return currentMode; }
 	void setDrawingColor(ofColor color) { currentColor = color; }
 	vector<Shape>& getShapes() {return shapes;}
-  vector<std::unique_ptr<Model3D>>& getModels() {return models;}
-  vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
+	vector<std::unique_ptr<Model3D>>& getModels() {return models;}
+	vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
+	bool getSkyBoxDisplayed() const { return skyBoxDisplayed;}
 
-  void setDrawingArea(const ofRectangle& area);
+	void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
 	void setCanvasAreaForCameras(const ofRectangle& area);
 	

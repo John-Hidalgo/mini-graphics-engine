@@ -96,7 +96,9 @@ private:
 	void focusToSelection();
 	void exportSceneAsImage();
 	void drawSelectionBox();
-	void drawCamerasViews();
+	void drawSelectionBoxWrapper();
+	void drawMainView();
+	void drawScaledViews();
 	
 	ofEasyCam testCam;
 };
