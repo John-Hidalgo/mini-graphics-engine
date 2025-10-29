@@ -24,8 +24,25 @@ uniform float brightness;
 // position d'une source de lumière
 uniform vec3 light_position;
 
+uniform float u_time;
+uniform float u_animationSpeed;
+uniform float u_rippleAmplitude;
+uniform bool u_animateSurface;
+
 void main()
 {
+  vec4 animatedPosition = position;
+  
+  if (u_animateSurface)
+  {
+	float rippleParam = position.x * 5.0 + u_time * u_animationSpeed;
+	float rippleHeight = sin(rippleParam) * u_rippleAmplitude;
+	float waveParam = position.z * 3.0 + u_time * u_animationSpeed * 1.5;
+	float waveOffset = cos(waveParam) * u_rippleAmplitude * 0.5;
+	animatedPosition.y += rippleHeight;
+	animatedPosition.x += waveOffset;
+  }
+
   // calculer la matrice normale
   mat4x4 normalMatrix = transpose(inverse(modelViewMatrix));
 
@@ -33,7 +50,7 @@ void main()
   vec3 surface_normal = vec3(normalMatrix * normal);
 
   // transformation de la position du sommet dans l'espace de vue
-  vec3 surface_position = vec3(modelViewMatrix * position);
+  vec3 surface_position = vec3(modelViewMatrix * animatedPosition);
 
   // re-normaliser la normale
   vec3 n = normalize(surface_normal);
@@ -50,22 +67,22 @@ void main()
   // calculer la réflexion spéculaire seulement s'il y a réflexion diffuse
   if (reflection_diffuse > 0.0)
   {
-    // calculer la direction de la surface vers la caméra (v)
-    vec3 v = normalize(-surface_position);
+	// calculer la direction de la surface vers la caméra (v)
+	vec3 v = normalize(-surface_position);
 
-    // calculer la direction de la réflection (v) du rayon incident (-l) en fonction de la normale (n)
-    vec3 r = reflect(-l, n);
+	// calculer la direction de la réflection (v) du rayon incident (-l) en fonction de la normale (n)
+	vec3 r = reflect(-l, n);
 
-    // calculer le niveau de réflexion spéculaire (r • v)
-    reflection_specular = pow(max(dot(v, r), 0.0), brightness);
+	// calculer le niveau de réflexion spéculaire (r • v)
+	reflection_specular = pow(max(dot(v, r), 0.0), brightness);
   }
 
   // calculer la couleur du fragment
   surface_color = vec3(
-    color_ambient +
-    color_diffuse * reflection_diffuse +
-    color_specular * reflection_specular);
+	color_ambient +
+	color_diffuse * reflection_diffuse +
+	color_specular * reflection_specular);
 
   // transformation de la position du sommet par les matrices de modèle, vue et projection
-  gl_Position = projectionMatrix * modelViewMatrix * position;
+  gl_Position = projectionMatrix * modelViewMatrix * animatedPosition;
 }

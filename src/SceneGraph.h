@@ -26,6 +26,9 @@ public:
 	ofxButton textureInversionButton;
 	ofxButton textureWeierstrassButton;
 	ofxGuiGroup textureGroup;
+	ofxToggle animationSurfaceToggle;
+	ofxToggle animationColourToggle;
+	ofxGuiGroup animationGroup;
 	std::vector<int> selectedShapeIndices;
 	std::vector<int> selectedModelIndices;
 	std::vector<int> selectedPrimitiveIndices;
@@ -90,4 +93,6 @@ private:
 	void scaleShapeChanged(float& val);
 	void textureInversionPressed();
 	void textureWeierstrassPressed();
+	void animateSurfacePressed(bool& val);
+	void animateColourPressed(bool& val);
 };

@@ -51,7 +51,11 @@ public:
 	ofParameter<float> celSpecularSize;
 	ofParameter<float> celOutlineWidth;
 	ofParameter<ofColor> celOutlineColor;
-	
+	bool animateSurface = false;
+	bool animateColour = false;
+	ofParameter<float> animationSpeed{"Animation Speed", 1.0f, 0.1f, 5.0f};
+	ofParameter<float> rippleAmplitude{"Ripple Amplitude", 0.3f, 0.0f, 1.0f};
+	ofParameter<float> colorSpeed{"Colour Speed", 1.0f, 0.1f, 3.0f};
 	ofVec3f position;
 
 	ModelVariant variant = ModelVariant::None;
@@ -77,6 +81,8 @@ public:
 
 	Lighting getCurrentLighting() const { return currentLighting; }
 	ProceduralTexture getCurrentTexture() const { return currentTexture; }
+	void setAnimateSurface(bool val) {animateSurface = val;}
+	void setAnimateColour(bool val) {animateColour = val;}
 
 	Lighting currentLighting;
 	ProceduralTexture currentTexture;

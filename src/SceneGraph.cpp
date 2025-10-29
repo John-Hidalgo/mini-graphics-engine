@@ -72,6 +72,15 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	textureGroup.add(&textureWeierstrassButton);
 	modelEditorPanel.add(&textureGroup);
 	
+	animationGroup.setup("Animations");
+	animationSurfaceToggle.setup("Animez la surface", false);
+	animationColourToggle.setup("Animez le couleur", false);
+	animationSurfaceToggle.addListener(this, &SceneGraph::animateSurfacePressed);
+	animationColourToggle.addListener(this, &SceneGraph::animateColourPressed);
+	animationGroup.add(&animationSurfaceToggle);
+	animationGroup.add(&animationColourToggle);
+	modelEditorPanel.add(&animationGroup);
+	
 	deleteButton3DModel.setup("Effacez");
 	deleteButton3DModel.addListener(this,&SceneGraph::deleteButton3DModelPressed);
 	modelEditorPanel.add(&deleteButton3DModel);
@@ -90,7 +99,6 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	scaleShapeSlider.addListener(this, &SceneGraph::scaleShapeChanged);
 	rotateShapeRightButton.addListener(this, &SceneGraph::rotateShapeRightPressed);
 	rotateShapeLeftButton.addListener(this, &SceneGraph::rotateShapeLeftPressed);
-
 
 	primitives3DEditorPanel.setup("Editez Primitives 3D");
 	primitives3DEditorPanel.setPosition(x + panelPadding + 350, y + panelPadding);
@@ -266,8 +274,6 @@ void SceneGraph::select3DObjectsInArea(const ofRectangle& selectionRect) {
         }
     }
 }
-
-
 
 void SceneGraph::deleteButtonPressed() {
 	auto& shapes = canvasRef->getShapes();
@@ -581,7 +587,6 @@ void SceneGraph::ensureSingleToggle() {
 	}
 }
 
-
 void SceneGraph::deleteButtonPrimitives3DPressed() {
 	auto& primitives3D = canvasRef->getPrimitives3D();
 	if (!selectedPrimitiveIndices.empty()) {
@@ -652,6 +657,26 @@ void SceneGraph::textureWeierstrassPressed(){
 	for (int i : selectedModelIndices) {
 		if (i >= 0 && i < models.size() && models[i]) {
 			models[i]->toggleProceduralTexture(ProceduralTexture::WEIERSTRASS);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+void SceneGraph::animateSurfacePressed(bool& val) {
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->setAnimateSurface(val);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+void SceneGraph::animateColourPressed(bool& val) {
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->setAnimateColour(val);
 		} else {
 			ofLogError() << "Invalid model index: " << i;
 		}
