@@ -19,12 +19,12 @@ void Canvas::setup(const ofRectangle& area,const ofRectangle& areaForCameras,Too
 	color_picker_background.set("background color", ofColor(255, 255, 0), ofColor(0, 0), ofColor(255, 255));
 	color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255));
 	color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255));
-	ofLogNotice() << "drawingArea: x=" << drawingArea.x
-				  << " y=" << drawingArea.y
-				  << " w=" << drawingArea.getWidth()
-				  << " h=" << drawingArea.getHeight()
-				  << " bottom=" << drawingArea.getBottom()
-				  << " window height=" << ofGetHeight();
+//	ofLogNotice() << "drawingArea: x=" << drawingArea.x
+//				  << " y=" << drawingArea.y
+//				  << " w=" << drawingArea.getWidth()
+//				  << " h=" << drawingArea.getHeight()
+//				  << " bottom=" << drawingArea.getBottom()
+//				  << " window height=" << ofGetHeight();
 	tempPrimitive.setup();
 
 }

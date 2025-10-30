@@ -29,12 +29,17 @@ struct Primitive3D {
 		canvasLight.enable();
 
 		shader_lambert.begin();
+		shader_lambert.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
+		shader_lambert.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
 		shader_lambert.setUniform3f("color_ambient", color_ambient.r / 255.0f,
 									color_ambient.g / 255.0f,
 									color_ambient.b / 255.0f);
 		shader_lambert.setUniform3f("color_diffuse", color_diffuse.r / 255.0f,
 									color_diffuse.g / 255.0f,
 									color_diffuse.b / 255.0f);
+		shader_lambert.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
+		shader_lambert.setUniform1f("brightness", 0.5f);
+
 		shader_lambert.setUniform3f("light_position", canvasLight.getGlobalPosition());
 
 		ofPushMatrix();

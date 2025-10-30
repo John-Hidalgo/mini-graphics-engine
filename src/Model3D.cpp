@@ -15,7 +15,7 @@ void Model3D::setup()
 	shader_weierstrass.load("shaders/Weierstrass_330_vertex.glsl","shaders/Weierstrass_330_fragment.glsl");
 	shader = shader_lambert;
 	currentLighting = Lighting::LAMBERT;
-	currentTexture = ProceduralTexture::NONE;
+	currentTexture = Texture::NONE;
 	previousLighting = Lighting::LAMBERT;
 	celBands.set("Color Bands", 3, 2, 6);
 	celSpecularSize.set("Specular Size", 0.3, 0.5, 1.0);
@@ -24,8 +24,24 @@ void Model3D::setup()
 	animationSpeed = 1.0f;
 	rippleAmplitude = 0.1f;
 	colorSpeed = 1.0f;
+	modelDisplacementDefaults["moebiusStrip2.obj"] = 0.4f;
+	modelDisplacementDefaults["teapot3.obj"]  = 0.3f;
+	modelDisplacementDefaults["sphere2.obj"]  = 50.0f;
+	modelDisplacementDefaults["cube.obj"]  = 50.0f;
+	setupTextures();
 }
-
+void Model3D::setupTextures() {
+	ofDisableArbTex();
+	if (!ofLoadImage(colorTexture, "textures/StoneBricksSplitface001_COL_2K.jpg"))
+		ofLogError() << "Failed to load color texture";
+	if (!ofLoadImage(normalMap, "textures/StoneBricksSplitface001_NRM_2K.png"))
+		ofLogError() << "Failed to load normal map";
+	if (!ofLoadImage(displacementMap, "textures/StoneBricksSplitface001_DISP_2K.png"))
+		ofLogError() << "Failed to load displacement map";
+	color_ambient = ofColor(50, 50, 50);
+	color_diffuse = ofColor(200, 200, 200);
+	shader_normal.load("shaders/normalMapping_330_vs.glsl", "shaders/normalMapping_330_fs.glsl");
+}
 void Model3D::update()
 {
 	// position au centre de la fenêtre d'affichage
@@ -46,7 +62,7 @@ void Model3D::update()
 void Model3D::setShader(Lighting lighting)
 {
 	currentLighting = lighting;
-	currentTexture = ProceduralTexture::NONE;
+	currentTexture = Texture::NONE;
 	
 	switch (lighting) {
 		case Lighting::LAMBERT:
@@ -71,38 +87,47 @@ void Model3D::setShader(Lighting lighting)
 	//ofLogNotice() << "Set shader to: " << static_cast<int>(lighting);
 }
 
-void Model3D::setProceduralTexture(ProceduralTexture texture)
+void Model3D::setProceduralTexture(Texture texture)
 {
-	if (texture == currentTexture && texture != ProceduralTexture::NONE) {
+	if (texture == currentTexture && texture != Texture::NONE) {
 		toggleProceduralTexture(texture);
 		return;
 	}
-	if (texture != ProceduralTexture::NONE && currentTexture == ProceduralTexture::NONE) {
+	if (texture != Texture::NONE && currentTexture == Texture::NONE) {
 		previousLighting = currentLighting;
 	}
 	
 	currentTexture = texture;
 	
 	switch (texture) {
-		case ProceduralTexture::INVERSION:
+		case Texture::INVERSION:
 			shader = shader_inversion;
-			ofLogNotice() << "Applied Circle Inversion texture over " << static_cast<int>(previousLighting);
+			//ofLogNotice() << "Applied Circle Inversion texture over " << static_cast<int>(previousLighting);
 			break;
-		case ProceduralTexture::WEIERSTRASS:
+		case Texture::WEIERSTRASS:
 			shader = shader_weierstrass;
-			ofLogNotice() << "Applied Weierstrass texture over " << static_cast<int>(previousLighting);
+			//ofLogNotice() << "Applied Weierstrass texture over " << static_cast<int>(previousLighting);
 			break;
-		case ProceduralTexture::NONE:
+		case Texture::NORMAL_MAPPING:
+			if (!enableNormalMapping) {
+				//ofLogWarning() << "Normal mapping not supported for this model — ignoring.";
+				currentTexture = Texture::NONE;
+				return;
+			}
+			//ofLogNotice() << "Applied normal mapping texture over " << static_cast<int>(previousLighting);
+			shader = shader_normal;
+			break;
+		case Texture::NONE:
 			setShader(previousLighting);
-			ofLogNotice() << "Removed procedural texture, restored to " << static_cast<int>(previousLighting);
+			//ofLogNotice() << "Removed procedural texture, restored to " << static_cast<int>(previousLighting);
 			break;
 	}
 }
 
-void Model3D::toggleProceduralTexture(ProceduralTexture texture)
+void Model3D::toggleProceduralTexture(Texture texture)
 {
 	currentTexture == texture?
-		setProceduralTexture(ProceduralTexture::NONE):
+		setProceduralTexture(Texture::NONE):
 		setProceduralTexture(texture);
 }
 
@@ -151,24 +176,28 @@ void Model3D::loadModel(const std::string& path) {
 
 	if (model.load(ofToDataPath(modelPath, true))) {
 		model.disableMaterials();
-		if (model.hasMeshes()) {
-			//ofLogNotice() << "Model has " << model.getNumMeshes() << " meshes";
-			bbox.reset();
-			for (int i = 0; i < model.getNumMeshes(); ++i) {
-				const ofMesh& mesh = model.getMesh(i);
-
-				for (auto& v : mesh.getVertices()) {
-					ofVec3f worldV = v * model.getScale();
-					bbox.expandToInclude(worldV);
-				}
-			}
-			//ofLogNotice() << "BoundingBox min: " << bbox.min << " max: " << bbox.max;
+		std::string filename = ofFilePath::getFileName(modelPath);
+		if(modelDisplacementDefaults.count(filename)) {
+			displacementScale = modelDisplacementDefaults[filename];
+			//ofLogNotice() << "Set displacement scale for " << filename << " to " << displacementScale;
+			enableNormalMapping = true;
 		}
 		else {
-			ofLogError() << "Model has no meshes after loading!";
+			enableNormalMapping = false;
+			currentTexture = Texture::NONE;
+		}
+
+		if (model.hasMeshes()) {
+			const ofMesh& firstMesh = model.getMesh(0);
+			if (firstMesh.hasTexCoords()) {
+				//ofLogNotice() << "Model has texture coordinates - normal mapping will work!";
+			} else {
+				//ofLogWarning() << "Model has no texture coordinates - normal mapping won't work";
+			}
 		}
 	}
 }
+
 void Model3D::drawBoundingBox(){
 	if (showBoundingBox) {
 		ofPushMatrix();
@@ -187,7 +216,7 @@ void Model3D::draw()
 	ofSetBackgroundColor(color_background.r, color_background.g, color_background.b);
 	ofEnableDepthTest();
 
-	if (currentTexture == ProceduralTexture::NONE) {
+	if (currentTexture == Texture::NONE) {
 		ofEnableLighting();
 		light.enable();
 	}
@@ -195,7 +224,7 @@ void Model3D::draw()
 	shader.begin();
 	shader.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
 	shader.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
-	if (currentTexture == ProceduralTexture::NONE) {
+	if (currentTexture == Texture::NONE) {
 		shader.setUniform1f("u_time", ofGetElapsedTimef());
 		shader.setUniform1f("u_animationSpeed", animationSpeed);
 		shader.setUniform1f("u_rippleAmplitude", rippleAmplitude);
@@ -204,7 +233,7 @@ void Model3D::draw()
 		shader.setUniform1i("u_animateColour", animateColour);
 		shader.setUniform3f("color_ambient", color_ambient.r / 255.0f, color_ambient.g / 255.0f, color_ambient.b / 255.0f);
 		shader.setUniform3f("color_diffuse", color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
-		shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
+		//shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
 		shader.setUniform1f("brightness", 0.5f);
 		shader.setUniform3f("light_position", light.getGlobalPosition());
 		if(shader == shader_cell) {
@@ -213,18 +242,43 @@ void Model3D::draw()
 			shader.setUniform3f("outline_color",celOutlineColor->r / 255.0f, celOutlineColor->g / 255.0f, celOutlineColor->b / 255.0f);
 			shader.setUniform3f("color_specular", 1.0f, 1.0f, 1.0f);
 		}
+		else if(shader != shader_lambert){
+			shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
+		}
 	}
 	else {
 		shader.setUniform1f("u_time", ofGetElapsedTimef());
 		shader.setUniform2f("u_resolution", ofGetWidth(), ofGetHeight());
+
+		if(enableNormalMapping){
+			shader.setUniformTexture("colorTexture", colorTexture, 0);
+			shader.setUniformTexture("normalMap", normalMap, 1);
+			shader.setUniformTexture("displacementMap", displacementMap, 2);
+			shader.setUniform3f("lightPosition", glm::vec3(0.0, 200.0, 400.0));
+			shader.setUniform1f("displacementScale", displacementScale);
+		}
 	}
 	model.draw(OF_MESH_FILL);
 	drawBoundingBox();
 	shader.end();
 
-	if (currentTexture == ProceduralTexture::NONE) {
+	if (currentTexture == Texture::NONE) {
 		light.disable();
 		ofDisableLighting();
 	}
 	ofDisableDepthTest();
 }
+//void Model3D::draw() {
+//	ofEnableDepthTest();
+//
+//	shader_normal.begin();
+//	shader_normal.setUniformTexture("colorTexture", colorTexture, 0);
+//	shader_normal.setUniformTexture("normalMap", normalMap, 1);
+//	shader_normal.setUniformTexture("displacementMap", displacementMap, 2);
+//	shader_normal.setUniform3f("lightPosition", glm::vec3(0.0, 200.0, 400.0));
+//	shader_normal.setUniform1f("displacementScale", 1.5f);
+//	model.draw(OF_MESH_FILL);
+//
+//	shader_normal.end();
+//	ofDisableDepthTest();
+//}

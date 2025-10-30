@@ -7,9 +7,11 @@ class SceneGraph {
 public:
 	SceneGraph();
 	void setup(Canvas* canvas, const ofRectangle& area);
+	void setupNormalMappingVisible(bool visible);
 	void draw();
 	void mousePressed(int x, int y, int button);
 	void setPanelArea(const ofRectangle& area);
+	//void setEnableNormalMapping(bool& val){enableNormalMapping = val;};
 	void selectShapesInArea(const ofRectangle& selectionRect);
 	void select3DObjectsInArea(const ofRectangle& selectionRect);
 	void clearSelection();
@@ -25,6 +27,7 @@ public:
 	ofParameter<ofColor> color_picker_diffuse_primitives3D;
 	ofxButton textureInversionButton;
 	ofxButton textureWeierstrassButton;
+	ofxButton textureNormalMappingButton;
 	ofxGuiGroup textureGroup;
 	ofxToggle animationSurfaceToggle;
 	ofxToggle animationColourToggle;
@@ -53,6 +56,7 @@ private:
 	float panelPadding = 10;
 	int selectedIndex = -1;
 	int listsStartHeight = 550;
+	bool enableNormalMapping = false;
 	
 	ofxPanel gui;
 	ofxFloatSlider thicknessSlider;
@@ -93,6 +97,7 @@ private:
 	void scaleShapeChanged(float& val);
 	void textureInversionPressed();
 	void textureWeierstrassPressed();
+	void textureNormalMappingPressed();
 	void animateSurfacePressed(bool& val);
 	void animateColourPressed(bool& val);
 };

@@ -66,10 +66,13 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	textureGroup.setup("textures");
 	textureInversionButton.setup("Inversion du cercle");
 	textureWeierstrassButton.setup("Weierstrass");
+	textureNormalMappingButton.setup("Effet De relief");
 	textureInversionButton.addListener(this, &SceneGraph::textureInversionPressed);
 	textureWeierstrassButton.addListener(this, &SceneGraph::textureWeierstrassPressed);
+	textureNormalMappingButton.addListener(this, &SceneGraph::textureNormalMappingPressed);
 	textureGroup.add(&textureInversionButton);
 	textureGroup.add(&textureWeierstrassButton);
+	textureGroup.add(&textureNormalMappingButton);
 	modelEditorPanel.add(&textureGroup);
 	
 	animationGroup.setup("Animations");
@@ -79,6 +82,7 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	animationColourToggle.addListener(this, &SceneGraph::animateColourPressed);
 	animationGroup.add(&animationSurfaceToggle);
 	animationGroup.add(&animationColourToggle);
+	animationGroup.minimize();
 	modelEditorPanel.add(&animationGroup);
 	
 	deleteButton3DModel.setup("Effacez");
@@ -117,7 +121,19 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
 	primitives3DEditorPanel.add(&deleteButtonPrimitives3D);
 	
+	setupNormalMappingVisible(false);
 }
+void SceneGraph::setupNormalMappingVisible(bool visible) {
+	enableNormalMapping = visible;
+	textureGroup.clear();
+	textureGroup.add(&textureInversionButton);
+	textureGroup.add(&textureWeierstrassButton);
+	if (visible) {
+		textureGroup.add(&textureNormalMappingButton);
+	}
+	textureGroup.minimize();
+}
+
 void SceneGraph::draw() {
 	//ofPushStyle();
 	ofSetColor(50, 50, 50);
@@ -480,6 +496,10 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 					selectedModelIndices.push_back(i);
 				}
 			}
+			if (!canvasRef->models.empty() && i < canvasRef->models.size()) {
+				auto& m = canvasRef->models[i];
+				setupNormalMappingVisible(m->getEnableNormalMapping());
+			}
 			break;
 		}
 	}
@@ -645,7 +665,7 @@ void SceneGraph::textureInversionPressed() {
 	auto& models = canvasRef->getModels();
 	for (int i : selectedModelIndices) {
 		if (i >= 0 && i < models.size() && models[i]) {
-			models[i]->toggleProceduralTexture(ProceduralTexture::INVERSION);
+			models[i]->toggleProceduralTexture(Texture::INVERSION);
 		} else {
 			ofLogError() << "Invalid model index: " << i;
 		}
@@ -656,7 +676,18 @@ void SceneGraph::textureWeierstrassPressed(){
 	auto& models = canvasRef->getModels();
 	for (int i : selectedModelIndices) {
 		if (i >= 0 && i < models.size() && models[i]) {
-			models[i]->toggleProceduralTexture(ProceduralTexture::WEIERSTRASS);
+			models[i]->toggleProceduralTexture(Texture::WEIERSTRASS);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+void SceneGraph::textureNormalMappingPressed(){
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			//models[i]->modelDisplacementDefaults[]
+			models[i]->toggleProceduralTexture(Texture::NORMAL_MAPPING);
 		} else {
 			ofLogError() << "Invalid model index: " << i;
 		}
@@ -682,3 +713,4 @@ void SceneGraph::animateColourPressed(bool& val) {
 		}
 	}
 }
+

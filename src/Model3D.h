@@ -18,10 +18,11 @@ enum class Lighting{
 	CELL
 };
 
-enum class ProceduralTexture {
+enum class Texture {
 		NONE,
 		INVERSION,
-		WEIERSTRASS
+		WEIERSTRASS,
+		NORMAL_MAPPING
 	};
 
 
@@ -36,12 +37,18 @@ public:
 	ofShader shader_cell;
 	ofShader shader_inversion;
 	ofShader shader_weierstrass;
+	ofShader shader_textured;
+	ofShader shader_displacement;
+	ofTexture colorTexture;
+	ofTexture normalMap;
+	glm::vec3 lightPos;
+	ofTexture displacementMap;
 	
 	ofLight light;
 
 	BoundingBox bbox;
 	bool showBoundingBox = false;
-
+	bool enableNormalMapping = true;
 	ofxAssimpModelLoader model;
 
 	ofColor color_background;
@@ -69,22 +76,27 @@ public:
 	bool use_rotation;
 
 	void setup();
+	void setupTextures();
 	void applyVariant(ModelVariant variant);
 	void update();
 	void draw();
 	void setShader(Lighting lighting);
 	void loadModel(const std::string & path);
 	void drawBoundingBox();
+	void generateSphericalUVs(ofMesh& mesh);
 	
-	void setProceduralTexture(ProceduralTexture texture);
-	void toggleProceduralTexture(ProceduralTexture texture);
+	void setProceduralTexture(Texture texture);
+	void toggleProceduralTexture(Texture texture);
 
 	Lighting getCurrentLighting() const { return currentLighting; }
-	ProceduralTexture getCurrentTexture() const { return currentTexture; }
+	Texture getCurrentTexture() const { return currentTexture; }
+	bool getEnableNormalMapping() {return enableNormalMapping;}
 	void setAnimateSurface(bool val) {animateSurface = val;}
 	void setAnimateColour(bool val) {animateColour = val;}
 
 	Lighting currentLighting;
-	ProceduralTexture currentTexture;
+	Texture currentTexture;
 	Lighting previousLighting;
+	float displacementScale = 50.0f;
+	std::map<std::string, float> modelDisplacementDefaults;
 };
