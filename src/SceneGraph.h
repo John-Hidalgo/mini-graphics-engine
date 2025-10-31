@@ -7,6 +7,7 @@ class SceneGraph {
 public:
 	SceneGraph();
 	void setup(Canvas* canvas, const ofRectangle& area);
+	void setupModelPanel();
 	void setupNormalMappingVisible(bool visible);
 	void draw();
 	void mousePressed(int x, int y, int button);
@@ -32,6 +33,9 @@ public:
 	ofxToggle animationSurfaceToggle;
 	ofxToggle animationColourToggle;
 	ofxGuiGroup animationGroup;
+	ofxButton HDRDayToggle;
+	ofxButton HDRNightToggle;
+	ofxGuiGroup HDRGroup;
 	std::vector<int> selectedShapeIndices;
 	std::vector<int> selectedModelIndices;
 	std::vector<int> selectedPrimitiveIndices;
@@ -100,4 +104,6 @@ private:
 	void textureNormalMappingPressed();
 	void animateSurfacePressed(bool& val);
 	void animateColourPressed(bool& val);
+	void HDRDayPressed();
+	void HDRNightPressed();
 };

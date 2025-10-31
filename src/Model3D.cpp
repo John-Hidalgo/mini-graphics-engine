@@ -38,6 +38,11 @@ void Model3D::setupTextures() {
 		ofLogError() << "Failed to load normal map";
 	if (!ofLoadImage(displacementMap, "textures/StoneBricksSplitface001_DISP_2K.png"))
 		ofLogError() << "Failed to load displacement map";
+	cubeMapDay.load("images/qwantani_sunset_puresky_4k.hdr", 512,true);
+	cubeMapNight.load("images/satara_night_4k.hdr", 512,true);
+
+	shaderHDRDay.load("shaders/hdri_330_vs.glsl", "shaders/hdri_330_fs.glsl");
+	shaderHDRNight.load("shaders/hdri_330_vs.glsl", "shaders/hdri_330_fs.glsl");
 	color_ambient = ofColor(50, 50, 50);
 	color_diffuse = ofColor(200, 200, 200);
 	shader_normal.load("shaders/normalMapping_330_vs.glsl", "shaders/normalMapping_330_fs.glsl");
@@ -116,6 +121,12 @@ void Model3D::setProceduralTexture(Texture texture)
 			}
 			//ofLogNotice() << "Applied normal mapping texture over " << static_cast<int>(previousLighting);
 			shader = shader_normal;
+			break;
+		case Texture::HDR_DAY:
+			shader = shaderHDRDay;
+			break;
+		case Texture::HDR_NIGHT:
+			shader = shaderHDRNight;
 			break;
 		case Texture::NONE:
 			setShader(previousLighting);
@@ -215,13 +226,17 @@ void Model3D::draw()
 {
 	ofSetBackgroundColor(color_background.r, color_background.g, color_background.b);
 	ofEnableDepthTest();
-
+	
 	if (currentTexture == Texture::NONE) {
 		ofEnableLighting();
 		light.enable();
 	}
-
+	ofMatrix4x4 modelMatrix = model.getModelMatrix();
+	ofMatrix4x4 viewMatrix = ofGetCurrentMatrix(OF_MATRIX_MODELVIEW);
+	ofMatrix4x4 projectionMatrix = ofGetCurrentMatrix(OF_MATRIX_PROJECTION);
+	ofMatrix4x4 mvp = projectionMatrix * viewMatrix * modelMatrix;
 	shader.begin();
+	
 	shader.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
 	shader.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
 	if (currentTexture == Texture::NONE) {
@@ -246,6 +261,24 @@ void Model3D::draw()
 			shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
 		}
 	}
+	else if(currentTexture == Texture::HDR_DAY || currentTexture == Texture::HDR_NIGHT){
+		//ofLog() << "here";
+		shader.setUniformMatrix4f("modelViewProjectionMatrix", mvp);
+		shader.setUniformMatrix4f("modelMatrix", modelMatrix);
+		shader.setUniform1f("brightness", 1.5f); // 1.5x brighter
+		shader.setUniform1f("specularStrength", 0.3f); // Specular amount
+		shader.setUniform1f("exposure", 2.0f); // Higher exposure
+		if(currentTexture == Texture::HDR_DAY){
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapDay.getTextureId());
+			shader.setUniform1i("environmentMap", 0);
+		}
+		else if(currentTexture == Texture::HDR_NIGHT){
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapNight.getTextureId());
+			shader.setUniform1i("environmentMap", 0);
+		}
+	}
 	else {
 		shader.setUniform1f("u_time", ofGetElapsedTimef());
 		shader.setUniform2f("u_resolution", ofGetWidth(), ofGetHeight());
@@ -268,17 +301,36 @@ void Model3D::draw()
 	}
 	ofDisableDepthTest();
 }
+
 //void Model3D::draw() {
 //	ofEnableDepthTest();
+//	//shader = shaderHDRNight;
 //
-//	shader_normal.begin();
-//	shader_normal.setUniformTexture("colorTexture", colorTexture, 0);
-//	shader_normal.setUniformTexture("normalMap", normalMap, 1);
-//	shader_normal.setUniformTexture("displacementMap", displacementMap, 2);
-//	shader_normal.setUniform3f("lightPosition", glm::vec3(0.0, 200.0, 400.0));
-//	shader_normal.setUniform1f("displacementScale", 1.5f);
+//	ofPushMatrix();
+//	ofMatrix4x4 modelMatrix = model.getModelMatrix();
+//	ofMatrix4x4 viewMatrix = ofGetCurrentMatrix(OF_MATRIX_MODELVIEW);
+//	ofMatrix4x4 projectionMatrix = ofGetCurrentMatrix(OF_MATRIX_PROJECTION);
+//	ofMatrix4x4 mvp = projectionMatrix * viewMatrix * modelMatrix;
+//	shader.begin();
+//	
+//	shader.setUniformMatrix4f("modelViewProjectionMatrix", mvp);
+//	shader.setUniformMatrix4f("modelMatrix", modelMatrix);
+//	
+//	shader.setUniform1f("brightness", 1.5f); // 1.5x brighter
+//	shader.setUniform1f("specularStrength", 0.3f); // Specular amount
+//	shader.setUniform1f("exposure", 2.0f); // Higher exposure
+//	if(currentTexture == Texture::HDR_DAY){
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapDay.getTextureId());
+//		shader.setUniform1i("environmentMap", 0);
+//	}
+//	else if(currentTexture == Texture::HDR_NIGHT){
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapNight.getTextureId());
+//		shader.setUniform1i("environmentMap", 0);
+//	}
 //	model.draw(OF_MESH_FILL);
-//
-//	shader_normal.end();
+//	shader.end();
+//	ofPopMatrix();
 //	ofDisableDepthTest();
 //}

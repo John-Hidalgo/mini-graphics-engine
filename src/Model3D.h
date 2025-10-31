@@ -19,11 +19,13 @@ enum class Lighting{
 };
 
 enum class Texture {
-		NONE,
-		INVERSION,
-		WEIERSTRASS,
-		NORMAL_MAPPING
-	};
+	NONE,
+	INVERSION,
+	WEIERSTRASS,
+	NORMAL_MAPPING,
+	HDR_DAY,
+	HDR_NIGHT
+};
 
 
 class Model3D {
@@ -43,7 +45,7 @@ public:
 	ofTexture normalMap;
 	glm::vec3 lightPos;
 	ofTexture displacementMap;
-	
+	ofEasyCam cam;
 	ofLight light;
 
 	BoundingBox bbox;
@@ -72,8 +74,8 @@ public:
 	float center_x;
 	float center_y;
 	float scale_model;
-	float rotation_speed;
-	bool use_rotation;
+	float rotation_speed = 0.2f;
+	bool use_rotation = true;
 
 	void setup();
 	void setupTextures();
@@ -99,4 +101,9 @@ public:
 	Lighting previousLighting;
 	float displacementScale = 50.0f;
 	std::map<std::string, float> modelDisplacementDefaults;
+
+	ofShader shaderHDRDay;
+	ofShader shaderHDRNight;
+	ofCubeMap cubeMapDay;
+	ofCubeMap cubeMapNight;
 };

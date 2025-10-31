@@ -52,6 +52,43 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	deleteButton.addListener(this, &SceneGraph::deleteButtonPressed);
 	gui.add(&deleteButton);
 	
+	gui.add(translateShapeXSlider.setup("Position X", 0, -500, 500));
+	gui.add(translateShapeYSlider.setup("Position Y", 0, -500, 500));
+	gui.add(scaleShapeSlider.setup("Proportion", 1.0f, 0.1f, 5.0f));
+		
+	rotateShapeRightButton.setup("Rotation Droite");
+	rotateShapeLeftButton.setup("Rotation Gauche");
+	gui.add(&rotateShapeRightButton);
+	gui.add(&rotateShapeLeftButton);
+		
+	translateShapeXSlider.addListener(this, &SceneGraph::translationShapeChanged);
+	translateShapeYSlider.addListener(this, &SceneGraph::translationShapeChanged);
+	scaleShapeSlider.addListener(this, &SceneGraph::scaleShapeChanged);
+	rotateShapeRightButton.addListener(this, &SceneGraph::rotateShapeRightPressed);
+	rotateShapeLeftButton.addListener(this, &SceneGraph::rotateShapeLeftPressed);
+	
+	setupModelPanel();
+
+	primitives3DEditorPanel.setup("Editez Primitives 3D");
+	primitives3DEditorPanel.setPosition(x + panelPadding + 350, y + panelPadding);
+	primitives3DEditorPanel.setSize(175,0);
+
+	primitives3DEditorPanel.add(primitives3DSizeSlider.setup("Size", 100.0f, 1.0f, 300.0f));
+	primitives3DEditorPanel.add(primitives3DPosXSlider.setup("Position X", 100, 0, 1000));
+	primitives3DEditorPanel.add(primitives3DPosYSlider.setup("Position Y", 100, 0, 1000));
+	primitives3DEditorPanel.add(primitives3DPosZSlider.setup("Position Z", 100, 0, 1000));
+
+	primitives3DEditorPanel.add(color_picker_background_primitives3D.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
+	primitives3DEditorPanel.add(color_picker_ambient_primitives3D.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
+	primitives3DEditorPanel.add(color_picker_diffuse_primitives3D.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+
+	deleteButtonPrimitives3D.setup("Effacez");
+	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
+	primitives3DEditorPanel.add(&deleteButtonPrimitives3D);
+	
+	setupNormalMappingVisible(false);
+}
+void SceneGraph::setupModelPanel(){
 	modelEditorPanel.setup("Editez modeles");
 	modelEditorPanel.setPosition(x + panelPadding + 175, y + panelPadding);
 	modelEditorPanel.setSize(175,0);
@@ -85,43 +122,19 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	animationGroup.minimize();
 	modelEditorPanel.add(&animationGroup);
 	
+	HDRGroup.setup("HDR");
+	HDRDayToggle.setup("HDR du jour", false);
+	HDRNightToggle.setup("HDR de la nuit", false);
+	HDRDayToggle.addListener(this, &SceneGraph::HDRDayPressed);
+	HDRNightToggle.addListener(this, &SceneGraph::HDRNightPressed);
+	HDRGroup.add(&HDRDayToggle);
+	HDRGroup.add(&HDRNightToggle);
+	HDRGroup.minimize();
+	modelEditorPanel.add(&HDRGroup);
+	
 	deleteButton3DModel.setup("Effacez");
 	deleteButton3DModel.addListener(this,&SceneGraph::deleteButton3DModelPressed);
 	modelEditorPanel.add(&deleteButton3DModel);
-	
-	gui.add(translateShapeXSlider.setup("Position X", 0, -500, 500));
-	gui.add(translateShapeYSlider.setup("Position Y", 0, -500, 500));
-	gui.add(scaleShapeSlider.setup("Proportion", 1.0f, 0.1f, 5.0f));
-		
-	rotateShapeRightButton.setup("Rotation Droite");
-	rotateShapeLeftButton.setup("Rotation Gauche");
-	gui.add(&rotateShapeRightButton);
-	gui.add(&rotateShapeLeftButton);
-		
-	translateShapeXSlider.addListener(this, &SceneGraph::translationShapeChanged);
-	translateShapeYSlider.addListener(this, &SceneGraph::translationShapeChanged);
-	scaleShapeSlider.addListener(this, &SceneGraph::scaleShapeChanged);
-	rotateShapeRightButton.addListener(this, &SceneGraph::rotateShapeRightPressed);
-	rotateShapeLeftButton.addListener(this, &SceneGraph::rotateShapeLeftPressed);
-
-	primitives3DEditorPanel.setup("Editez Primitives 3D");
-	primitives3DEditorPanel.setPosition(x + panelPadding + 350, y + panelPadding);
-	primitives3DEditorPanel.setSize(175,0);
-
-	primitives3DEditorPanel.add(primitives3DSizeSlider.setup("Size", 100.0f, 1.0f, 300.0f));
-	primitives3DEditorPanel.add(primitives3DPosXSlider.setup("Position X", 100, 0, 1000));
-	primitives3DEditorPanel.add(primitives3DPosYSlider.setup("Position Y", 100, 0, 1000));
-	primitives3DEditorPanel.add(primitives3DPosZSlider.setup("Position Z", 100, 0, 1000));
-
-	primitives3DEditorPanel.add(color_picker_background_primitives3D.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
-	primitives3DEditorPanel.add(color_picker_ambient_primitives3D.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
-	primitives3DEditorPanel.add(color_picker_diffuse_primitives3D.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
-
-	deleteButtonPrimitives3D.setup("Effacez");
-	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
-	primitives3DEditorPanel.add(&deleteButtonPrimitives3D);
-	
-	setupNormalMappingVisible(false);
 }
 void SceneGraph::setupNormalMappingVisible(bool visible) {
 	enableNormalMapping = visible;
@@ -708,6 +721,26 @@ void SceneGraph::animateColourPressed(bool& val) {
 	for (int i : selectedModelIndices) {
 		if (i >= 0 && i < models.size() && models[i]) {
 			models[i]->setAnimateColour(val);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+void SceneGraph::HDRDayPressed() {
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->toggleProceduralTexture(Texture::HDR_DAY);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+void SceneGraph::HDRNightPressed() {
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->toggleProceduralTexture(Texture::HDR_NIGHT);
 		} else {
 			ofLogError() << "Invalid model index: " << i;
 		}
