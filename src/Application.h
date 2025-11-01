@@ -8,6 +8,7 @@
 #include "Model3D.h"
 #include "CameraView.h"
 #include "SkyBox.h"
+#include "DeferredRenderer.h"
 
 enum Coordinates {
 	EUCLIDEAN,
@@ -63,7 +64,6 @@ public:
 	glm::vec3 toHyperbolicCoords(const glm::vec3& euclideanPos, float scale);
 	glm::vec3 toEuclideanCoords(const glm::vec3& hyperbolicPos, float scale);
 	void foo();
-	
 private:
 	Canvas canvas;
 	Toolbar toolbar;
@@ -99,6 +99,6 @@ private:
 	void drawSelectionBoxWrapper();
 	void drawMainView();
 	void drawScaledViews();
-	
+	DeferredRenderer defRenderer = DeferredRenderer(leftPanelWidth,rightPanelWidth,bottomPanelHeight);
 	ofEasyCam testCam;
 };

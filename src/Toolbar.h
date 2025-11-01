@@ -24,6 +24,7 @@ public:
 	ofxButton redBtn, greenBtn, blueBtn, yellowBtn;
 	ofxToggle histogramToggle;
 	ofxToggle skyBoxToggle;
+	ofxToggle defRendToggle;
 	ofxGuiGroup variantGroup;
 	ofxButton variantNoneButton;
 	ofxButton variantMetallicButton;
@@ -47,12 +48,13 @@ public:
 
 	void loadCursorIcons();
 	bool isDrawingActive = false;
+	bool getDefRendering(){return defRendering;};
     ofImage selectedCursor;
 	std::map<std::string, ofImage> availableCursorIcons;
 private:
 	Canvas* canvasRef;
 	Model3D model3D;
-	
+	bool defRendering = false;
 	ofxPanel dessinez;
 	ofxToggle rectangleToggle;
 	ofxToggle circleToggle;
@@ -119,6 +121,7 @@ private:
 	void maintainAspectRatioToggled(bool &val);
 	void histogramToggleChanged(bool& val);
 	void skyBoxToggleChanged(bool& val);
+	void defRenderingToggled(bool& val);
 	void setExclusiveToggle(ShapeMode mode);
 
 	void sphereToggleChanged(bool &val);

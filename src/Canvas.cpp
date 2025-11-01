@@ -4,6 +4,7 @@
 #include "of3dUtils.h"
 #include "Quadtree.h"
 
+
 Canvas::Canvas() {}
 
 void Canvas::setup(const ofRectangle& area,const ofRectangle& areaForCameras,Toolbar* toolbar,SceneGraph* sceneGraph){
@@ -26,7 +27,6 @@ void Canvas::setup(const ofRectangle& area,const ofRectangle& areaForCameras,Too
 //				  << " bottom=" << drawingArea.getBottom()
 //				  << " window height=" << ofGetHeight();
 	tempPrimitive.setup();
-
 }
 
 // On en a besoin pour transformer les clics sur l'ecran en position 3D dans l'editeur
@@ -149,7 +149,6 @@ void Canvas::draw2d() {
 	}
 
 	quadtree.draw();
-
 	ofPopStyle();
 }
 void Canvas::draw2DInViewport(const ofRectangle& viewport) {

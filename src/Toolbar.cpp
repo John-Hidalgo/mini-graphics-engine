@@ -81,6 +81,9 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.add(skyBoxToggle.setup("Affichez les etoiles", false));
 	skyBoxToggle.addListener(this, &Toolbar::skyBoxToggleChanged);
+	
+	dessinez.add(defRendToggle.setup("Rendu en diff", false));
+	defRendToggle.addListener(this, &Toolbar::defRenderingToggled);
 
 	dessinez.minimize();
 
@@ -747,6 +750,10 @@ void Toolbar::skyBoxToggleChanged(bool& val) {
 	if (canvasRef) {
 		canvasRef->setDisplaySkyBox(val);
 	}
+}
+void Toolbar::defRenderingToggled(bool& val) {
+	defRendering = val;
+	
 }
 
 void Toolbar::loadCursorIcons() {

@@ -5,6 +5,7 @@
 #include "Primitives3DDefs.h"
 #include "Histogramme.h"
 #include "ShapeRenderer.h"
+#include "DeferredRenderer.h"
 #include <vector>
 #include <map>
 
@@ -18,7 +19,7 @@ public:
 	void setup(const ofRectangle& area,const ofRectangle& areaForCameras,Toolbar* toolbar,SceneGraph* sceneGraph);
 	void update();
 	void draw();
-
+	
 	void mousePressed(int x, int y, int button);
 	void mouseDragged(int x, int y, int button);
 	void mouseReleased(int x, int y, int button);
@@ -30,7 +31,7 @@ public:
 	vector<std::unique_ptr<Model3D>>& getModels() {return models;}
 	vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
 	bool getSkyBoxDisplayed() const { return skyBoxDisplayed;}
-
+	
 	void setDrawingArea(const ofRectangle& area);
 	void setHasImage(bool& value){hasModel = value;};
 	void setCanvasAreaForCameras(const ofRectangle& area);
@@ -52,10 +53,10 @@ public:
 	void draw2d();
 	void draw3d();
 	void draw2DInViewport(const ofRectangle& viewport);
-
+	
 	void setCurrentPrimitiveMode(Primitive3DType mode);
 	Primitive3DType getCurrentPrimitiveMode() const { return currentPrimitiveMode; }
-
+	
 	ofCamera* activeCamera = nullptr;
 	ofRectangle cameraViewport;
 	void setActiveCamera(ofCamera* cam, const ofRectangle& viewport);
@@ -66,29 +67,29 @@ public:
 	void removeImage(int index);
 	void clearAllImages();
 	void drawImageThumbnails();
-
-		
+	
+	
 	int getThumbnailAtPosition(int x, int y);
 	void keyPressed(int key);
 	void nextImage();
 	void previousImage();
 	void deleteCurrentImage();
 	bool showBoundingBoxes = false;
-
+	
 	ofRectangle drawingAreaForCameras;
-
+	
 	ofImage& getCurrentImage();
 	int getCurrentImageIndex() const { return currentImageIndex; }
 	int getImageCount() const { return importedImages.size(); }
 	
 	void setBackgroundColor(const ofColor& color) {bgColor = color;ofLog() << "Canvas background color set to: " << color;}
 	const ofColor& getBackgroundColor() const { return bgColor; }
-
+	
 	// Pour le sampling
 	float imageDisplayScale = 1.0f;
 	bool keepAspectRatio = true;
 	ofPoint imageDisplayOffset;
-
+	
 	void setImageDisplayScale(float scale) { imageDisplayScale = scale; }
 	void setMaintainAspectRatio(bool maintain) { keepAspectRatio = maintain; }
 private:
@@ -112,23 +113,23 @@ private:
 	std::vector<ofImage> importedImages;
 	std::vector<std::string> imagePaths;
 	int currentImageIndex = -1;
-
+	
 	void drawCanvas();
-
+	
 	std::vector<Primitive3D> primitives3D;
 	Primitive3DType currentPrimitiveMode = Primitive3DType::NONE;
 	bool placingPrimitive = false;
 	bool drawingPrimitive = false;
 	ofPoint primitiveStartPos;
-
+	
 	Primitive3D tempPrimitive;
-
+	
 	void addPrimitive3D(Primitive3DType type, const ofPoint& position, float size);
-
+	
 	void drawPrimitives3D();
-
+	
 	void drawPrimitivePreview();
-
+	
 	ofColor bgColor = ofColor(255, 255, 255);
 	ofLight canvasLight;
 	bool skyBoxDisplayed = false;

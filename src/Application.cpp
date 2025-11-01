@@ -1,7 +1,7 @@
 #include "Application.h"
 
 void Application::setup() {
-	ofSetWindowShape(1700, 1024);
+	//ofSetWindowShape(1700, 1024);
 	//ofEnableDepthTest();
 	//glEnable(GL_DEPTH_TEST);
 	leftPanelArea.set(0, 0, leftPanelWidth, ofGetHeight() - bottomPanelHeight);
@@ -25,6 +25,7 @@ void Application::setup() {
 	setupCameras();
 	updateCameraViewports(ofGetWidth(), ofGetHeight());
 	skybox.setup();
+	defRenderer.setup();
 }
 
 void Application::windowResized(int w, int h) {
@@ -48,10 +49,10 @@ void Application::windowResized(int w, int h) {
 void Application::update() {
 	canvas.update();
 	updateActiveCamera();
+	defRenderer.update();
 }
 
 void Application::mousePressed(int x, int y, int button) {
-	// A garder pour faire fonctionner les clics avec les primitives 3D
 	if(!cameras.empty()) {
 		canvas.setActiveCamera(&cameras[activeCameraIndex].cam, canvasArea);
 	}
@@ -153,8 +154,6 @@ void Application::mouseMoved(int x, int y) {
 	}
 }
 void Application::draw() {
-	leftPanel.draw();
-	sceneGraph.draw();
 	drawSelectionBoxWrapper();
 	if (canvas.getSkyBoxDisplayed()) {
 		drawMainView();
@@ -166,7 +165,20 @@ void Application::draw() {
 		drawMainView();
 		drawScaledViews();
 	}
+	if(toolbar.getDefRendering()){
+		ofPushView();
+		ofPushStyle();
+		ofPushMatrix();
+		defRenderer.draw();
+		ofPopMatrix();
+		ofPopStyle();
+		ofPopView();
+	}
+	ofDisableDepthTest();
+	leftPanel.draw();
+	sceneGraph.draw();
 	toolbar.draw();
+	ofEnableDepthTest();
 }
 
 void Application::drawSelectionBoxWrapper() {

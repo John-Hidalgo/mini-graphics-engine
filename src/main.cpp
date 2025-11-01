@@ -17,7 +17,7 @@ int main( ){
 	ofGLFWWindowSettings windowSettings;
 
 	// résolution de la fenêtre d'affichage
-	windowSettings.setSize(1028, 768);
+	windowSettings.setSize(1700, 1024);
 
 	// sélection de la version de OpenGL
 	windowSettings.setGLVersion(3, 3);
