@@ -155,6 +155,10 @@ void Application::mouseMoved(int x, int y) {
 }
 void Application::draw() {
 	drawSelectionBoxWrapper();
+	//TODO: The drawing order here needs to be revised the 3d objects interfere with
+	//TODO: the raw openGL deferred rendering. Best to leave until the rest of the textures
+	//TODO: and multiple lights and PBR is implemented. Probably best to make a static
+	//TODO: renderer and detach from here since this recieves no objects and is just a function call.
 	if (canvas.getSkyBoxDisplayed()) {
 		drawMainView();
 		drawScaledViews();
@@ -178,7 +182,7 @@ void Application::draw() {
 	leftPanel.draw();
 	sceneGraph.draw();
 	toolbar.draw();
-	ofEnableDepthTest();
+	//ofEnableDepthTest();
 }
 
 void Application::drawSelectionBoxWrapper() {
