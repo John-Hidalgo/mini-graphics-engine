@@ -173,6 +173,7 @@ void Application::draw() {
 		ofPushView();
 		ofPushStyle();
 		ofPushMatrix();
+		ofEnableDepthTest();
 		defRenderer.draw();
 		ofPopMatrix();
 		ofPopStyle();
