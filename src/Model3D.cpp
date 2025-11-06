@@ -1,5 +1,7 @@
 #include "Model3D.h"
 
+#include "Light.h"
+
 void Model3D::setup()
 {
 	ofSetFrameRate(60);
@@ -222,7 +224,7 @@ void Model3D::drawBoundingBox(){
 		ofPopMatrix();
 	}
 }
-void Model3D::draw()
+void Model3D::draw(const std::vector<LightData>& lights = {})
 {
 	ofSetBackgroundColor(color_background.r, color_background.g, color_background.b);
 	ofEnableDepthTest();
@@ -250,7 +252,27 @@ void Model3D::draw()
 		shader.setUniform3f("color_diffuse", color_diffuse.r / 255.0f, color_diffuse.g / 255.0f, color_diffuse.b / 255.0f);
 		//shader.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
 		shader.setUniform1f("brightness", 0.5f);
-		shader.setUniform3f("light_position", light.getGlobalPosition());
+		if (!lights.empty()) {
+			glm::vec3 combinedPos(0.0f);
+			glm::vec3 combinedColor(0.0f);
+			float totalAttenuation = 0.0f;
+
+			for (const auto& l : lights) {
+				float weight = l.attenuation;
+				combinedPos += glm::vec3(l.position.x, l.position.y, l.position.z) * weight;
+				combinedColor += glm::vec3(l.color.r / 255.0f, l.color.g / 255.0f, l.color.b / 255.0f) * weight;
+				totalAttenuation += weight;
+			}
+
+			combinedPos /= totalAttenuation;
+			combinedColor /= totalAttenuation;
+
+			shader_lambert.setUniform3f("light_position", combinedPos);
+			shader_lambert.setUniform3f("color_diffuse", combinedColor);
+		} else {
+			// Pas de lumière dynamique, utiliser canvasLight
+			shader_lambert.setUniform3f("light_position", light.getGlobalPosition());
+		}
 		if(shader == shader_cell) {
 			shader.setUniform1i("bands", celBands);
 			shader.setUniform1f("outline_threshold", celOutlineWidth);

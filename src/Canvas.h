@@ -9,6 +9,8 @@
 #include <vector>
 #include <map>
 
+#include "Light.h"
+
 
 class SceneGraph;
 class Toolbar;
@@ -30,6 +32,7 @@ public:
 	vector<Shape>& getShapes() {return shapes;}
 	vector<std::unique_ptr<Model3D>>& getModels() {return models;}
 	vector<Primitive3D>& getPrimitives3D() {return primitives3D;}
+	vector<LightData>& getLights() {return lights;}
 	bool getSkyBoxDisplayed() const { return skyBoxDisplayed;}
 	
 	void setDrawingArea(const ofRectangle& area);
@@ -92,6 +95,12 @@ public:
 	
 	void setImageDisplayScale(float scale) { imageDisplayScale = scale; }
 	void setMaintainAspectRatio(bool maintain) { keepAspectRatio = maintain; }
+
+	//MÉTHODES ET PARAMÈTRES DES LUMIÈRES
+	std::vector<LightData> lights;
+	LightType currentLightType = LightType::LIGHT_POINT;
+	bool placingLight = false;
+	void addLight(LightType type, const glm::vec3& position);
 private:
 	ofPoint start, end;
 	bool drawing = false;

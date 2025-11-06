@@ -85,6 +85,27 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	deleteButtonPrimitives3D.setup("Effacez");
 	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
 	primitives3DEditorPanel.add(&deleteButtonPrimitives3D);
+
+	// --- Panneau d'édition des lumières ---
+	lightEditorPanel.setup("Editez Lumières");
+	lightEditorPanel.setPosition(x + panelPadding, y + panelPadding + 300);
+	lightEditorPanel.setSize(175, 0);
+
+	lightEditorPanel.add(lightPosXSlider.setup("Position X", 0, -500, 500));
+	lightEditorPanel.add(lightPosYSlider.setup("Position Y", 0, -500, 500));
+	lightEditorPanel.add(lightPosZSlider.setup("Position Z", 0, -500, 500));
+	lightEditorPanel.add(lightColorPicker.set("Couleur", ofColor(255, 255, 255), ofColor(0, 0, 0), ofColor(255, 255, 255)));
+	lightEditorPanel.add(lightAttenuationSlider.setup("Atténuation", 1.0f, 0.0f, 5.0f));
+
+	deleteLightButton.setup("Effacez Lumière");
+	deleteLightButton.addListener(this, &SceneGraph::deleteButtonLightPressed);
+	lightEditorPanel.add(&deleteLightButton);
+
+	lightPosXSlider.addListener(this, &SceneGraph::lightPositionChanged);
+	lightPosYSlider.addListener(this, &SceneGraph::lightPositionChanged);
+	lightPosZSlider.addListener(this, &SceneGraph::lightPositionChanged);
+	lightColorPicker.addListener(this, &SceneGraph::lightColorChanged);
+	lightAttenuationSlider.addListener(this, &SceneGraph::lightAttenuationChanged);
 	
 	setupNormalMappingVisible(false);
 }
@@ -159,6 +180,8 @@ void SceneGraph::draw() {
 	drawModelList();
 	drawPrimitivesList();
 	primitives3DEditorPanel.draw();
+	drawLightList();
+	lightEditorPanel.draw();
 }
 
 void SceneGraph::clearSelection() {
@@ -302,6 +325,41 @@ void SceneGraph::select3DObjectsInArea(const ofRectangle& selectionRect) {
             selectedPrimitiveIndices.push_back(i);
         }
     }
+}
+
+void SceneGraph::drawLightList() {
+	if (!canvasRef) return;
+
+	float panelWidth = 175;
+	float panelX = x + panelWidth + panelPadding;
+	float listStartY = listsStartHeight + 200 - panelPadding;
+	int rowHeight = 15;
+	int numLights = (int)canvasRef->lights.size();
+
+	for (int i = 0; i < numLights; i++) {
+		ofRectangle rect(panelX, listStartY + i * rowHeight, panelWidth, rowHeight);
+		if (std::find(selectedLightIndices.begin(), selectedLightIndices.end(), i) != selectedLightIndices.end()) {
+			ofSetColor(200, 200, 255);
+		} else {
+			ofSetColor(180);
+		}
+		ofDrawRectangle(rect);
+		ofSetColor(0);
+
+		// conversion enum -> string
+		std::string typeStr;
+		switch (canvasRef->lights[i].type)
+		{
+		case LightType::LIGHT_AMBIENT:     typeStr = "Ambiante"; break;
+		case LightType::LIGHT_DIRECTIONAL: typeStr = "Directionnelle"; break;
+		case LightType::LIGHT_POINT:       typeStr = "Ponctuelle"; break;
+		case LightType::LIGHT_SPOT:        typeStr = "Projecteur"; break;
+		default:                typeStr = "Inconnue"; break;
+		}
+
+
+		ofDrawBitmapString(typeStr + " " + std::to_string(i + 1), rect.x + 5, rect.y + rowHeight);
+	}
 }
 
 void SceneGraph::deleteButtonPressed() {
@@ -536,6 +594,27 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 			break;
 		}
 	}
+
+	float lightPanelX = x + panelWidth + panelPadding;
+	int numLights = canvasRef->lights.size();
+
+	for (int i = 0; i < numLights; i++) {
+		ofRectangle rect(lightPanelX, listStartY + 200 + i * rowHeight, panelWidth, rowHeight);
+		if (rect.inside(mx, my)) {
+			auto it = std::find(selectedLightIndices.begin(), selectedLightIndices.end(), i);
+			if (it != selectedLightIndices.end()) {
+				selectedLightIndices.erase(it);
+			} else {
+				if (ofGetKeyPressed(OF_KEY_COMMAND) || ofGetKeyPressed(OF_KEY_CONTROL)) {
+					selectedLightIndices.push_back(i);
+				} else {
+					selectedLightIndices.clear();
+					selectedLightIndices.push_back(i);
+				}
+			}
+			break;
+		}
+	}
 }
 void SceneGraph::drawShapeList() {
 	int listStartY = listsStartHeight - panelPadding;
@@ -743,6 +822,62 @@ void SceneGraph::HDRNightPressed() {
 			models[i]->toggleProceduralTexture(Texture::HDR_NIGHT);
 		} else {
 			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+
+void SceneGraph::deleteButtonLightPressed() {
+	auto& lights = canvasRef->getLights();
+	if (!selectedLightIndices.empty()) {
+		std::sort(selectedLightIndices.begin(), selectedLightIndices.end(), std::greater<int>());
+		for (int index : selectedLightIndices) {
+			if (index >= 0 && index < lights.size()) {
+				lights.erase(lights.begin() + index);
+			}
+		}
+		selectedLightIndices.clear();
+	} else if (!lights.empty()) {
+		lights.pop_back();
+	}
+}
+
+void SceneGraph::lightPositionChanged(float &val) {
+	for (int index : selectedLightIndices) {
+		if (index >= 0 && index < canvasRef->getLights().size()) {
+			auto& l = canvasRef->getLights()[index];
+
+			l.position.set(lightPosXSlider, lightPosYSlider, lightPosZSlider);
+
+			if (l.light) {
+				l.light->setPosition(l.position);
+			}
+		}
+	}
+}
+
+void SceneGraph::lightColorChanged(ofColor& col) {
+	for (int index : selectedLightIndices) {
+		if (index >= 0 && index < canvasRef->lights.size()) {
+			auto& l = canvasRef->lights[index];
+			l.color = col;
+
+			if (l.light) {
+				l.light->setDiffuseColor(col);
+				l.light->setSpecularColor(col);
+			}
+		}
+	}
+}
+
+void SceneGraph::lightAttenuationChanged(float& val) {
+	for (int index : selectedLightIndices) {
+		if (index >= 0 && index < canvasRef->lights.size()) {
+			auto& l = canvasRef->lights[index];
+			l.attenuation = val;
+
+			if (l.light && l.type == LightType::LIGHT_POINT) {
+				l.light->setAttenuation(val);
+			}
 		}
 	}
 }

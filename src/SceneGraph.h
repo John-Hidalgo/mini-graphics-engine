@@ -52,6 +52,15 @@ public:
 	ofxButton rotateShapeRightButton;
 	ofxButton rotateShapeLeftButton;
 	ofxFloatSlider scaleShapeSlider;
+
+	std::vector<int> selectedLightIndices;
+	ofxPanel lightEditorPanel;
+	ofxFloatSlider lightPosXSlider;
+	ofxFloatSlider lightPosYSlider;
+	ofxFloatSlider lightPosZSlider;
+	ofParameter<ofColor> lightColorPicker;
+	ofxFloatSlider lightAttenuationSlider;
+	ofxButton deleteLightButton;
 private:
 	Canvas* canvasRef;
 	ofRectangle panelArea;
@@ -106,4 +115,10 @@ private:
 	void animateColourPressed(bool& val);
 	void HDRDayPressed();
 	void HDRNightPressed();
+
+	void drawLightList();
+	void deleteButtonLightPressed();
+	void lightPositionChanged(float &val);
+	void lightAttenuationChanged(float& val);
+	void lightColorChanged(ofColor& col);
 };

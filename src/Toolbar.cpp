@@ -177,8 +177,42 @@ void Toolbar::setup(Canvas* canvas) {
 
 	primitives3DGroup.minimize();
 
+	lightGroup.setup("Lumieres");
+	lightGroup.setPosition(220, 20);
+	lightGroup.setSize(200, 0);
+	lightGroup.add(addAmbientLightBtn.setup("Ambiante"));
+	lightGroup.add(addDirectionalLightBtn.setup("Directionnelle"));
+	lightGroup.add(addPointLightBtn.setup("Ponctuelle"));
+	lightGroup.add(addSpotLightBtn.setup("Projecteur"));
+	lightGroup.minimize();
+
+	addAmbientLightBtn.addListener(this, &Toolbar::onAddAmbientLightPressed);
+	addDirectionalLightBtn.addListener(this, &Toolbar::onAddDirectionalLightPressed);
+	addPointLightBtn.addListener(this, &Toolbar::onAddPointLightPressed);
+	addSpotLightBtn.addListener(this, &Toolbar::onAddSpotLightPressed);
+
 	updateVariantButtonColors();
 	updateCursorIcon();
+}
+
+void Toolbar::onAddAmbientLightPressed() {
+	canvasRef->placingLight = true;
+	canvasRef->currentLightType = LightType::LIGHT_AMBIENT;
+}
+
+void Toolbar::onAddDirectionalLightPressed() {
+	canvasRef->placingLight = true;
+	canvasRef->currentLightType = LightType::LIGHT_DIRECTIONAL;
+}
+
+void Toolbar::onAddPointLightPressed() {
+	canvasRef->placingLight = true;
+	canvasRef->currentLightType = LightType::LIGHT_POINT;
+}
+
+void Toolbar::onAddSpotLightPressed() {
+	canvasRef->placingLight = true;
+	canvasRef->currentLightType = LightType::LIGHT_SPOT;
 }
 
 void Toolbar::setSelectedVariant(ModelVariant variant) {
@@ -245,6 +279,7 @@ void Toolbar::draw() {
 	importation.draw();
 	echantillonage.draw();
 	primitives3DGroup.draw();
+	lightGroup.draw();
 
 	// Si on dessine une forme/primitive on draw le curseur
 	if (isDrawingActive && selectedCursor.isAllocated()) {

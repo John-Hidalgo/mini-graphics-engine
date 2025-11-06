@@ -96,8 +96,20 @@ private:
 	ofxToggle torusToggle;
 	ofxToggle pyramidToggle;
 
+	ofxPanel lightGroup;
+	ofxButton addAmbientLightBtn;
+	ofxButton addDirectionalLightBtn;
+	ofxButton addPointLightBtn;
+	ofxButton addSpotLightBtn;
+
+
+
 	bool pickingColour = false;
-	
+
+	void onAddAmbientLightPressed();
+	void onAddDirectionalLightPressed();
+	void onAddPointLightPressed();
+	void onAddSpotLightPressed();
 	void rectangleToggleChanged(bool & val);
 	void circleToggleChanged(bool & val);
 	void lineToggleChanged(bool & val);

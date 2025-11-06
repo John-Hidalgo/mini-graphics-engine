@@ -95,6 +95,17 @@ void Canvas::update() {
 			}
 		}
 	}
+
+	for (auto& l : lights) {
+		if (!l.enabled) continue;
+
+		if (l.type == LightType::LIGHT_DIRECTIONAL) {
+			l.light->lookAt(l.direction);
+		} else {
+			l.light->setPosition(l.position);
+		}
+		l.light->setDiffuseColor(l.color);
+	}
 }
 void Canvas::drawCanvas(){
 	if(hasImage){
@@ -178,7 +189,7 @@ void Canvas::draw2DInViewport(const ofRectangle& viewport) {
 void Canvas::draw3d(){
 	for (auto& m : models) {
 		m->showBoundingBox = showBoundingBoxes;
-		m->draw();
+		m->draw({});
 	}
 
 	// Dessins des primitives 3D pre-existantes
@@ -187,6 +198,34 @@ void Canvas::draw3d(){
 	// TEMP
 	// Dessin de la primtive en train d'etre tracé a la souris
 	drawPrimitivePreview();
+
+	for (auto& l : lights) {
+		if (l.enabled) l.light->enable();
+	}
+
+	for (auto& l : lights) {
+		ofPushMatrix();
+		ofTranslate(l.position);
+		switch (l.type) {
+		case LightType::LIGHT_DIRECTIONAL:
+			ofSetColor(ofColor::orange);
+			ofDrawArrow(glm::vec3(0), l.direction * 30.0f, 3);
+			break;
+		case LightType::LIGHT_POINT:
+			ofSetColor(ofColor::yellow);
+			ofDrawSphere(0, 0, 0, 5);
+			break;
+		case LightType::LIGHT_SPOT:
+			ofSetColor(ofColor::green);
+			ofDrawCone(0, 0, 0, 5, 15);
+			break;
+		case LightType::LIGHT_AMBIENT:
+			ofSetColor(ofColor::gray);
+			ofDrawBox(0, 0, 0, 4);
+			break;
+		}
+		ofPopMatrix();
+	}
 }
 void Canvas::draw() {
 	draw2d();
@@ -195,6 +234,12 @@ void Canvas::draw() {
 
 void Canvas::mousePressed(int x, int y, int button) {
 	ofPushStyle();
+	if (placingLight) {
+		glm::vec3 worldPos = customScreenToWorld(x, y, 0);
+		addLight(currentLightType, worldPos);
+		placingLight = false;
+		return;
+	}
 	if (!drawingArea.inside(x, y)) return;
 	
 	if (toolbarRef && toolbarRef->isSelectingColor()) {
@@ -393,7 +438,7 @@ void Canvas::loadModel(const std::string& path) {
 	hasModel = true;
 }
 void Canvas::drawModel() {
-	if(hasModel) model3D.draw();
+	if(hasModel) model3D.draw(lights);
 }
 //void Canvas::calculateModelsPosition() {
 //	int n = models.size();
@@ -455,7 +500,7 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 
 void Canvas::drawPrimitives3D() {
 	for (auto& primitive : primitives3D) {
-		primitive.draw(canvasLight, showBoundingBoxes);
+		primitive.draw(canvasLight, showBoundingBoxes, lights);
 	}
 }
 
@@ -527,6 +572,42 @@ void Canvas::keyPressed(int key) {
 			deleteCurrentImage();
 			break;
 	}
+}
+
+void Canvas::addLight(LightType type, const glm::vec3& position) {
+	lights.emplace_back(type);
+	LightData& data = lights.back();
+
+	data.light = std::make_unique<ofLight>();
+	data.position = position;
+
+	switch (type) {
+	case LightType::LIGHT_AMBIENT:
+		data.light->setAmbientColor(ofFloatColor(0.2, 0.2, 0.2));
+		break;
+
+	case LightType::LIGHT_DIRECTIONAL:
+		data.light->setDirectional();
+		data.light->setOrientation({45, 0, 0});
+		data.light->setDiffuseColor(ofFloatColor(1.0, 1.0, 1.0));
+		break;
+
+	case LightType::LIGHT_POINT:
+		data.light->setPointLight();
+		data.light->setPosition(position);
+		data.light->setDiffuseColor(ofFloatColor(1.0, 1.0, 1.0));
+		break;
+
+	case LightType::LIGHT_SPOT:
+		data.light->setSpotlight();
+		data.light->setPosition(position);
+		data.light->setSpotlightCutOff(45);
+		data.light->setSpotConcentration(60);
+		data.light->setDiffuseColor(ofFloatColor(1.0, 1.0, 1.0));
+		break;
+	}
+
+	data.light->enable();
 }
 
 void Canvas::nextImage() {

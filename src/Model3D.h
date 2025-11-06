@@ -2,6 +2,7 @@
 #include "ofMain.h"
 #include "ofxAssimpModelLoader.h"
 #include "BoundingBox.h"
+#include "Light.h"
 
 enum class ModelVariant {
 	None = 0,
@@ -81,7 +82,7 @@ public:
 	void setupTextures();
 	void applyVariant(ModelVariant variant);
 	void update();
-	void draw();
+	void draw(const std::vector<LightData>& lights);
 	void setShader(Lighting lighting);
 	void loadModel(const std::string & path);
 	void drawBoundingBox();

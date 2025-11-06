@@ -1,6 +1,8 @@
 #pragma once
 #include "ofMain.h"
 #include "BoundingBox.h"
+#include "Canvas.h"
+#include "Light.h"
 
 enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID };
 
@@ -15,7 +17,6 @@ struct Primitive3D {
 	ofColor color_ambient;
 	ofColor color_diffuse;
 	BoundingBox bbox;
-	//ofLight light;Object of type 'Primitive3D' cannot be assigned because its copy assignment operator is implicitly deleted
 
 	void setup() {
 		shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
@@ -23,46 +24,66 @@ struct Primitive3D {
 		color_diffuse = ofColor(200, 200, 200);
 	}
 	
-	void draw(ofLight& canvasLight, bool showBoundingBox = false) {
-		ofEnableDepthTest();
-		ofEnableLighting();
-		canvasLight.enable();
+	void draw(ofLight& canvasLight, bool showBoundingBox = false, const std::vector<LightData>& lights = {}) {
+    ofEnableDepthTest();
+    ofEnableLighting();
 
-		shader_lambert.begin();
-		shader_lambert.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
-		shader_lambert.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
-		shader_lambert.setUniform3f("color_ambient", color_ambient.r / 255.0f,
-									color_ambient.g / 255.0f,
-									color_ambient.b / 255.0f);
-		shader_lambert.setUniform3f("color_diffuse", color_diffuse.r / 255.0f,
-									color_diffuse.g / 255.0f,
-									color_diffuse.b / 255.0f);
-		shader_lambert.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
-		shader_lambert.setUniform1f("brightness", 0.5f);
+    shader_lambert.begin();
 
-		shader_lambert.setUniform3f("light_position", canvasLight.getGlobalPosition());
+    shader_lambert.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
+    shader_lambert.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
 
-		ofPushMatrix();
-		ofTranslate(position);
-		ofSetColor(color);
-		mesh.draw();
+    shader_lambert.setUniform3f("color_ambient", color_ambient.r / 255.0f,
+                                color_ambient.g / 255.0f,
+                                color_ambient.b / 255.0f);
+    shader_lambert.setUniform3f("color_diffuse", color_diffuse.r / 255.0f,
+                                color_diffuse.g / 255.0f,
+                                color_diffuse.b / 255.0f);
+    shader_lambert.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
+    shader_lambert.setUniform1f("brightness", 0.5f);
 
-		if (showBoundingBox) {
-			ofPushStyle();
-			ofNoFill();
-			ofSetColor(0, 255, 0);
-			ofSetLineWidth(2);
-			bbox.draw();
-			ofPopStyle();
-		}
+		if (!lights.empty()) {
+			glm::vec3 combinedPos(0.0f);
+			glm::vec3 combinedColor(0.0f);
+			float totalAttenuation = 0.0f;
 
-		ofPopMatrix();
+			for (const auto& l : lights) {
+				float weight = l.attenuation;
+				combinedPos += glm::vec3(l.position.x, l.position.y, l.position.z) * weight;
+				combinedColor += glm::vec3(l.color.r / 255.0f, l.color.g / 255.0f, l.color.b / 255.0f) * weight;
+				totalAttenuation += weight;
+			}
 
-		shader_lambert.end();
-		canvasLight.disable();
-		ofDisableLighting();
-		ofDisableDepthTest();
-	}
+			combinedPos /= totalAttenuation;
+			combinedColor /= totalAttenuation;
+
+			shader_lambert.setUniform3f("light_position", combinedPos);
+			shader_lambert.setUniform3f("color_diffuse", combinedColor);
+		} else {
+        // Pas de lumière dynamique, utiliser canvasLight
+        shader_lambert.setUniform3f("light_position", canvasLight.getGlobalPosition());
+    }
+
+    ofPushMatrix();
+    ofTranslate(position);
+    ofSetColor(color);
+    mesh.draw();
+
+    if (showBoundingBox) {
+        ofPushStyle();
+        ofNoFill();
+        ofSetColor(0, 255, 0);
+        ofSetLineWidth(2);
+        bbox.draw();
+        ofPopStyle();
+    }
+
+    ofPopMatrix();
+
+    shader_lambert.end();
+    ofDisableLighting();
+    ofDisableDepthTest();
+}
 
 
 	void generateMesh() {
