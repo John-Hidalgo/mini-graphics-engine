@@ -61,6 +61,22 @@ public:
 	ofParameter<ofColor> lightColorPicker;
 	ofxFloatSlider lightAttenuationSlider;
 	ofxButton deleteLightButton;
+
+	// 7.2 - Material Parameters pour les primitives
+	ofxToggle primitives3DMaterialActive;
+	ofParameter<ofColor> material_ambient_color_primitives3D;
+	ofParameter<ofColor> material_diffuse_color_primitives3D;
+	ofParameter<ofColor> material_emissive_color_primitives3D;
+	ofParameter<ofColor> material_specular_color_primitives3D;
+	ofxFloatSlider material_shininess_primitives3D;
+
+	// 7.2 - Material Parameters pour les models
+	ofxToggle modelMaterialActive;
+	ofParameter<ofColor> material_ambient_color_model;
+	ofParameter<ofColor> material_diffuse_color_model;
+	ofParameter<ofColor> material_emissive_color_model;
+	ofParameter<ofColor> material_specular_color_model;
+	ofxFloatSlider material_shininess_model;
 private:
 	Canvas* canvasRef;
 	ofRectangle panelArea;
@@ -121,4 +137,8 @@ private:
 	void lightPositionChanged(float &val);
 	void lightAttenuationChanged(float& val);
 	void lightColorChanged(ofColor& col);
+
+	// 7.2 - Pour les toggle de materials
+	void primitives3DMaterialToggled(bool & val);
+	void modelMaterialToggled(bool & val);
 };

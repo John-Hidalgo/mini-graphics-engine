@@ -18,10 +18,21 @@ struct Primitive3D {
 	ofColor color_diffuse;
 	BoundingBox bbox;
 
+	// 7.2 Pour les material
+	ofMaterial material;
+	bool isMaterialActive = false;
+
 	void setup() {
 		shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
 		color_ambient = ofColor(50, 50, 50);
 		color_diffuse = ofColor(200, 200, 200);
+
+		// 7.2 - Setup le material
+		material.setAmbientColor(ofColor(63, 63, 63));
+		material.setDiffuseColor(ofColor(127, 0, 0));
+		material.setEmissiveColor(ofColor( 31, 0, 0));
+		material.setSpecularColor(ofColor(127, 127, 127));
+		material.setShininess(16.0f);
 	}
 	
 	void draw(ofLight& canvasLight, bool showBoundingBox = false, const std::vector<LightData>& lights = {}) {
@@ -67,7 +78,18 @@ struct Primitive3D {
     ofPushMatrix();
     ofTranslate(position);
     ofSetColor(color);
+
+	// 7.2 - Activer le material
+	if(isMaterialActive){
+		material.begin();
+	}
+
     mesh.draw();
+
+	// 7.2 - Désactiver le material
+	if(isMaterialActive) {
+		material.end();
+	}
 
     if (showBoundingBox) {
         ofPushStyle();
