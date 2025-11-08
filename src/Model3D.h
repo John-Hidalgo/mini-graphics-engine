@@ -107,4 +107,8 @@ public:
 	ofShader shaderHDRNight;
 	ofCubeMap cubeMapDay;
 	ofCubeMap cubeMapNight;
+
+	// 7.2 Pour les materials
+	ofMaterial material;
+	bool isMaterialActive = false;
 };

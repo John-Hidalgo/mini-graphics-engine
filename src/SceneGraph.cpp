@@ -82,6 +82,16 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	primitives3DEditorPanel.add(color_picker_ambient_primitives3D.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
 	primitives3DEditorPanel.add(color_picker_diffuse_primitives3D.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
 
+	// 7.2 - Parametres pour le material:
+	primitives3DMaterialActive.setup("Material actif", false);
+	primitives3DMaterialActive.addListener(this, &SceneGraph::primitives3DMaterialToggled);
+	primitives3DEditorPanel.add(&primitives3DMaterialActive);
+	primitives3DEditorPanel.add(material_ambient_color_primitives3D.set("Material Ambient Color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
+	primitives3DEditorPanel.add(material_diffuse_color_primitives3D.set("Material Diffuse Color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
+	primitives3DEditorPanel.add(material_emissive_color_primitives3D.set("Material Emissive Color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+	primitives3DEditorPanel.add(material_specular_color_primitives3D.set("Material Specular Color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+	primitives3DEditorPanel.add(material_shininess_primitives3D.setup("Material Shininess", 1, 0, 10));
+
 	deleteButtonPrimitives3D.setup("Effacez");
 	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
 	primitives3DEditorPanel.add(&deleteButtonPrimitives3D);
@@ -120,7 +130,17 @@ void SceneGraph::setupModelPanel(){
 	//modelEditorPanel.add(color_picker_background.set("background color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
 	modelEditorPanel.add(color_picker_ambient.set("ambient color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
 	modelEditorPanel.add(color_picker_diffuse.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
-	
+
+	// 7.2 - Slider pour le material:
+	modelMaterialActive.setup("Material actif", false);
+	modelMaterialActive.addListener(this, &SceneGraph::modelMaterialToggled);
+	modelEditorPanel.add(&modelMaterialActive);
+	modelEditorPanel.add(material_ambient_color_model.set("Material Ambient Color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
+	modelEditorPanel.add(material_diffuse_color_model.set("Material Diffuse Color", ofColor(63, 63, 63), ofColor(0, 0), ofColor(255, 255)));
+	modelEditorPanel.add(material_emissive_color_model.set("Material Emissive Color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+	modelEditorPanel.add(material_specular_color_model.set("Material Specular Color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
+	modelEditorPanel.add(material_shininess_model.setup("Material Shininess", 1, 0, 10));
+
 	textureGroup.setup("textures");
 	textureInversionButton.setup("Inversion du cercle");
 	textureWeierstrassButton.setup("Weierstrass");
@@ -881,4 +901,35 @@ void SceneGraph::lightAttenuationChanged(float& val) {
 		}
 	}
 }
+
+void SceneGraph::primitives3DMaterialToggled(bool& val) {
+	auto& primitives3D = canvasRef->getPrimitives3D();
+	if (!selectedPrimitiveIndices.empty()) {
+		std::sort(selectedPrimitiveIndices.begin(), selectedPrimitiveIndices.end(), std::greater<int>());
+
+		for (int index : selectedPrimitiveIndices) {
+			if (index >= 0 && index < primitives3D.size()) {
+				primitives3D[index].isMaterialActive = val;
+			}
+		}
+	} else if (!primitives3D.empty()) {
+		primitives3D.pop_back();
+	}
+}
+
+void SceneGraph::modelMaterialToggled(bool& val) {
+	auto& models = canvasRef->getModels();
+	if (!selectedModelIndices.empty()) {
+		std::sort(selectedModelIndices.begin(), selectedModelIndices.end(), std::greater<int>());
+
+		for (int index : selectedModelIndices) {
+			if (index >= 0 && index < models.size()) {
+				models[index]->isMaterialActive = val;
+			}
+		}
+	} else if (!models.empty()) {
+		models.pop_back();
+	}
+}
+
 

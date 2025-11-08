@@ -31,6 +31,13 @@ void Model3D::setup()
 	modelDisplacementDefaults["sphere2.obj"]  = 50.0f;
 	modelDisplacementDefaults["cube.obj"]  = 50.0f;
 	setupTextures();
+
+	// 7.2 - Setup le material
+	material.setAmbientColor(ofColor(63, 63, 63));
+	material.setDiffuseColor(ofColor(127, 0, 0));
+	material.setEmissiveColor(ofColor( 31, 0, 0));
+	material.setSpecularColor(ofColor(127, 127, 127));
+	material.setShininess(16.0f);
 }
 void Model3D::setupTextures() {
 	ofDisableArbTex();
@@ -313,7 +320,18 @@ void Model3D::draw(const std::vector<LightData>& lights = {})
 			shader.setUniform1f("displacementScale", displacementScale);
 		}
 	}
+
+	// 7.2 - Activer le material
+	if(isMaterialActive){
+		material.begin();
+	}
+
 	model.draw(OF_MESH_FILL);
+
+	// 7.2 - Désactiver le material
+	if(isMaterialActive) {
+		material.end();
+	}
 	drawBoundingBox();
 	shader.end();
 

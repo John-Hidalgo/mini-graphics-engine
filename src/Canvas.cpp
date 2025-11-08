@@ -72,6 +72,13 @@ void Canvas::update() {
 				model->color_ambient = sceneGraphRef->color_picker_ambient;
 				model->color_diffuse = sceneGraphRef->color_picker_diffuse;
 			}
+
+			// 7.2 - Pour le material:
+			model->material.setAmbientColor(sceneGraphRef->material_ambient_color_model.get());
+			model->material.setDiffuseColor(sceneGraphRef->material_diffuse_color_model.get());
+			model->material.setEmissiveColor(sceneGraphRef->material_emissive_color_model.get());
+			model->material.setSpecularColor(sceneGraphRef->material_specular_color_model.get());
+			model->material.setShininess(sceneGraphRef->material_shininess_model);
 		}
 	}
 	else if (!sceneGraphRef->selectedPrimitiveIndices.empty()) {
@@ -82,6 +89,13 @@ void Canvas::update() {
 			primitive3D.color = sceneGraphRef->color_picker_background_primitives3D;
 			primitive3D.color_ambient = sceneGraphRef->color_picker_ambient_primitives3D;
 			primitive3D.color_diffuse = sceneGraphRef->color_picker_diffuse_primitives3D;
+
+			// 7.2 - Pour le material:
+			primitive3D.material.setAmbientColor(sceneGraphRef->material_ambient_color_primitives3D.get());
+			primitive3D.material.setDiffuseColor(sceneGraphRef->material_diffuse_color_primitives3D.get());
+			primitive3D.material.setEmissiveColor(sceneGraphRef->material_emissive_color_primitives3D.get());
+			primitive3D.material.setSpecularColor(sceneGraphRef->material_specular_color_primitives3D.get());
+			primitive3D.material.setShininess(sceneGraphRef->material_shininess_primitives3D);
 			primitive3D.generateMesh();
 		}
 	} else {
