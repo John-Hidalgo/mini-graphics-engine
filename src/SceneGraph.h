@@ -77,6 +77,17 @@ public:
 	ofParameter<ofColor> material_emissive_color_model;
 	ofParameter<ofColor> material_specular_color_model;
 	ofxFloatSlider material_shininess_model;
+
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	//  Sliders individuels pour les points de controle
+	ofxFloatSlider controlPointX0, controlPointX1, controlPointX2, controlPointX3, controlPointX4;
+	ofxFloatSlider controlPointY0, controlPointY1, controlPointY2, controlPointY3, controlPointY4;
+	ofxGuiGroup controlPointsGroup;
+
+	// Méthodes pour gerer les points de controle
+	void setupControlPointsSliders();
+	void updateControlPointsSliders();
+	void controlPointChanged(float& value);
 private:
 	Canvas* canvasRef;
 	ofRectangle panelArea;
@@ -141,4 +152,8 @@ private:
 	// 7.2 - Pour les toggle de materials
 	void primitives3DMaterialToggled(bool & val);
 	void modelMaterialToggled(bool & val);
+
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	void editCatmullRomControlPoints(int shapeIndex, const std::vector<ofPoint>& newPoints);
+	void fixCatmullRomPoints(int shapeIndex);
 };

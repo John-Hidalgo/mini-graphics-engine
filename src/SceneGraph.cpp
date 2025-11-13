@@ -98,7 +98,7 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 
 	// --- Panneau d'édition des lumières ---
 	lightEditorPanel.setup("Editez Lumières");
-	lightEditorPanel.setPosition(x + panelPadding, y + panelPadding + 300);
+	lightEditorPanel.setPosition(x + panelPadding + 175, y + panelPadding + 600);
 	lightEditorPanel.setSize(175, 0);
 
 	lightEditorPanel.add(lightPosXSlider.setup("Position X", 0, -500, 500));
@@ -116,7 +116,10 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	lightPosZSlider.addListener(this, &SceneGraph::lightPositionChanged);
 	lightColorPicker.addListener(this, &SceneGraph::lightColorChanged);
 	lightAttenuationSlider.addListener(this, &SceneGraph::lightAttenuationChanged);
-	
+
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	setupControlPointsSliders();
+
 	setupNormalMappingVisible(false);
 }
 void SceneGraph::setupModelPanel(){
@@ -202,6 +205,9 @@ void SceneGraph::draw() {
 	primitives3DEditorPanel.draw();
 	drawLightList();
 	lightEditorPanel.draw();
+
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	controlPointsGroup.draw();
 }
 
 void SceneGraph::clearSelection() {
@@ -635,6 +641,10 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 			break;
 		}
 	}
+
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	// Après avoir géré la sélection, mettre à jour les sliders
+	updateControlPointsSliders();
 }
 void SceneGraph::drawShapeList() {
 	int listStartY = listsStartHeight - panelPadding;
@@ -859,6 +869,9 @@ void SceneGraph::deleteButtonLightPressed() {
 	} else if (!lights.empty()) {
 		lights.pop_back();
 	}
+
+	// Mettre à jour la visibilité des sliders après suppression
+	updateControlPointsSliders();
 }
 
 void SceneGraph::lightPositionChanged(float &val) {
@@ -932,4 +945,181 @@ void SceneGraph::modelMaterialToggled(bool& val) {
 	}
 }
 
+// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+void SceneGraph::editCatmullRomControlPoints(int shapeIndex, const std::vector<ofPoint>& newPoints) {
+	if (shapeIndex >= 0 && shapeIndex < canvasRef->getShapes().size()) {
+		auto& shape = canvasRef->getShapes()[shapeIndex];
+		if (shape.type == ShapeMode::CATMULL_ROM) {
+			shape.points = newPoints;
+		}
+	}
+}
+void SceneGraph::setupControlPointsSliders() {
+	controlPointsGroup.setup("Points de Controle Catmull-Rom");
+	controlPointsGroup.setSize(175, 0);
 
+	// Utiliser des plages absolues basées sur la taille du canvas
+	int canvasWidth = ofGetWidth();
+	int canvasHeight = ofGetHeight();
+
+	controlPointX0.setup("Point 0 X", 0, 0, canvasWidth);
+	controlPointX1.setup("Point 1 X", 0, 0, canvasWidth);
+	controlPointX2.setup("Point 2 X", 0, 0, canvasWidth);
+	controlPointX3.setup("Point 3 X", 0, 0, canvasWidth);
+	controlPointX4.setup("Point 4 X", 0, 0, canvasWidth);
+
+	controlPointY0.setup("Point 0 Y", 0, 0, canvasHeight);
+	controlPointY1.setup("Point 1 Y", 0, 0, canvasHeight);
+	controlPointY2.setup("Point 2 Y", 0, 0, canvasHeight);
+	controlPointY3.setup("Point 3 Y", 0, 0, canvasHeight);
+	controlPointY4.setup("Point 4 Y", 0, 0, canvasHeight);
+
+	// Ajouter les listeners
+	controlPointX0.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointX1.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointX2.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointX3.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointX4.addListener(this, &SceneGraph::controlPointChanged);
+
+	controlPointY0.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointY1.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointY2.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointY3.addListener(this, &SceneGraph::controlPointChanged);
+	controlPointY4.addListener(this, &SceneGraph::controlPointChanged);
+
+	// Ajouter au groupe
+	controlPointsGroup.add(&controlPointX0);
+	controlPointsGroup.add(&controlPointY0);
+	controlPointsGroup.add(&controlPointX1);
+	controlPointsGroup.add(&controlPointY1);
+	controlPointsGroup.add(&controlPointX2);
+	controlPointsGroup.add(&controlPointY2);
+	controlPointsGroup.add(&controlPointX3);
+	controlPointsGroup.add(&controlPointY3);
+	controlPointsGroup.add(&controlPointX4);
+	controlPointsGroup.add(&controlPointY4);
+
+	controlPointsGroup.minimize();
+	gui.add(&controlPointsGroup);
+}
+
+void SceneGraph::updateControlPointsSliders() {
+	auto& shapes = canvasRef->getShapes();
+
+	// V\erifier si une forme Catmull-Rom est selectionnee
+	bool hasCatmullRomSelected = false;
+	int selectedCatmullRomIndex = -1;
+
+	for (int index : selectedShapeIndices) {
+		if (index >= 0 && index < shapes.size() && shapes[index].type == ShapeMode::CATMULL_ROM) {
+			hasCatmullRomSelected = true;
+			selectedCatmullRomIndex = index;
+			break;
+		}
+	}
+
+	if (hasCatmullRomSelected && selectedCatmullRomIndex != -1) {
+		const auto& shape = shapes[selectedCatmullRomIndex];
+
+		// On desactive temporairement les listeners pour eviter les changements de position de la form lors de la selection
+		controlPointX0.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY0.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX1.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY1.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX2.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY2.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX3.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY3.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX4.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY4.removeListener(this, &SceneGraph::controlPointChanged);
+
+		// M-a-j des sliders avec les positions ABSOLUES
+		if (shape.points.size() > 0) {
+			controlPointX0 = shape.points[0].x;
+			controlPointY0 = shape.points[0].y;
+		}
+		if (shape.points.size() > 1) {
+			controlPointX1 = shape.points[1].x;
+			controlPointY1 = shape.points[1].y;
+		}
+		if (shape.points.size() > 2) {
+			controlPointX2 = shape.points[2].x;
+			controlPointY2 = shape.points[2].y;
+		}
+		if (shape.points.size() > 3) {
+			controlPointX3 = shape.points[3].x;
+			controlPointY3 = shape.points[3].y;
+		}
+		if (shape.points.size() > 4) {
+			controlPointX4 = shape.points[4].x;
+			controlPointY4 = shape.points[4].y;
+		}
+
+		// Réactiver les listeners APRES avoir mis à jour les valeurs
+		controlPointX0.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY0.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX1.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY1.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX2.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY2.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX3.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY3.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX4.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY4.addListener(this, &SceneGraph::controlPointChanged);
+
+	}
+}
+
+void SceneGraph::controlPointChanged(float& value) {
+	auto& shapes = canvasRef->getShapes();
+
+	// M-a-j sur tous les points de controle pour toutes les formes Catmull-Rom selectionnees
+	for (int index : selectedShapeIndices) {
+		if (index >= 0 && index < shapes.size() && shapes[index].type == ShapeMode::CATMULL_ROM) {
+			auto& shape = shapes[index];
+
+			// S'assurer qu'il y a 5 points de controle
+			if (shape.points.size() < 5) {
+				shape.points.resize(5, ofPoint(0, 0));
+			}
+
+			// M-a-j tous les points avec les valeurs des sliders
+			shape.points[0].x = controlPointX0;
+			shape.points[0].y = controlPointY0;
+			shape.points[1].x = controlPointX1;
+			shape.points[1].y = controlPointY1;
+			shape.points[2].x = controlPointX2;
+			shape.points[2].y = controlPointY2;
+			shape.points[3].x = controlPointX3;
+			shape.points[3].y = controlPointY3;
+			shape.points[4].x = controlPointX4;
+			shape.points[4].y = controlPointY4;
+
+			//M-a-j de start et end basés sur les points de controle
+			if (!shape.points.empty()) {
+				shape.start = shape.points.front();
+				shape.end = shape.points.back();
+			}
+		}
+	}
+}
+
+void SceneGraph::fixCatmullRomPoints(int shapeIndex) {
+	auto& shapes = canvasRef->getShapes();
+	if (shapeIndex >= 0 && shapeIndex < shapes.size() && shapes[shapeIndex].type == ShapeMode::CATMULL_ROM) {
+		auto& shape = shapes[shapeIndex];
+
+		// Si les points sont vides ou incorrects, les régénérer
+		if (shape.points.empty() || shape.points.size() != 5) {
+			float width = std::abs(shape.end.x - shape.start.x);
+			float height = std::abs(shape.end.y - shape.start.y);
+
+			shape.points.clear();
+			shape.points.push_back(shape.start);
+			shape.points.push_back(ofPoint(shape.start.x + width * 0.25f, shape.start.y + height * 0.3f));
+			shape.points.push_back(ofPoint(shape.start.x + width * 0.5f, shape.start.y + height * 0.6f));
+			shape.points.push_back(ofPoint(shape.start.x + width * 0.75f, shape.start.y + height * 0.2f));
+			shape.points.push_back(shape.end);
+		}
+	}
+}

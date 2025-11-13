@@ -11,7 +11,11 @@ public:
 						  const std::vector<ofPoint>& tempShapePoints,
 						  bool drawing);
 	static void drawShape(const Shape& s);
-	
+
+	// 8.2 - Pour les courbes parametriques
+	static void drawCatmullRomPreview(const ofPoint& start, const ofPoint& end, const ofColor& color);
+	static void drawCatmullRom(const Shape& s);
+
 private:
 	static void drawRectanglePreview(const ofPoint& start, const ofPoint& end, const ofColor& color);
 	static void drawPointPreview(const ofPoint& start, const ofColor& color);
@@ -33,4 +37,8 @@ private:
 	static void drawHouse(const Shape& s);
 	static void drawTree(const Shape& s);
 	static void drawTarget(const Shape& s);
+
+	// 8.2 - Pour les courbes parametriques
+	static ofPoint catmullRomInterpolate(const ofPoint& p0, const ofPoint& p1, const ofPoint& p2, const ofPoint& p3, float t);
+	static std::vector<ofPoint> generateCatmullRomCurve(const std::vector<ofPoint>& controlPoints, int segments = 50);
 };
