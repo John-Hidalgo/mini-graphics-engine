@@ -297,6 +297,28 @@ void Canvas::mousePressed(int x, int y, int button) {
 	drawing = true;
 	ofNoFill();
 
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	if (currentMode == ShapeMode::CATMULL_ROM) {
+		start.set(x, y);
+		end.set(x, y);
+		drawing = true;
+
+		// Initialiser avec 5 points de controle répartis
+		tempShape = Shape();
+		tempShape.type = ShapeMode::CATMULL_ROM;
+		tempShape.contourColor = currentColor;
+
+		// Calculer des points de controle répartis uniformément
+		float width = 100.0f; // Largeur par défaut
+		float height = 100.0f; // Hauteur par défaut
+
+		tempShape.points.push_back(ofPoint(x, y));
+		tempShape.points.push_back(ofPoint(x + width * 0.25f, y - height * 0.3f));
+		tempShape.points.push_back(ofPoint(x + width * 0.5f, y + height * 0.2f));
+		tempShape.points.push_back(ofPoint(x + width * 0.75f, y - height * 0.1f));
+		tempShape.points.push_back(ofPoint(x + width, y));
+	}
+
 	if (currentMode == ShapeMode::FREEFORM) {
 		tempShape = Shape();
 		tempShape.type = ShapeMode::FREEFORM;
@@ -314,7 +336,31 @@ void Canvas::mouseDragged(int x, int y, int button) {
 
 		// On update la taille primitive temp de preview
 		tempPrimitive.setSizeFromPoints(start, end);
-    } else if (drawing) {
+    }
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	else if (currentMode == ShapeMode::CATMULL_ROM && drawing) {
+		end.set(x, y);
+
+		// Mettre à jour les points de controle basés sur la nouvelle taille
+		if (!tempShape.points.empty()) {
+			float startX = start.x;
+			float startY = start.y;
+			float width = end.x - startX;
+			float height = end.y - startY;
+
+			// Garder une largeur/hauteur minimale
+			width = std::max(width, 50.0f);
+			height = std::max(std::abs(height), 50.0f);
+
+			tempShape.points.clear();
+			tempShape.points.push_back(ofPoint(startX, startY));
+			tempShape.points.push_back(ofPoint(startX + width * 0.25f, startY - height * 0.3f));
+			tempShape.points.push_back(ofPoint(startX + width * 0.5f, startY + height * 0.2f));
+			tempShape.points.push_back(ofPoint(startX + width * 0.75f, startY - height * 0.1f));
+			tempShape.points.push_back(ofPoint(startX + width, startY));
+		}
+	}
+	else if (drawing) {
 		end.set(x, y);
 		if (currentMode == ShapeMode::FREEFORM) {
 			tempShape.points.push_back(ofPoint(x, y));
@@ -336,7 +382,40 @@ void Canvas::mouseReleased(int x, int y, int button) {
 			addPrimitive3D(currentPrimitiveMode, primitiveStartPos, distance);
 		}
 
-	} else if (drawing) {
+	}
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	else if (currentMode == ShapeMode::CATMULL_ROM && drawing) {
+		end.set(x, y);
+		drawing = false;
+
+		// S'assurer que la forme a une taille minimale
+		float minDistance = 10.0f;
+		if (start.distance(end) < minDistance) {
+			return; // Forme trop petite, on ignore
+		}
+
+		// Créer la shape finale avec des points de controle cohérents
+		Shape s;
+		s.type = ShapeMode::CATMULL_ROM;
+		s.start = start;
+		s.end = end;
+		s.contourColor = currentColor;
+		s.thickness = 2.0f;
+
+		// Calculer des points de controle proportionnels
+		float width = end.x - start.x;
+		float height = end.y - start.y;
+
+		s.points.clear();
+		s.points.push_back(ofPoint(start.x, start.y));
+		s.points.push_back(ofPoint(start.x + width * 0.25f, start.y + height * 0.3f));
+		s.points.push_back(ofPoint(start.x + width * 0.5f, start.y + height * 0.6f));
+		s.points.push_back(ofPoint(start.x + width * 0.75f, start.y + height * 0.2f));
+		s.points.push_back(ofPoint(end.x, end.y));
+
+		shapes.push_back(s);
+	}
+	else if (drawing) {
 		end.set(x, y);
 		drawing = false;
 

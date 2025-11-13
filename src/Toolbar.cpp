@@ -41,7 +41,11 @@ void Toolbar::setup(Canvas* canvas) {
 
 	dessinez.add(targetToggle.setup("Cible", false));
 	targetToggle.addListener(this, &Toolbar::targetToggleChanged);
-	
+
+	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+    dessinez.add(catmullRomToggle.setup("Catmull-Rom", false));
+    catmullRomToggle.addListener(this, &Toolbar::catMullRomToggleChanged);
+
 	dessinez.add(selectColourToggle.setup("Couleur du canevas", false));
 
 	selectColourToggle.addListener(this, &Toolbar::selectColourToggleChanged);
@@ -378,6 +382,16 @@ void Toolbar::freeformToggleChanged(bool & val) {
 	updateCursorIcon();
 }
 
+// 8.2 - Pour les courbes parametriques (CatMull-Rom)
+void Toolbar::catMullRomToggleChanged(bool & val) {
+	if (val) setExclusiveToggle(ShapeMode::CATMULL_ROM);
+	else if (canvasRef->getCurrentMode() == ShapeMode::CATMULL_ROM) {
+		canvasRef->setCurrentMode(ShapeMode::NONE);
+	}
+
+	updateCursorIcon();
+}
+
 void Toolbar::selectColourToggleChanged(bool & val) {
 	pickingColour = val;
 
@@ -392,6 +406,7 @@ void Toolbar::selectColourToggleChanged(bool & val) {
 		houseToggle     = false;
 		treeToggle      = false;
 		targetToggle   = false;
+		catmullRomToggle = false;
 		if (canvasRef) canvasRef->setCurrentMode(ShapeMode::NONE);
 	}
 }
@@ -422,6 +437,7 @@ void Toolbar::setExclusiveToggle(ShapeMode mode) {
 	houseToggle     = (mode == ShapeMode::HOUSE);
 	treeToggle      = (mode == ShapeMode::TREE);
 	targetToggle    = (mode == ShapeMode::TARGET);
+	catmullRomToggle = (mode == ShapeMode::CATMULL_ROM);
 	selectColourToggle = false;
 
 	// On désactive toutes toggle de primitives 3D primitive

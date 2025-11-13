@@ -3,7 +3,7 @@
 #include <vector>
 
 enum class ShapeMode { NONE, RECTANGLE, CIRCLE, LINE, FREEFORM, SQUARE, POINT, TRIANGLE, HOUSE,
-	TREE, TARGET };
+	TREE, TARGET, CATMULL_ROM };
 
 struct Shape {
 	ShapeMode type;

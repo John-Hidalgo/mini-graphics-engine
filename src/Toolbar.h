@@ -66,6 +66,10 @@ private:
 	ofxToggle houseToggle;
 	ofxToggle treeToggle;
 	ofxToggle targetToggle;
+
+    // 8.2 - Pour les courbes parametriques (CatMull-Rom)
+	ofxToggle catmullRomToggle;
+
 	ofxToggle selectColourToggle;
 	ofxButton undoButton;
 	
@@ -120,6 +124,10 @@ private:
 	void houseToggleChanged(bool & val);
 	void treeToggleChanged(bool & val);
 	void targetToggleChanged(bool & val);
+
+    // 8.2 - Pour les courbes parametriques (CatMull-Rom)
+    void catMullRomToggleChanged(bool & val);
+
 	void selectColourToggleChanged(bool& val);
 	void colorChanged(ofColor& col);
 	void importImagePressed();
