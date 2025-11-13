@@ -470,7 +470,7 @@ void ShapeRenderer::drawCatmullRomPreview(const ofPoint& start, const ofPoint& e
 void ShapeRenderer::drawCatmullRom(const Shape& s) {
 	ofPushMatrix();
 
-	// Appliquer les transformations
+	// Appliquer les transformations globales
 	ofPoint center = s.getCenter();
 	ofTranslate(s.position);
 	ofTranslate(center);
@@ -478,24 +478,8 @@ void ShapeRenderer::drawCatmullRom(const Shape& s) {
 	ofScale(s.scale, s.scale);
 	ofTranslate(-center);
 
-	// Generer les points de controole - s'assurer d'avoir toujours 5 points
-	std::vector<ofPoint> controlPoints;
-	if (s.points.size() == 5) {
-		controlPoints = s.points;
-	} else {
-		// Recreer des points de controle si le nombre est incorrect
-		float width = std::abs(s.end.x - s.start.x);
-		float height = std::abs(s.end.y - s.start.y);
-
-		controlPoints.push_back(s.start);
-		controlPoints.push_back(ofPoint(s.start.x + width * 0.25f, s.start.y + height * 0.3f));
-		controlPoints.push_back(ofPoint(s.start.x + width * 0.5f, s.start.y + height * 0.6f));
-		controlPoints.push_back(ofPoint(s.start.x + width * 0.75f, s.start.y + height * 0.2f));
-		controlPoints.push_back(s.end);
-	}
-
-	// Generer la courbe
-	std::vector<ofPoint> curvePoints = generateCatmullRomCurve(controlPoints);
+	// Générer la courbe a partir des points ABSOLUS
+	std::vector<ofPoint> curvePoints = generateCatmullRomCurve(s.points);
 
 	// Dessiner la courbe filled au besoin
 	if (s.hasFill && curvePoints.size() > 2) {
@@ -526,15 +510,15 @@ void ShapeRenderer::drawCatmullRom(const Shape& s) {
 	ofSetColor(s.contourColor, 150);
 
 	// Lignes entre les points de controle
-	for (size_t i = 0; i < controlPoints.size() - 1; i++) {
-		ofDrawLine(controlPoints[i], controlPoints[i + 1]);
+	for (size_t i = 0; i < s.points.size() - 1; i++) {
+		ofDrawLine(s.points[i], s.points[i + 1]);
 	}
 
 	// Points de controle
 	ofFill();
-	// Jaune par defaut pour les points de controle
+	// Mauve par defaut pour les points de controle
 	ofSetColor(255, 0, 255, 200);
-	for (const auto& point : controlPoints) {
+	for (const auto& point : s.points) {
 		ofDrawCircle(point, 3.0f);
 	}
 

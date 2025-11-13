@@ -958,18 +958,21 @@ void SceneGraph::setupControlPointsSliders() {
 	controlPointsGroup.setup("Points de Controle Catmull-Rom");
 	controlPointsGroup.setSize(175, 0);
 
-	// Setup des sliders individuels
-	controlPointX0.setup("Point 0 X", 0, -500, 500);
-	controlPointX1.setup("Point 1 X", 0, -500, 500);
-	controlPointX2.setup("Point 2 X", 0, -500, 500);
-	controlPointX3.setup("Point 3 X", 0, -500, 500);
-	controlPointX4.setup("Point 4 X", 0, -500, 500);
+	// Utiliser des plages absolues basées sur la taille du canvas
+	int canvasWidth = ofGetWidth();
+	int canvasHeight = ofGetHeight();
 
-	controlPointY0.setup("Point 0 Y", 0, -500, 500);
-	controlPointY1.setup("Point 1 Y", 0, -500, 500);
-	controlPointY2.setup("Point 2 Y", 0, -500, 500);
-	controlPointY3.setup("Point 3 Y", 0, -500, 500);
-	controlPointY4.setup("Point 4 Y", 0, -500, 500);
+	controlPointX0.setup("Point 0 X", 0, 0, canvasWidth);
+	controlPointX1.setup("Point 1 X", 0, 0, canvasWidth);
+	controlPointX2.setup("Point 2 X", 0, 0, canvasWidth);
+	controlPointX3.setup("Point 3 X", 0, 0, canvasWidth);
+	controlPointX4.setup("Point 4 X", 0, 0, canvasWidth);
+
+	controlPointY0.setup("Point 0 Y", 0, 0, canvasHeight);
+	controlPointY1.setup("Point 1 Y", 0, 0, canvasHeight);
+	controlPointY2.setup("Point 2 Y", 0, 0, canvasHeight);
+	controlPointY3.setup("Point 3 Y", 0, 0, canvasHeight);
+	controlPointY4.setup("Point 4 Y", 0, 0, canvasHeight);
 
 	// Ajouter les listeners
 	controlPointX0.addListener(this, &SceneGraph::controlPointChanged);
@@ -1018,37 +1021,52 @@ void SceneGraph::updateControlPointsSliders() {
 	if (hasCatmullRomSelected && selectedCatmullRomIndex != -1) {
 		const auto& shape = shapes[selectedCatmullRomIndex];
 
-		// M-a-j des sliders avec les points de controle actuels
-		// S'assurer qu'on a exactement 5 points de controle
-		std::vector<ofPoint> controlPoints = shape.points;
-		if (controlPoints.size() != 5) {
-			// Si pas exactement 5 points, creer des points par defaut basés sur start et end
-			controlPoints.clear();
-			float width = std::abs(shape.end.x - shape.start.x);
-			float height = std::abs(shape.end.y - shape.start.y);
+		// On desactive temporairement les listeners pour eviter les changements de position de la form lors de la selection
+		controlPointX0.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY0.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX1.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY1.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX2.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY2.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX3.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY3.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointX4.removeListener(this, &SceneGraph::controlPointChanged);
+		controlPointY4.removeListener(this, &SceneGraph::controlPointChanged);
 
-			controlPoints.push_back(shape.start);
-			controlPoints.push_back(ofPoint(shape.start.x + width * 0.25f, shape.start.y - height * 0.3f));
-			controlPoints.push_back(ofPoint(shape.start.x + width * 0.5f, shape.start.y + height * 0.2f));
-			controlPoints.push_back(ofPoint(shape.start.x + width * 0.75f, shape.start.y - height * 0.1f));
-			controlPoints.push_back(shape.end);
+		// M-a-j des sliders avec les positions ABSOLUES
+		if (shape.points.size() > 0) {
+			controlPointX0 = shape.points[0].x;
+			controlPointY0 = shape.points[0].y;
+		}
+		if (shape.points.size() > 1) {
+			controlPointX1 = shape.points[1].x;
+			controlPointY1 = shape.points[1].y;
+		}
+		if (shape.points.size() > 2) {
+			controlPointX2 = shape.points[2].x;
+			controlPointY2 = shape.points[2].y;
+		}
+		if (shape.points.size() > 3) {
+			controlPointX3 = shape.points[3].x;
+			controlPointY3 = shape.points[3].y;
+		}
+		if (shape.points.size() > 4) {
+			controlPointX4 = shape.points[4].x;
+			controlPointY4 = shape.points[4].y;
 		}
 
-		// Mettre à jour les sliders
-		controlPointX0 = controlPoints[0].x;
-		controlPointY0 = controlPoints[0].y;
-		controlPointX1 = controlPoints[1].x;
-		controlPointY1 = controlPoints[1].y;
-		controlPointX2 = controlPoints[2].x;
-		controlPointY2 = controlPoints[2].y;
-		controlPointX3 = controlPoints[3].x;
-		controlPointY3 = controlPoints[3].y;
-		controlPointX4 = controlPoints[4].x;
-		controlPointY4 = controlPoints[4].y;
+		// Réactiver les listeners APRES avoir mis à jour les valeurs
+		controlPointX0.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY0.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX1.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY1.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX2.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY2.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX3.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY3.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointX4.addListener(this, &SceneGraph::controlPointChanged);
+		controlPointY4.addListener(this, &SceneGraph::controlPointChanged);
 
-		// controlPointsGroup.setVisible(true);
-	} else {
-		// controlPointsGroup.setVisible(false);
 	}
 }
 

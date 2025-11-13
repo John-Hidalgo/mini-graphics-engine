@@ -18,15 +18,24 @@ struct Shape {
 	float scale{1.0f};
 	
 	ofPoint getCenter() const {
-			if (type == ShapeMode::POINT) return start + position;
-			if (type == ShapeMode::FREEFORM && !points.empty()) {
-				ofPoint center;
-				for (auto& p : points) {
-					center += p;
-				}
-				center /= points.size();
-				return center + position;
+		if (type == ShapeMode::CATMULL_ROM && !points.empty()) {
+			// Pour Catmull-Rom, on calcule le centre en se basant sur les points
+			ofPoint center;
+			for (const auto& p : points) {
+				center += p;
 			}
-			return (start + end) * 0.5f + position;
+			center /= points.size();
+			return center + position;
+		}
+		if (type == ShapeMode::POINT) return start + position;
+		if (type == ShapeMode::FREEFORM && !points.empty()) {
+			ofPoint center;
+			for (auto& p : points) {
+				center += p;
+			}
+			center /= points.size();
+			return center + position;
+		}
+		return (start + end) * 0.5f + position;
 		}
 };
