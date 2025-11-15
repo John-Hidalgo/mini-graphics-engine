@@ -84,6 +84,8 @@ void Canvas::update() {
 	else if (!sceneGraphRef->selectedPrimitiveIndices.empty()) {
 		for (int idx : sceneGraphRef->selectedPrimitiveIndices) {
 			auto& primitive3D = primitives3D[idx];
+
+			// Mettre à jour la taille, position et couleurs
 			primitive3D.size = sceneGraphRef->primitives3DSizeSlider;
 			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider, sceneGraphRef->primitives3DPosYSlider, sceneGraphRef->primitives3DPosZSlider);
 			primitive3D.color = sceneGraphRef->color_picker_background_primitives3D;
@@ -96,6 +98,8 @@ void Canvas::update() {
 			primitive3D.material.setEmissiveColor(sceneGraphRef->material_emissive_color_primitives3D.get());
 			primitive3D.material.setSpecularColor(sceneGraphRef->material_specular_color_primitives3D.get());
 			primitive3D.material.setShininess(sceneGraphRef->material_shininess_primitives3D);
+
+			// Régénérer le maillage
 			primitive3D.generateMesh();
 		}
 	} else {
@@ -121,6 +125,7 @@ void Canvas::update() {
 		l.light->setDiffuseColor(l.color);
 	}
 }
+
 void Canvas::drawCanvas(){
 	if(hasImage){
 		ofSetColor(bgColor);
@@ -578,6 +583,14 @@ void Canvas::calculateModelsPosition() {
 
 void Canvas::setCurrentPrimitiveMode(Primitive3DType mode) {
 	currentPrimitiveMode = mode;
+
+    // 8.3 Pour les surfaces paramétriques
+    // Si c'est une surface de Bézier, initialiser la primitive temporaire
+    if (mode == Primitive3DType::BEZIER_SURFACE) {
+        tempPrimitive.type = Primitive3DType::BEZIER_SURFACE;
+        tempPrimitive.setup();
+        tempPrimitive.generateMesh();
+    }
 }
 
 void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float size) {
@@ -585,8 +598,14 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 	primitive.type = type;
 	primitive.position = position;
 	primitive.color = currentColor;
-	primitive.setup(); 
 	primitive.size = size;
+	primitive.setup();
+
+	// Pour les surfaces de Bézier, s'assurer que les points de contrôle sont à la bonne échelle
+	if (type == Primitive3DType::BEZIER_SURFACE) {
+		primitive.setupBezierControlPoints();
+	}
+
 	primitive.generateMesh();
 	primitives3D.push_back(primitive);
 }

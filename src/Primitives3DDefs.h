@@ -4,7 +4,7 @@
 #include "Canvas.h"
 #include "Light.h"
 
-enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID };
+enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID, BEZIER_SURFACE };
 
 struct Primitive3D {
 	Primitive3DType type;
@@ -22,6 +22,10 @@ struct Primitive3D {
 	ofMaterial material;
 	bool isMaterialActive = false;
 
+	// Pour les surfaces paramétriques
+	std::vector<std::vector<glm::vec3>> controlPoints; // Grille 4x4 de points de contrôle
+	int surfaceResolution = 20; // Résolution de la surface
+
 	void setup() {
 		shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
 		color_ambient = ofColor(50, 50, 50);
@@ -33,8 +37,13 @@ struct Primitive3D {
 		material.setEmissiveColor(ofColor( 31, 0, 0));
 		material.setSpecularColor(ofColor(127, 127, 127));
 		material.setShininess(16.0f);
+
+		// Initialiser les points de contrôle pour Bézier si nécessaire
+		if (type == Primitive3DType::BEZIER_SURFACE && controlPoints.empty()) {
+			setupBezierControlPoints();
+		}
 	}
-	
+
 	void draw(ofLight& canvasLight, bool showBoundingBox = false, const std::vector<LightData>& lights = {}) {
     ofEnableDepthTest();
     ofEnableLighting();
@@ -129,6 +138,9 @@ struct Primitive3D {
 			case Primitive3DType::PYRAMID:
 				generatePyramid();
 				break;
+			case Primitive3DType::BEZIER_SURFACE:
+				generateBezierSurface();
+				break;
 			default:
 				break;
 		}
@@ -145,6 +157,42 @@ struct Primitive3D {
 
 		// On redessine avec la nouvelle dimension
 		generateMesh();
+	}
+
+	// 8.3 Pour les surfaces paramétriques
+	// Méthodes pour la surface de Bézier
+	void setupBezierControlPoints() {
+		controlPoints.clear();
+		controlPoints.resize(4);
+
+		float scale = size * 0.5f;
+
+		// Initialiser une grille 4x4 de points de contrôle pour une surface de Bézier bicubique
+		for (int i = 0; i < 4; i++) {
+			controlPoints[i].resize(4);
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				float y = 0.0f;
+
+				// Créer une forme intéressante (ex: vague)
+				if ((i == 1 || i == 2) && (j == 1 || j == 2)) {
+					y = scale * 0.5f;
+				}
+				if (i == 1 && j == 1) {
+					y = scale * 0.8f;
+				}
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void updateBezierControlPoint(int i, int j, const glm::vec3& newPos) {
+		if (i >= 0 && i < 4 && j >= 0 && j < 4) {
+			controlPoints[i][j] = newPos;
+			generateMesh(); // Régénérer le maillage
+		}
 	}
 
 private:
@@ -350,5 +398,129 @@ private:
 		mesh.addVertex(apex); mesh.addNormal(leftNormal);
 		mesh.addVertex(base4); mesh.addNormal(leftNormal);
 		mesh.addVertex(base1); mesh.addNormal(leftNormal);
+	}
+
+    // 8.3 Pour les surfaces paramétriques
+	void generateBezierSurface() {
+		mesh.clear();
+		mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
+		if (controlPoints.empty()) {
+			setupBezierControlPoints();
+		}
+
+		// Générer les vertex de la surface
+		for (int i = 0; i <= surfaceResolution; i++) {
+			float u = (float)i / (float)surfaceResolution;
+
+			for (int j = 0; j <= surfaceResolution; j++) {
+				float v = (float)j / (float)surfaceResolution;
+
+				// Calculer le point sur la surface de Bézier
+				glm::vec3 point = evaluateBezierSurface(u, v);
+				mesh.addVertex(point);
+
+				// Calculer la normale
+				glm::vec3 normal = calculateBezierNormal(u, v);
+				mesh.addNormal(normal);
+			}
+		}
+
+		// Générer les indices pour les triangles
+		for (int i = 0; i < surfaceResolution; i++) {
+			for (int j = 0; j < surfaceResolution; j++) {
+				int v0 = i * (surfaceResolution + 1) + j;
+				int v1 = v0 + 1;
+				int v2 = (i + 1) * (surfaceResolution + 1) + j;
+				int v3 = v2 + 1;
+
+				// Premier triangle
+				mesh.addIndex(v0);
+				mesh.addIndex(v2);
+				mesh.addIndex(v1);
+
+				// Second triangle
+				mesh.addIndex(v1);
+				mesh.addIndex(v2);
+				mesh.addIndex(v3);
+			}
+		}
+	}
+
+	// On fait l'évaluation d'un point sur la surface de Bézier bicubique
+	glm::vec3 evaluateBezierSurface(float u, float v) {
+		glm::vec3 result(0, 0, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float basisI = bernsteinBasis(i, u);
+				float basisJ = bernsteinBasis(j, v);
+				result += controlPoints[i][j] * basisI * basisJ;
+			}
+		}
+
+		return result;
+	}
+
+	// Calcul de la base de Bernstein
+	float bernsteinBasis(int i, float t) {
+		switch(i) {
+			case 0: return (1 - t) * (1 - t) * (1 - t);
+			case 1: return 3 * t * (1 - t) * (1 - t);
+			case 2: return 3 * t * t * (1 - t);
+			case 3: return t * t * t;
+			default: return 0.0f;
+		}
+	}
+
+	// Calcul de la normale à la surface
+	glm::vec3 calculateBezierNormal(float u, float v) {
+		// Calculer des dérivees partielles
+		glm::vec3 du = evaluateBezierSurfaceDerivativeU(u, v);
+		glm::vec3 dv = evaluateBezierSurfaceDerivativeV(u, v);
+
+		// La normale = le produit vectoriel des dérivées
+		return glm::normalize(glm::cross(du, dv));
+	}
+
+	// Dérivée par rapport à u
+	glm::vec3 evaluateBezierSurfaceDerivativeU(float u, float v) {
+		glm::vec3 result(0, 0, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float basisDerivI = bernsteinBasisDerivative(i, u);
+				float basisJ = bernsteinBasis(j, v);
+				result += controlPoints[i][j] * basisDerivI * basisJ;
+			}
+		}
+
+		return result;
+	}
+
+	// Dérivée par rapport à v
+	glm::vec3 evaluateBezierSurfaceDerivativeV(float u, float v) {
+		glm::vec3 result(0, 0, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float basisI = bernsteinBasis(i, u);
+				float basisDerivJ = bernsteinBasisDerivative(j, v);
+				result += controlPoints[i][j] * basisI * basisDerivJ;
+			}
+		}
+
+		return result;
+	}
+
+	// Dérivée selon la base de Bernstein
+	float bernsteinBasisDerivative(int i, float t) {
+		switch(i) {
+			case 0: return -3 * (1 - t) * (1 - t);
+			case 1: return 3 * (1 - t) * (1 - t) - 6 * t * (1 - t);
+			case 2: return 6 * t * (1 - t) - 3 * t * t;
+			case 3: return 3 * t * t;
+			default: return 0.0f;
+		}
 	}
 };

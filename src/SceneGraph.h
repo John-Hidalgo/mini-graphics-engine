@@ -113,6 +113,14 @@ private:
 	ofRectangle selectionRect;
 	ofxToggle backgroundToggle;
 
+    // 8.3 Pour les surfaces paramétriques
+    // Contrôles pour la surface de Bézier
+    ofxGuiGroup bezierSurfaceGroup;
+    std::vector<std::vector<ofxFloatSlider*>> bezierControlPointSlidersX;
+    std::vector<std::vector<ofxFloatSlider*>> bezierControlPointSlidersY;
+    std::vector<std::vector<ofxFloatSlider*>> bezierControlPointSlidersZ;
+    ofxIntSlider bezierResolutionSlider;
+
 	void deleteButtonPressed();
 	void deleteButton3DModelPressed();
 	void deleteButtonPrimitives3DPressed();
@@ -156,4 +164,10 @@ private:
 	// 8.2 - Pour les courbes parametriques (CatMull-Rom)
 	void editCatmullRomControlPoints(int shapeIndex, const std::vector<ofPoint>& newPoints);
 	void fixCatmullRomPoints(int shapeIndex);
+
+    // 8.3 Pour les surfaces paramétriques
+    void setupBezierSurfaceControls();
+    void updateBezierSurfaceControls();
+    void bezierControlPointChanged(float& value);
+    void bezierResolutionChanged(int& value);
 };
