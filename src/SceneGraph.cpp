@@ -623,6 +623,11 @@ void SceneGraph::mousePressed(int mx, int my, int button) {
 					selectedPrimitiveIndices.push_back(i);
 				}
 			}
+			ofLogNotice("SceneGraph") << "Primitive " << i << " selected. Type: "
+									  << static_cast<int>(canvasRef->getPrimitives3D()[i].type);
+
+			// M-a-j des controles Bezier si une surface est sélectionnée
+			updateBezierSurfaceControls();
 			break;
 		}
 	}
@@ -1146,6 +1151,11 @@ void SceneGraph::setupBezierSurfaceControls() {
     bezierControlPointSlidersY.resize(4);
     bezierControlPointSlidersZ.resize(4);
 
+	// Slider pour les presets (0-5 pour 6 formes différentes)
+	bezierPresetSlider.setup("Preset Formes", 0, 0, 5);
+	bezierPresetSlider.addListener(this, &SceneGraph::bezierPresetChanged);
+	bezierSurfaceGroup.add(&bezierPresetSlider);
+
     for (int i = 0; i < 4; i++) {
         bezierControlPointSlidersX[i].resize(4);
         bezierControlPointSlidersY[i].resize(4);
@@ -1182,7 +1192,6 @@ void SceneGraph::setupBezierSurfaceControls() {
 void SceneGraph::updateBezierSurfaceControls() {
 	auto& primitives = canvasRef->getPrimitives3D();
 
-	// Vérifier si une surface de Bézier est sélectionnée
 	bool hasBezierSurfaceSelected = false;
 	int selectedBezierIndex = -1;
 
@@ -1196,28 +1205,39 @@ void SceneGraph::updateBezierSurfaceControls() {
 	}
 
 	if (hasBezierSurfaceSelected && selectedBezierIndex != -1) {
-		const auto& primitive = primitives[selectedBezierIndex];
+		auto& primitive = primitives[selectedBezierIndex];
 
-		// S'assurer que les points de contrôle sont initialisés
-		if (primitive.controlPoints.empty()) {
-			// Note: nous ne pouvons pas modifier un const, donc nous devons le faire ailleurs
-		}
-
-		// Mettre à jour la résolution
+		// M-a-j de la résolution
 		bezierResolutionSlider = primitive.surfaceResolution;
 
-		// Mettre à jour les points de contrôle
+		// S'assurer que les points de controles existent
+		if (primitive.controlPoints.empty()) {
+			primitive.setBezierPreset(0);
+		}
+
+		// M-a-j les sliders de points de contrôle
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
 				if (i < primitive.controlPoints.size() && j < primitive.controlPoints[i].size()) {
+					// Désactiver temporairement les listeners
+					bezierControlPointSlidersX[i][j]->removeListener(this, &SceneGraph::bezierControlPointChanged);
+					bezierControlPointSlidersY[i][j]->removeListener(this, &SceneGraph::bezierControlPointChanged);
+					bezierControlPointSlidersZ[i][j]->removeListener(this, &SceneGraph::bezierControlPointChanged);
+
 					*bezierControlPointSlidersX[i][j] = primitive.controlPoints[i][j].x;
 					*bezierControlPointSlidersY[i][j] = primitive.controlPoints[i][j].y;
 					*bezierControlPointSlidersZ[i][j] = primitive.controlPoints[i][j].z;
+
+					// Reactiver les listeners
+					bezierControlPointSlidersX[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
+					bezierControlPointSlidersY[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
+					bezierControlPointSlidersZ[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
 				}
 			}
 		}
 	}
 }
+
 void SceneGraph::bezierControlPointChanged(float& value) {
     auto& primitives = canvasRef->getPrimitives3D();
 
@@ -1253,4 +1273,37 @@ void SceneGraph::bezierResolutionChanged(int& value) {
             primitive.generateMesh();
         }
     }
+}
+
+std::string SceneGraph::getBezierPresetName(int preset) {
+	switch(preset) {
+		case 0: return "Plat";
+		case 1: return "Colline";
+		case 2: return "Vallee";
+		case 3: return "Vague";
+		case 4: return "Selle";
+		case 5: return "Torsade";
+		default: return "Inconnu";
+	}
+}
+
+void SceneGraph::bezierPresetChanged(int& preset) {
+	ofLogNotice("SceneGraph") << "=== BEZIER PRESET CHANGED TO: " << preset << " ===";
+
+	auto& primitives = canvasRef->getPrimitives3D();
+
+	for (int index : selectedPrimitiveIndices) {
+		if (index >= 0 && index < primitives.size() &&
+			primitives[index].type == Primitive3DType::BEZIER_SURFACE) {
+			auto& primitive = primitives[index];
+
+
+			// Appliquer le preset
+			primitive.setBezierPreset(preset);
+
+			// FORCER la mise à jour des sliders
+			updateBezierSurfaceControls();
+
+		}
+	}
 }

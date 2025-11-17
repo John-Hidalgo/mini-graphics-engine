@@ -121,7 +121,14 @@ private:
     std::vector<std::vector<ofxFloatSlider*>> bezierControlPointSlidersZ;
     ofxIntSlider bezierResolutionSlider;
 
-	void deleteButtonPressed();
+	// Slider pour les presets de surface de Bézier
+	ofxIntSlider bezierPresetSlider;
+
+	// Méthode pour gerer le changement de preset
+	void bezierPresetChanged(int& preset);
+	std::string getBezierPresetName(int preset);
+
+		void deleteButtonPressed();
 	void deleteButton3DModelPressed();
 	void deleteButtonPrimitives3DPressed();
 	void thicknessChanged(float & val);

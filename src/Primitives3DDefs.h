@@ -195,6 +195,45 @@ struct Primitive3D {
 		}
 	}
 
+	void setBezierPreset(int preset) {
+		ofLogNotice("Primitive3D") << "Setting Bezier preset: " << preset;
+
+		if (controlPoints.empty()) {
+			controlPoints.resize(4);
+			for (int i = 0; i < 4; i++) {
+				controlPoints[i].resize(4);
+			}
+		}
+
+		switch(preset) {
+			case 0: // Plat
+				applyFlatPreset();
+				break;
+
+			case 1: // Colline
+				applyHillPreset();
+				break;
+
+			case 2: // Vallée
+				applyValleyPreset();
+				break;
+
+			case 3: // Vague
+				applyWavePreset();
+				break;
+
+			case 4: // Selle
+				applySaddlePreset();
+				break;
+
+			case 5: // Torsade
+				applyTwistPreset();
+				break;
+		}
+
+		generateMesh();
+	}
+
 private:
 	void generateSphere(int resolution = 24) {
 		mesh = ofMesh::sphere(size, resolution);
@@ -406,27 +445,28 @@ private:
 		mesh.setMode(OF_PRIMITIVE_TRIANGLES);
 
 		if (controlPoints.empty()) {
-			setupBezierControlPoints();
+			setBezierPreset(0);
 		}
 
-		// Générer les vertex de la surface
+		// Générer les vertices
+		int vertexCount = 0;
 		for (int i = 0; i <= surfaceResolution; i++) {
 			float u = (float)i / (float)surfaceResolution;
 
 			for (int j = 0; j <= surfaceResolution; j++) {
 				float v = (float)j / (float)surfaceResolution;
 
-				// Calculer le point sur la surface de Bézier
 				glm::vec3 point = evaluateBezierSurface(u, v);
 				mesh.addVertex(point);
 
-				// Calculer la normale
 				glm::vec3 normal = calculateBezierNormal(u, v);
 				mesh.addNormal(normal);
+				vertexCount++;
 			}
 		}
 
-		// Générer les indices pour les triangles
+		// Générer les indices
+		int triangleCount = 0;
 		for (int i = 0; i < surfaceResolution; i++) {
 			for (int j = 0; j < surfaceResolution; j++) {
 				int v0 = i * (surfaceResolution + 1) + j;
@@ -434,15 +474,15 @@ private:
 				int v2 = (i + 1) * (surfaceResolution + 1) + j;
 				int v3 = v2 + 1;
 
-				// Premier triangle
 				mesh.addIndex(v0);
 				mesh.addIndex(v2);
 				mesh.addIndex(v1);
 
-				// Second triangle
 				mesh.addIndex(v1);
 				mesh.addIndex(v2);
 				mesh.addIndex(v3);
+
+				triangleCount += 2;
 			}
 		}
 	}
@@ -521,6 +561,101 @@ private:
 			case 2: return 6 * t * (1 - t) - 3 * t * t;
 			case 3: return 3 * t * t;
 			default: return 0.0f;
+		}
+	}
+
+	void applyFlatPreset() {
+		// Plat
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				controlPoints[i][j] = glm::vec3(x, 0.0f, z);
+			}
+		}
+	}
+
+	void applyHillPreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				float y = 0.0f;
+
+				// Crwer une colline au centre
+				float distFromCenter = sqrt(x*x + z*z) / (scale * 1.5f);
+				if (distFromCenter < 1.0f) {
+					y = scale * 0.8f * (1.0f - distFromCenter * distFromCenter);
+				}
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applyValleyPreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				float y = 0.0f;
+
+				// Creer une valley en diagonal
+				float diagonal = (x + z) / (scale * 2.0f);
+				y = scale * 0.5f * (1.0f - abs(diagonal));
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applyWavePreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+
+				// Créer une forme de sine-wave
+				float wave = sin(x * 2.0f / scale) * cos(z * 2.0f / scale);
+				float y = scale * 0.4f * wave;
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applySaddlePreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+
+				// Creer une forme de selle / pringles
+				float y = (x*x - z*z) / (scale * 2.0f);
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applyTwistPreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+
+				// Creer une forme de torsade
+				float angle = atan2(z, x);
+				float y = scale * 0.3f * sin(angle * 2.0f);
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
 		}
 	}
 };

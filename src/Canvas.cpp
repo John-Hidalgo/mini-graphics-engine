@@ -85,9 +85,11 @@ void Canvas::update() {
 		for (int idx : sceneGraphRef->selectedPrimitiveIndices) {
 			auto& primitive3D = primitives3D[idx];
 
-			// Mettre à jour la taille, position et couleurs
+			// M-a-j la taille, position et couleurs
 			primitive3D.size = sceneGraphRef->primitives3DSizeSlider;
-			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider, sceneGraphRef->primitives3DPosYSlider, sceneGraphRef->primitives3DPosZSlider);
+			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider,
+										   sceneGraphRef->primitives3DPosYSlider,
+										   sceneGraphRef->primitives3DPosZSlider);
 			primitive3D.color = sceneGraphRef->color_picker_background_primitives3D;
 			primitive3D.color_ambient = sceneGraphRef->color_picker_ambient_primitives3D;
 			primitive3D.color_diffuse = sceneGraphRef->color_picker_diffuse_primitives3D;
@@ -99,8 +101,16 @@ void Canvas::update() {
 			primitive3D.material.setSpecularColor(sceneGraphRef->material_specular_color_primitives3D.get());
 			primitive3D.material.setShininess(sceneGraphRef->material_shininess_primitives3D);
 
-			// Régénérer le maillage
-			primitive3D.generateMesh();
+			// Pour les surfaces Bezier, s'assurer d'update le mesh
+			if (primitive3D.type == Primitive3DType::BEZIER_SURFACE) {
+				// Verifier si le mesh doit etre régénéré
+				if (primitive3D.mesh.getVertices().empty()) {
+					primitive3D.generateMesh();
+				}
+			} else {
+				// Pour les autres primitives, on régénére normalement
+				primitive3D.generateMesh();
+			}
 		}
 	} else {
 		for (auto &model : models) {
@@ -601,13 +611,16 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 	primitive.size = size;
 	primitive.setup();
 
-	// Pour les surfaces de Bézier, s'assurer que les points de contrôle sont à la bonne échelle
+	// Pour les surfaces de Bezier, init avec un preset par defaut
 	if (type == Primitive3DType::BEZIER_SURFACE) {
-		primitive.setupBezierControlPoints();
+		primitive.setBezierPreset(0); // Plat par defaut
+	} else {
+		primitive.generateMesh();
 	}
 
-	primitive.generateMesh();
 	primitives3D.push_back(primitive);
+
+	ofLogNotice("Canvas") << "Added primitive type: " << static_cast<int>(type) << " with size: " << size;
 }
 
 void Canvas::drawPrimitives3D() {
