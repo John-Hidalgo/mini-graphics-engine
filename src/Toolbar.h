@@ -100,6 +100,9 @@ private:
 	ofxToggle torusToggle;
 	ofxToggle pyramidToggle;
 
+    // 8.3 Pour les surfaces paramétriques
+    ofxToggle bezierSurfaceToggle;
+
 	ofxPanel lightGroup;
 	ofxButton addAmbientLightBtn;
 	ofxButton addDirectionalLightBtn;
@@ -150,6 +153,10 @@ private:
 	void coneToggleChanged(bool &val);
 	void torusToggleChanged(bool &val);
 	void pyramidToggleChanged(bool &val);
+
+    // 8.3 Pour les surfaces paramétriques
+    void bezierSurfaceToggleChanged(bool &val);
+
 	void setExclusivePrimitiveToggle(Primitive3DType mode);
 
 	void setCursor(const std::string& iconName);

@@ -179,6 +179,9 @@ void Toolbar::setup(Canvas* canvas) {
 	primitives3DGroup.add(pyramidToggle.setup("Pyramid", false));
 	pyramidToggle.addListener(this, &Toolbar::pyramidToggleChanged);
 
+    primitives3DGroup.add(bezierSurfaceToggle.setup("Surface Bezier", false));
+    bezierSurfaceToggle.addListener(this, &Toolbar::bezierSurfaceToggleChanged);
+
 	primitives3DGroup.minimize();
 
 	lightGroup.setup("Lumieres");
@@ -447,6 +450,7 @@ void Toolbar::setExclusiveToggle(ShapeMode mode) {
 	coneToggle = false;
 	torusToggle = false;
 	pyramidToggle = false;
+    bezierSurfaceToggle = false;
 
 	if (canvasRef) {
 		canvasRef->setCurrentMode(mode);
@@ -766,6 +770,15 @@ void Toolbar::pyramidToggleChanged(bool &val) {
 	updateCursorIcon();
 }
 
+void Toolbar::bezierSurfaceToggleChanged(bool &val) {
+	if (val) setExclusivePrimitiveToggle(Primitive3DType::BEZIER_SURFACE);
+	else if (canvasRef->getCurrentPrimitiveMode() == Primitive3DType::BEZIER_SURFACE) {
+		canvasRef->setCurrentPrimitiveMode(Primitive3DType::NONE);
+	}
+
+	updateCursorIcon();
+}
+
 void Toolbar::setExclusivePrimitiveToggle(Primitive3DType mode) {
 	// On désactive toutes toggle de primitives 2D primitive
 	rectangleToggle = false;
@@ -784,6 +797,7 @@ void Toolbar::setExclusivePrimitiveToggle(Primitive3DType mode) {
 	coneToggle = (mode == Primitive3DType::CONE);
 	torusToggle = (mode == Primitive3DType::TORUS);
 	pyramidToggle = (mode == Primitive3DType::PYRAMID);
+	bezierSurfaceToggle = (mode == Primitive3DType::BEZIER_SURFACE);
 
 	if (canvasRef) {
 		canvasRef->setCurrentPrimitiveMode(mode);

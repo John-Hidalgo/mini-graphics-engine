@@ -4,7 +4,7 @@
 #include "Canvas.h"
 #include "Light.h"
 
-enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID };
+enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID, BEZIER_SURFACE };
 
 struct Primitive3D {
 	Primitive3DType type;
@@ -22,6 +22,10 @@ struct Primitive3D {
 	ofMaterial material;
 	bool isMaterialActive = false;
 
+	// Pour les surfaces paramétriques
+	std::vector<std::vector<glm::vec3>> controlPoints; // Grille 4x4 de points de contrôle
+	int surfaceResolution = 20; // Résolution de la surface
+
 	void setup() {
 		shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
 		color_ambient = ofColor(50, 50, 50);
@@ -33,8 +37,13 @@ struct Primitive3D {
 		material.setEmissiveColor(ofColor( 31, 0, 0));
 		material.setSpecularColor(ofColor(127, 127, 127));
 		material.setShininess(16.0f);
+
+		// Initialiser les points de contrôle pour Bézier si nécessaire
+		if (type == Primitive3DType::BEZIER_SURFACE && controlPoints.empty()) {
+			setupBezierControlPoints();
+		}
 	}
-	
+
 	void draw(ofLight& canvasLight, bool showBoundingBox = false, const std::vector<LightData>& lights = {}) {
     ofEnableDepthTest();
     ofEnableLighting();
@@ -129,6 +138,9 @@ struct Primitive3D {
 			case Primitive3DType::PYRAMID:
 				generatePyramid();
 				break;
+			case Primitive3DType::BEZIER_SURFACE:
+				generateBezierSurface();
+				break;
 			default:
 				break;
 		}
@@ -144,6 +156,81 @@ struct Primitive3D {
 		size = distance;
 
 		// On redessine avec la nouvelle dimension
+		generateMesh();
+	}
+
+	// 8.3 Pour les surfaces paramétriques
+	// Méthodes pour la surface de Bézier
+	void setupBezierControlPoints() {
+		controlPoints.clear();
+		controlPoints.resize(4);
+
+		float scale = size * 0.5f;
+
+		// Initialiser une grille 4x4 de points de contrôle pour une surface de Bézier bicubique
+		for (int i = 0; i < 4; i++) {
+			controlPoints[i].resize(4);
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				float y = 0.0f;
+
+				// Créer une forme intéressante (ex: vague)
+				if ((i == 1 || i == 2) && (j == 1 || j == 2)) {
+					y = scale * 0.5f;
+				}
+				if (i == 1 && j == 1) {
+					y = scale * 0.8f;
+				}
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void updateBezierControlPoint(int i, int j, const glm::vec3& newPos) {
+		if (i >= 0 && i < 4 && j >= 0 && j < 4) {
+			controlPoints[i][j] = newPos;
+			generateMesh(); // Régénérer le maillage
+		}
+	}
+
+	void setBezierPreset(int preset) {
+		ofLogNotice("Primitive3D") << "Setting Bezier preset: " << preset;
+
+		if (controlPoints.empty()) {
+			controlPoints.resize(4);
+			for (int i = 0; i < 4; i++) {
+				controlPoints[i].resize(4);
+			}
+		}
+
+		switch(preset) {
+			case 0: // Plat
+				applyFlatPreset();
+				break;
+
+			case 1: // Colline
+				applyHillPreset();
+				break;
+
+			case 2: // Vallée
+				applyValleyPreset();
+				break;
+
+			case 3: // Vague
+				applyWavePreset();
+				break;
+
+			case 4: // Selle
+				applySaddlePreset();
+				break;
+
+			case 5: // Torsade
+				applyTwistPreset();
+				break;
+		}
+
 		generateMesh();
 	}
 
@@ -350,5 +437,225 @@ private:
 		mesh.addVertex(apex); mesh.addNormal(leftNormal);
 		mesh.addVertex(base4); mesh.addNormal(leftNormal);
 		mesh.addVertex(base1); mesh.addNormal(leftNormal);
+	}
+
+    // 8.3 Pour les surfaces paramétriques
+	void generateBezierSurface() {
+		mesh.clear();
+		mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
+		if (controlPoints.empty()) {
+			setBezierPreset(0);
+		}
+
+		// Générer les vertices
+		int vertexCount = 0;
+		for (int i = 0; i <= surfaceResolution; i++) {
+			float u = (float)i / (float)surfaceResolution;
+
+			for (int j = 0; j <= surfaceResolution; j++) {
+				float v = (float)j / (float)surfaceResolution;
+
+				glm::vec3 point = evaluateBezierSurface(u, v);
+				mesh.addVertex(point);
+
+				glm::vec3 normal = calculateBezierNormal(u, v);
+				mesh.addNormal(normal);
+				vertexCount++;
+			}
+		}
+
+		// Générer les indices
+		int triangleCount = 0;
+		for (int i = 0; i < surfaceResolution; i++) {
+			for (int j = 0; j < surfaceResolution; j++) {
+				int v0 = i * (surfaceResolution + 1) + j;
+				int v1 = v0 + 1;
+				int v2 = (i + 1) * (surfaceResolution + 1) + j;
+				int v3 = v2 + 1;
+
+				mesh.addIndex(v0);
+				mesh.addIndex(v2);
+				mesh.addIndex(v1);
+
+				mesh.addIndex(v1);
+				mesh.addIndex(v2);
+				mesh.addIndex(v3);
+
+				triangleCount += 2;
+			}
+		}
+	}
+
+	// On fait l'évaluation d'un point sur la surface de Bézier bicubique
+	glm::vec3 evaluateBezierSurface(float u, float v) {
+		glm::vec3 result(0, 0, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float basisI = bernsteinBasis(i, u);
+				float basisJ = bernsteinBasis(j, v);
+				result += controlPoints[i][j] * basisI * basisJ;
+			}
+		}
+
+		return result;
+	}
+
+	// Calcul de la base de Bernstein
+	float bernsteinBasis(int i, float t) {
+		switch(i) {
+			case 0: return (1 - t) * (1 - t) * (1 - t);
+			case 1: return 3 * t * (1 - t) * (1 - t);
+			case 2: return 3 * t * t * (1 - t);
+			case 3: return t * t * t;
+			default: return 0.0f;
+		}
+	}
+
+	// Calcul de la normale à la surface
+	glm::vec3 calculateBezierNormal(float u, float v) {
+		// Calculer des dérivees partielles
+		glm::vec3 du = evaluateBezierSurfaceDerivativeU(u, v);
+		glm::vec3 dv = evaluateBezierSurfaceDerivativeV(u, v);
+
+		// La normale = le produit vectoriel des dérivées
+		return glm::normalize(glm::cross(du, dv));
+	}
+
+	// Dérivée par rapport à u
+	glm::vec3 evaluateBezierSurfaceDerivativeU(float u, float v) {
+		glm::vec3 result(0, 0, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float basisDerivI = bernsteinBasisDerivative(i, u);
+				float basisJ = bernsteinBasis(j, v);
+				result += controlPoints[i][j] * basisDerivI * basisJ;
+			}
+		}
+
+		return result;
+	}
+
+	// Dérivée par rapport à v
+	glm::vec3 evaluateBezierSurfaceDerivativeV(float u, float v) {
+		glm::vec3 result(0, 0, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float basisI = bernsteinBasis(i, u);
+				float basisDerivJ = bernsteinBasisDerivative(j, v);
+				result += controlPoints[i][j] * basisI * basisDerivJ;
+			}
+		}
+
+		return result;
+	}
+
+	// Dérivée selon la base de Bernstein
+	float bernsteinBasisDerivative(int i, float t) {
+		switch(i) {
+			case 0: return -3 * (1 - t) * (1 - t);
+			case 1: return 3 * (1 - t) * (1 - t) - 6 * t * (1 - t);
+			case 2: return 6 * t * (1 - t) - 3 * t * t;
+			case 3: return 3 * t * t;
+			default: return 0.0f;
+		}
+	}
+
+	void applyFlatPreset() {
+		// Plat
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				controlPoints[i][j] = glm::vec3(x, 0.0f, z);
+			}
+		}
+	}
+
+	void applyHillPreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				float y = 0.0f;
+
+				// Crwer une colline au centre
+				float distFromCenter = sqrt(x*x + z*z) / (scale * 1.5f);
+				if (distFromCenter < 1.0f) {
+					y = scale * 0.8f * (1.0f - distFromCenter * distFromCenter);
+				}
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applyValleyPreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+				float y = 0.0f;
+
+				// Creer une valley en diagonal
+				float diagonal = (x + z) / (scale * 2.0f);
+				y = scale * 0.5f * (1.0f - abs(diagonal));
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applyWavePreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+
+				// Créer une forme de sine-wave
+				float wave = sin(x * 2.0f / scale) * cos(z * 2.0f / scale);
+				float y = scale * 0.4f * wave;
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applySaddlePreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+
+				// Creer une forme de selle / pringles
+				float y = (x*x - z*z) / (scale * 2.0f);
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
+	}
+
+	void applyTwistPreset() {
+		float scale = size * 0.5f;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				float x = (i - 1.5f) * scale;
+				float z = (j - 1.5f) * scale;
+
+				// Creer une forme de torsade
+				float angle = atan2(z, x);
+				float y = scale * 0.3f * sin(angle * 2.0f);
+
+				controlPoints[i][j] = glm::vec3(x, y, z);
+			}
+		}
 	}
 };

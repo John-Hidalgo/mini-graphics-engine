@@ -84,8 +84,12 @@ void Canvas::update() {
 	else if (!sceneGraphRef->selectedPrimitiveIndices.empty()) {
 		for (int idx : sceneGraphRef->selectedPrimitiveIndices) {
 			auto& primitive3D = primitives3D[idx];
+
+			// M-a-j la taille, position et couleurs
 			primitive3D.size = sceneGraphRef->primitives3DSizeSlider;
-			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider, sceneGraphRef->primitives3DPosYSlider, sceneGraphRef->primitives3DPosZSlider);
+			primitive3D.position = ofVec3f(sceneGraphRef->primitives3DPosXSlider,
+										   sceneGraphRef->primitives3DPosYSlider,
+										   sceneGraphRef->primitives3DPosZSlider);
 			primitive3D.color = sceneGraphRef->color_picker_background_primitives3D;
 			primitive3D.color_ambient = sceneGraphRef->color_picker_ambient_primitives3D;
 			primitive3D.color_diffuse = sceneGraphRef->color_picker_diffuse_primitives3D;
@@ -96,7 +100,17 @@ void Canvas::update() {
 			primitive3D.material.setEmissiveColor(sceneGraphRef->material_emissive_color_primitives3D.get());
 			primitive3D.material.setSpecularColor(sceneGraphRef->material_specular_color_primitives3D.get());
 			primitive3D.material.setShininess(sceneGraphRef->material_shininess_primitives3D);
-			primitive3D.generateMesh();
+
+			// Pour les surfaces Bezier, s'assurer d'update le mesh
+			if (primitive3D.type == Primitive3DType::BEZIER_SURFACE) {
+				// Verifier si le mesh doit etre régénéré
+				if (primitive3D.mesh.getVertices().empty()) {
+					primitive3D.generateMesh();
+				}
+			} else {
+				// Pour les autres primitives, on régénére normalement
+				primitive3D.generateMesh();
+			}
 		}
 	} else {
 		for (auto &model : models) {
@@ -121,6 +135,7 @@ void Canvas::update() {
 		l.light->setDiffuseColor(l.color);
 	}
 }
+
 void Canvas::drawCanvas(){
 	if(hasImage){
 		ofSetColor(bgColor);
@@ -578,6 +593,14 @@ void Canvas::calculateModelsPosition() {
 
 void Canvas::setCurrentPrimitiveMode(Primitive3DType mode) {
 	currentPrimitiveMode = mode;
+
+    // 8.3 Pour les surfaces paramétriques
+    // Si c'est une surface de Bézier, initialiser la primitive temporaire
+    if (mode == Primitive3DType::BEZIER_SURFACE) {
+        tempPrimitive.type = Primitive3DType::BEZIER_SURFACE;
+        tempPrimitive.setup();
+        tempPrimitive.generateMesh();
+    }
 }
 
 void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float size) {
@@ -585,10 +608,19 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 	primitive.type = type;
 	primitive.position = position;
 	primitive.color = currentColor;
-	primitive.setup(); 
 	primitive.size = size;
-	primitive.generateMesh();
+	primitive.setup();
+
+	// Pour les surfaces de Bezier, init avec un preset par defaut
+	if (type == Primitive3DType::BEZIER_SURFACE) {
+		primitive.setBezierPreset(0); // Plat par defaut
+	} else {
+		primitive.generateMesh();
+	}
+
 	primitives3D.push_back(primitive);
+
+	ofLogNotice("Canvas") << "Added primitive type: " << static_cast<int>(type) << " with size: " << size;
 }
 
 void Canvas::drawPrimitives3D() {
