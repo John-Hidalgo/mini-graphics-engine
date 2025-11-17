@@ -3,6 +3,7 @@
 #include "BoundingBox.h"
 #include "Canvas.h"
 #include "Light.h"
+#include "Material.h"
 
 enum class Primitive3DType { NONE, SPHERE, CUBE, CYLINDER, CONE, TORUS, PYRAMID, BEZIER_SURFACE };
 
@@ -19,7 +20,8 @@ struct Primitive3D {
 	BoundingBox bbox;
 
 	// 7.2 Pour les material
-	ofMaterial material;
+	//ofMaterial material;
+	Material material;
 	bool isMaterialActive = false;
 
 	// Pour les surfaces paramétriques
@@ -32,11 +34,11 @@ struct Primitive3D {
 		color_diffuse = ofColor(200, 200, 200);
 
 		// 7.2 - Setup le material
-		material.setAmbientColor(ofColor(63, 63, 63));
-		material.setDiffuseColor(ofColor(127, 0, 0));
-		material.setEmissiveColor(ofColor( 31, 0, 0));
-		material.setSpecularColor(ofColor(127, 127, 127));
-		material.setShininess(16.0f);
+		//material.setAmbientColor(ofColor(63, 63, 63));
+		//material.setDiffuseColor(ofColor(127, 0, 0));
+		//material.setEmissiveColor(ofColor( 31, 0, 0));
+		//material.setSpecularColor(ofColor(127, 127, 127));
+		//material.setShininess(16.0f);
 
 		// Initialiser les points de contrôle pour Bézier si nécessaire
 		if (type == Primitive3DType::BEZIER_SURFACE && controlPoints.empty()) {
@@ -46,59 +48,70 @@ struct Primitive3D {
 
 	void draw(ofLight& canvasLight, bool showBoundingBox = false, const std::vector<LightData>& lights = {}) {
     ofEnableDepthTest();
-    ofEnableLighting();
 
     shader_lambert.begin();
 
     shader_lambert.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
     shader_lambert.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
 
-    shader_lambert.setUniform3f("color_ambient", color_ambient.r / 255.0f,
-                                color_ambient.g / 255.0f,
-                                color_ambient.b / 255.0f);
-    shader_lambert.setUniform3f("color_diffuse", color_diffuse.r / 255.0f,
-                                color_diffuse.g / 255.0f,
-                                color_diffuse.b / 255.0f);
-    shader_lambert.setUniform3f("color_specular", 1.0f, 1.0f, 0.0f);
-    shader_lambert.setUniform1f("brightness", 0.5f);
+    // --- Lumières dynamiques ---
+    if (!lights.empty()) {
+        glm::vec3 combinedPos(0.0f);
+        glm::vec3 combinedColor(0.0f);
+        float totalAtt = 0.0f;
 
-		if (!lights.empty()) {
-			glm::vec3 combinedPos(0.0f);
-			glm::vec3 combinedColor(0.0f);
-			float totalAttenuation = 0.0f;
+        for (auto& l : lights) {
+            float w = l.attenuation;
+            combinedPos += glm::vec3(l.position.x, l.position.y, l.position.z) * w;
+            combinedColor += glm::vec3(l.color.r / 255.f, l.color.g / 255.f, l.color.b / 255.f) * w;
+            totalAtt += w;
+        }
 
-			for (const auto& l : lights) {
-				float weight = l.attenuation;
-				combinedPos += glm::vec3(l.position.x, l.position.y, l.position.z) * weight;
-				combinedColor += glm::vec3(l.color.r / 255.0f, l.color.g / 255.0f, l.color.b / 255.0f) * weight;
-				totalAttenuation += weight;
-			}
+        combinedPos /= totalAtt;
+        combinedColor /= totalAtt;
 
-			combinedPos /= totalAttenuation;
-			combinedColor /= totalAttenuation;
-
-			shader_lambert.setUniform3f("light_position", combinedPos);
-			shader_lambert.setUniform3f("color_diffuse", combinedColor);
-		} else {
-        // Pas de lumière dynamique, utiliser canvasLight
+        shader_lambert.setUniform3f("light_position", combinedPos);
+        shader_lambert.setUniform3f("color_diffuse", combinedColor);
+    } else {
         shader_lambert.setUniform3f("light_position", canvasLight.getGlobalPosition());
+    }
+
+    // --- Appliquer notre Material ---
+    if (isMaterialActive) {
+        shader_lambert.setUniform3f("color_ambient",
+            material.ambientColor.r / 255.f,
+            material.ambientColor.g / 255.f,
+            material.ambientColor.b / 255.f
+        );
+
+        shader_lambert.setUniform3f("color_diffuse",
+            material.diffuseColor.r / 255.f,
+            material.diffuseColor.g / 255.f,
+            material.diffuseColor.b / 255.f
+        );
+
+        shader_lambert.setUniform3f("color_specular",
+            material.specularColor.r / 255.f,
+            material.specularColor.g / 255.f,
+            material.specularColor.b / 255.f
+        );
+
+        shader_lambert.setUniform3f("color_emissive",
+            material.emissiveColor.r / 255.f,
+            material.emissiveColor.g / 255.f,
+            material.emissiveColor.b / 255.f
+        );
+
+        shader_lambert.setUniform1f("mat_shininess", material.shininess);
+        shader_lambert.setUniform1f("mat_metallic", material.metallic);
+        shader_lambert.setUniform1f("mat_roughness", material.roughness);
     }
 
     ofPushMatrix();
     ofTranslate(position);
+
     ofSetColor(color);
-
-	// 7.2 - Activer le material
-	if(isMaterialActive){
-		material.begin();
-	}
-
     mesh.draw();
-
-	// 7.2 - Désactiver le material
-	if(isMaterialActive) {
-		material.end();
-	}
 
     if (showBoundingBox) {
         ofPushStyle();
@@ -110,11 +123,10 @@ struct Primitive3D {
     }
 
     ofPopMatrix();
-
     shader_lambert.end();
-    ofDisableLighting();
     ofDisableDepthTest();
 }
+
 
 
 	void generateMesh() {

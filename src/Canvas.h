@@ -59,6 +59,7 @@ public:
 	
 	void setCurrentPrimitiveMode(Primitive3DType mode);
 	Primitive3DType getCurrentPrimitiveMode() const { return currentPrimitiveMode; }
+	Material currentMaterial;
 	
 	ofCamera* activeCamera = nullptr;
 	ofRectangle cameraViewport;

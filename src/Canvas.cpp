@@ -607,6 +607,8 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 	Primitive3D primitive;
 	primitive.type = type;
 	primitive.position = position;
+	primitive.material = currentMaterial;
+	primitive.isMaterialActive = true;
 	primitive.color = currentColor;
 	primitive.size = size;
 	primitive.setup();

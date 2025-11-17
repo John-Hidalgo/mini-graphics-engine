@@ -179,8 +179,53 @@ void Toolbar::setup(Canvas* canvas) {
 	primitives3DGroup.add(pyramidToggle.setup("Pyramid", false));
 	pyramidToggle.addListener(this, &Toolbar::pyramidToggleChanged);
 
-    primitives3DGroup.add(bezierSurfaceToggle.setup("Surface Bezier", false));
+	// --------------------------------------------------
+	// --- Material Selector Group ----------------------
+	// --------------------------------------------------
+
+	materialGroup.setup("Materiaux");
+	materialGroup.setPosition(1100, 0);
+	materialGroup.setSize(200, 0);
+
+	// --- PBR Materials ---
+	materialPBRMetal.setup("PBR Metal");
+	materialPBRPlastic.setup("PBR Plastic");
+	materialPBRRough.setup("PBR Rough");
+
+	// --- Metallic ---
+	materialMetalPolished.setup("Metal Polished");
+	materialMetalBrushed.setup("Metal Brushed");
+
+	// --- Roughness / Microfacets ---
+	materialRoughSurface.setup("Rough Surface");
+	materialSmoothSurface.setup("Smooth Surface");
+
+	// --- Listeners ---
+	materialPBRMetal.addListener(this, &Toolbar::materialPBRMetalPressed);
+	materialPBRPlastic.addListener(this, &Toolbar::materialPBRPlasticPressed);
+	materialPBRRough.addListener(this, &Toolbar::materialPBRRoughPressed);
+
+	materialMetalPolished.addListener(this, &Toolbar::materialMetalPolishedPressed);
+	materialMetalBrushed.addListener(this, &Toolbar::materialMetalBrushedPressed);
+
+	materialRoughSurface.addListener(this, &Toolbar::materialRoughSurfacePressed);
+	materialSmoothSurface.addListener(this, &Toolbar::materialSmoothSurfacePressed);
+
+	// --- Add toggles to group ---
+	materialGroup.add(&materialPBRMetal);
+	materialGroup.add(&materialPBRPlastic);
+	materialGroup.add(&materialPBRRough);
+
+	materialGroup.add(&materialMetalPolished);
+	materialGroup.add(&materialMetalBrushed);
+
+	materialGroup.add(&materialRoughSurface);
+	materialGroup.add(&materialSmoothSurface);
+
+	primitives3DGroup.add(bezierSurfaceToggle.setup("Surface Bezier", false));
     bezierSurfaceToggle.addListener(this, &Toolbar::bezierSurfaceToggleChanged);
+
+	primitives3DGroup.add(&materialGroup);
 
 	primitives3DGroup.minimize();
 
@@ -199,6 +244,7 @@ void Toolbar::setup(Canvas* canvas) {
 	addSpotLightBtn.addListener(this, &Toolbar::onAddSpotLightPressed);
 
 	updateVariantButtonColors();
+	updateMaterialButtonColors();
 	updateCursorIcon();
 }
 
@@ -279,6 +325,133 @@ void Toolbar::variantWireframePressed() {
 void Toolbar::variantTransparentPressed() {
 	setSelectedVariant(ModelVariant::Transparent);
 	lighting = Lighting::CELL;
+}
+void Toolbar::materialPBRMetalPressed() {
+	currentMaterial = Material(
+	ofColor(60, 60, 70),    // Ambient un peu plus élevé pour ne pas tout noir
+	ofColor(180, 180, 220), // Diffuse légèrement coloré
+	ofColor(0,0,0),         // Emissive faible
+	ofColor(255,255,255),   // Specular
+	96.0f,                  // Shininess
+	1.0f,                   // Metallic
+	0.2f                    // Roughness faible pour reflet plus net
+);
+	setSelectedMaterial(MaterialType::PBRMetal);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::materialPBRPlasticPressed() {
+	currentMaterial = Material(
+	ofColor(50, 50, 50),      // Ambient
+	ofColor(255, 100, 100),   // Diffuse (rouge vif par exemple)
+	ofColor(0, 0, 0),
+	ofColor(200, 200, 200),   // Specular
+	16.0f,
+	0.0f,
+	0.3f                       // un peu brillant
+);
+	setSelectedMaterial(MaterialType::PBRPlastic);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::materialPBRRoughPressed() {
+    currentMaterial = Material(
+        ofColor(60, 60, 60),        // Ambient
+        ofColor(180, 180, 180),     // Diffuse
+        ofColor(0, 0, 0),           // Emissive
+        ofColor(200, 200, 200),     // Specular
+        8.0f,                       // Shininess
+        0.0f,                       // Metallic
+        0.9f                        // Roughness
+    );
+	setSelectedMaterial(MaterialType::PBRRough);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::materialMetalPolishedPressed() {
+    currentMaterial = Material(
+        ofColor(40, 40, 50),        // Ambient
+        ofColor(210, 210, 220),     // Diffuse
+        ofColor(0, 0, 0),           // Emissive
+        ofColor(255, 255, 255),     // Specular
+        96.0f,                      // Shininess (polished = très lisse)
+        1.0f,                       // Metallic
+        0.1f                        // Roughness (faible)
+    );
+	setSelectedMaterial(MaterialType::MetalPolished);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::materialMetalBrushedPressed() {
+    currentMaterial = Material(
+        ofColor(40, 40, 40),        // Ambient
+        ofColor(180, 180, 200),     // Diffuse
+        ofColor(0, 0, 0),           // Emissive
+        ofColor(200, 200, 200),     // Specular
+        32.0f,                      // Shininess
+        1.0f,                       // Metallic
+        0.6f                        // Roughness (brossé = rugueux)
+    );
+	setSelectedMaterial(MaterialType::MetalBrushed);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::materialRoughSurfacePressed() {
+    currentMaterial = Material(
+        ofColor(50, 40, 30),        // Ambient
+        ofColor(200, 150, 120),     // Diffuse
+        ofColor(0, 0, 0),           // Emissive
+        ofColor(180, 180, 180),     // Specular
+        4.0f,                       // Shininess (faible)
+        0.0f,                       // Metallic
+        0.8f                        // Roughness
+    );
+	setSelectedMaterial(MaterialType::RoughSurface);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::materialSmoothSurfacePressed() {
+    currentMaterial = Material(
+        ofColor(60, 60, 60),        // Ambient
+        ofColor(240, 240, 240),     // Diffuse
+        ofColor(0, 0, 0),           // Emissive
+        ofColor(255, 255, 255),     // Specular
+        64.0f,                      // Shininess (surface lisse)
+        0.0f,                       // Metallic
+        0.1f                        // Roughness faible
+    );
+	setSelectedMaterial(MaterialType::SmoothSurface);
+    canvasRef->currentMaterial = currentMaterial;
+}
+
+void Toolbar::setSelectedMaterial(MaterialType mat) {
+	selectedMaterial = mat;
+	updateMaterialButtonColors();
+}
+
+void Toolbar::updateMaterialButtonColors() {
+	ofColor resetColor(80); // gris neutre
+	ofColor highlight(0, 120, 255); // bleu sélection
+
+	materialPBRMetal.setBackgroundColor(resetColor);
+	materialPBRPlastic.setBackgroundColor(resetColor);
+	materialPBRRough.setBackgroundColor(resetColor);
+
+	materialMetalPolished.setBackgroundColor(resetColor);
+	materialMetalBrushed.setBackgroundColor(resetColor);
+
+	materialRoughSurface.setBackgroundColor(resetColor);
+	materialSmoothSurface.setBackgroundColor(resetColor);
+
+	switch(selectedMaterial) {
+	case MaterialType::PBRMetal:       materialPBRMetal.setBackgroundColor(highlight); break;
+	case MaterialType::PBRPlastic:     materialPBRPlastic.setBackgroundColor(highlight); break;
+	case MaterialType::PBRRough:       materialPBRRough.setBackgroundColor(highlight); break;
+	case MaterialType::MetalPolished:  materialMetalPolished.setBackgroundColor(highlight); break;
+	case MaterialType::MetalBrushed:   materialMetalBrushed.setBackgroundColor(highlight); break;
+	case MaterialType::RoughSurface:   materialRoughSurface.setBackgroundColor(highlight); break;
+	case MaterialType::SmoothSurface:  materialSmoothSurface.setBackgroundColor(highlight); break;
+	}
 }
 
 void Toolbar::draw() {

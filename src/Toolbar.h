@@ -4,8 +4,21 @@
 #include "ShapeDefs.h"
 #include "Canvas.h"
 #include "Model3D.h"
+#include "Material.h"
 
 //class Canvas;
+
+enum class MaterialType {
+	PBRMetal,
+	PBRPlastic,
+	PBRRough,
+	MetalPolished,
+	MetalBrushed,
+	RoughSurface,
+	SmoothSurface,
+};
+
+
 
 class Toolbar {
 public:
@@ -17,6 +30,7 @@ public:
 	void variantWireframePressed();
 	void variantTransparentPressed();
 	void draw();
+	MaterialType selectedMaterial = MaterialType::PBRMetal;
 	
 	ofxPanel& getGui() { return dessinez; }
 	bool isSelectingColor() const { return pickingColour; }
@@ -93,12 +107,29 @@ private:
 
 
 	ofxPanel primitives3DGroup;
+	ofxGuiGroup materialGroup;
 	ofxToggle sphereToggle;
 	ofxToggle cubeToggle;
 	ofxToggle cylinderToggle;
 	ofxToggle coneToggle;
 	ofxToggle torusToggle;
 	ofxToggle pyramidToggle;
+	ofxButton materialPBRMetal;
+	ofxButton materialPBRPlastic;
+	ofxButton materialPBRRough;
+	ofxButton materialMetalPolished;
+	ofxButton materialMetalBrushed;
+	ofxButton materialRoughSurface;
+	ofxButton materialSmoothSurface;
+	Material currentMaterial = Material(
+		ofColor(40, 40, 40),        // Ambient
+		ofColor(200, 200, 200),     // Diffuse (albedo)
+		ofColor(0, 0, 0),           // Emissive
+		ofColor(255, 255, 255),     // Specular
+		64.0f,                      // Shininess
+		1.0f,                       // Metallic
+		0.3f                        // Roughness
+	);;
 
     // 8.3 Pour les surfaces paramétriques
     ofxToggle bezierSurfaceToggle;
@@ -161,4 +192,16 @@ private:
 
 	void setCursor(const std::string& iconName);
 	void updateCursorIcon();
+
+	void materialPBRMetalPressed();
+	void materialPBRPlasticPressed();
+	void materialPBRRoughPressed();
+
+	void materialMetalPolishedPressed();
+	void materialMetalBrushedPressed();
+
+	void materialRoughSurfacePressed();
+	void materialSmoothSurfacePressed();
+	void setSelectedMaterial(MaterialType mat);
+	void updateMaterialButtonColors();
 };
