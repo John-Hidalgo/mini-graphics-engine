@@ -1137,60 +1137,77 @@ void SceneGraph::fixCatmullRomPoints(int shapeIndex) {
 
 // 8.3 Pour les surfaces paramétriques
 void SceneGraph::setupBezierSurfaceControls() {
-    bezierSurfaceGroup.setup("Surface de Bezier");
-    bezierSurfaceGroup.setPosition(x + panelPadding + 350, y + panelPadding + 300);
-    bezierSurfaceGroup.setSize(175, 0);
+	bezierSurfaceGroup.setup("Surface de Bezier");
+	bezierSurfaceGroup.setPosition(x + panelPadding + 350, y + panelPadding + 300);
+	bezierSurfaceGroup.setSize(175, 0);
 
-    // Slider pour la résolution
-    bezierResolutionSlider.setup("Resolution", 20, 5, 50);
-    bezierResolutionSlider.addListener(this, &SceneGraph::bezierResolutionChanged);
-    bezierSurfaceGroup.add(&bezierResolutionSlider);
+	// Slider pour la résolution
+	bezierResolutionSlider.setup("Resolution", 20, 5, 50);
+	bezierResolutionSlider.addListener(this, &SceneGraph::bezierResolutionChanged);
+	bezierSurfaceGroup.add(&bezierResolutionSlider);
 
-    // Créer les sliders pour les points de contrôle (4x4)
-    bezierControlPointSlidersX.resize(4);
-    bezierControlPointSlidersY.resize(4);
-    bezierControlPointSlidersZ.resize(4);
-
-	// Slider pour les presets (0-5 pour 6 formes différentes)
+	// Slider pour les presets
 	bezierPresetSlider.setup("Preset Formes", 0, 0, 5);
 	bezierPresetSlider.addListener(this, &SceneGraph::bezierPresetChanged);
 	bezierSurfaceGroup.add(&bezierPresetSlider);
 
-    for (int i = 0; i < 4; i++) {
-        bezierControlPointSlidersX[i].resize(4);
-        bezierControlPointSlidersY[i].resize(4);
-        bezierControlPointSlidersZ[i].resize(4);
+	// Initialiser les vecteurs avec la bonne taille AVANT de les utiliser
+	bezierControlPointSlidersX.resize(4);
+	bezierControlPointSlidersY.resize(4);
+	bezierControlPointSlidersZ.resize(4);
+	bezierControlPointGroups.resize(4);
 
-        for (int j = 0; j < 4; j++) {
-            // Sliders X
-            bezierControlPointSlidersX[i][j] = new ofxFloatSlider();
-            bezierControlPointSlidersX[i][j]->setup("CP[" + ofToString(i) + "][" + ofToString(j) + "] X",
-                                                    0, -200, 200);
-            bezierControlPointSlidersX[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
+	for (int i = 0; i < 4; i++) {
+		// Initialiser les sous-vecteurs
+		bezierControlPointSlidersX[i].resize(4, nullptr);
+		bezierControlPointSlidersY[i].resize(4, nullptr);
+		bezierControlPointSlidersZ[i].resize(4, nullptr);
 
-            // Sliders Y
-            bezierControlPointSlidersY[i][j] = new ofxFloatSlider();
-            bezierControlPointSlidersY[i][j]->setup("CP[" + ofToString(i) + "][" + ofToString(j) + "] Y",
-                                                    0, -200, 200);
-            bezierControlPointSlidersY[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
+		// Créer un groupe pour chaque ligne
+		bezierControlPointGroups[i] = new ofxGuiGroup();
+		bezierControlPointGroups[i]->setup("Ligne " + ofToString(i));
+		bezierControlPointGroups[i]->setSize(175, 0);
 
-            // Sliders Z
-            bezierControlPointSlidersZ[i][j] = new ofxFloatSlider();
-            bezierControlPointSlidersZ[i][j]->setup("CP[" + ofToString(i) + "][" + ofToString(j) + "] Z",
-                                                    0, -200, 200);
-            bezierControlPointSlidersZ[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
+		for (int j = 0; j < 4; j++) {
+			// Créer et initialiser les sliders X
+			bezierControlPointSlidersX[i][j] = new ofxFloatSlider();
+			bezierControlPointSlidersX[i][j]->setup("CP[" + ofToString(j) + "] X", 0, -200, 200);
+			bezierControlPointSlidersX[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
 
-            bezierSurfaceGroup.add(bezierControlPointSlidersX[i][j]);
-            bezierSurfaceGroup.add(bezierControlPointSlidersY[i][j]);
-            bezierSurfaceGroup.add(bezierControlPointSlidersZ[i][j]);
-        }
-    }
+			// Créer et initialiser les sliders Y
+			bezierControlPointSlidersY[i][j] = new ofxFloatSlider();
+			bezierControlPointSlidersY[i][j]->setup("CP[" + ofToString(j) + "] Y", 0, -200, 200);
+			bezierControlPointSlidersY[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
 
-    bezierSurfaceGroup.minimize();
+			// Créer et initialiser les sliders Z
+			bezierControlPointSlidersZ[i][j] = new ofxFloatSlider();
+			bezierControlPointSlidersZ[i][j]->setup("CP[" + ofToString(j) + "] Z", 0, -200, 200);
+			bezierControlPointSlidersZ[i][j]->addListener(this, &SceneGraph::bezierControlPointChanged);
+
+			// Ajouter au sous-groupe de la ligne
+			bezierControlPointGroups[i]->add(bezierControlPointSlidersX[i][j]);
+			bezierControlPointGroups[i]->add(bezierControlPointSlidersY[i][j]);
+			bezierControlPointGroups[i]->add(bezierControlPointSlidersZ[i][j]);
+		}
+
+		// Minimiser chaque sous-groupe par défaut
+		bezierControlPointGroups[i]->minimize();
+
+		// Ajouter le sous-groupe au groupe principal
+		bezierSurfaceGroup.add(bezierControlPointGroups[i]);
+	}
+
+	bezierSurfaceGroup.minimize();
 }
 
 void SceneGraph::updateBezierSurfaceControls() {
 	auto& primitives = canvasRef->getPrimitives3D();
+
+	// Vérif desi les vecteurs sont initialisés
+	if (bezierControlPointSlidersX.empty() || bezierControlPointSlidersX.size() < 4) {
+		ofLogError("SceneGraph") << "Bezier control point sliders not properly initialized";
+		return;
+	}
 
 	bool hasBezierSurfaceSelected = false;
 	int selectedBezierIndex = -1;
@@ -1217,7 +1234,25 @@ void SceneGraph::updateBezierSurfaceControls() {
 
 		// M-a-j les sliders de points de contrôle
 		for (int i = 0; i < 4; i++) {
+			// Vérifier que les sous-vecteurs existent
+			if (i >= bezierControlPointSlidersX.size() ||
+				i >= bezierControlPointSlidersY.size() ||
+				i >= bezierControlPointSlidersZ.size()) {
+				continue;
+			}
+
 			for (int j = 0; j < 4; j++) {
+				// Vérifier que les sliders existent
+				if (j >= bezierControlPointSlidersX[i].size() ||
+					!bezierControlPointSlidersX[i][j] ||
+					j >= bezierControlPointSlidersY[i].size() ||
+					!bezierControlPointSlidersY[i][j] ||
+					j >= bezierControlPointSlidersZ[i].size() ||
+					!bezierControlPointSlidersZ[i][j]) {
+					continue;
+				}
+
+				// Vérifier que les points de contrôle existent
 				if (i < primitive.controlPoints.size() && j < primitive.controlPoints[i].size()) {
 					// Désactiver temporairement les listeners
 					bezierControlPointSlidersX[i][j]->removeListener(this, &SceneGraph::bezierControlPointChanged);
@@ -1239,27 +1274,40 @@ void SceneGraph::updateBezierSurfaceControls() {
 }
 
 void SceneGraph::bezierControlPointChanged(float& value) {
-    auto& primitives = canvasRef->getPrimitives3D();
+	auto& primitives = canvasRef->getPrimitives3D();
 
-    for (int index : selectedPrimitiveIndices) {
-        if (index >= 0 && index < primitives.size() &&
-            primitives[index].type == Primitive3DType::BEZIER_SURFACE) {
-            auto& primitive = primitives[index];
+	for (int index : selectedPrimitiveIndices) {
+		if (index >= 0 && index < primitives.size() &&
+			primitives[index].type == Primitive3DType::BEZIER_SURFACE) {
+			auto& primitive = primitives[index];
 
-            // Mettre à jour tous les points de contrôle
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    if (i < primitive.controlPoints.size() && j < primitive.controlPoints[i].size()) {
-                        primitive.controlPoints[i][j].x = *bezierControlPointSlidersX[i][j];
-                        primitive.controlPoints[i][j].y = *bezierControlPointSlidersY[i][j];
-                        primitive.controlPoints[i][j].z = *bezierControlPointSlidersZ[i][j];
-                    }
-                }
-            }
+			// Mettre à jour tous les points de contrôle
+			for (int i = 0; i < 4; i++) {
+				if (i >= bezierControlPointSlidersX.size() ||
+					i >= primitive.controlPoints.size()) {
+					continue;
+				}
 
-            primitive.generateMesh();
-        }
-    }
+				for (int j = 0; j < 4; j++) {
+					if (j >= bezierControlPointSlidersX[i].size() ||
+						!bezierControlPointSlidersX[i][j] ||
+						j >= bezierControlPointSlidersY[i].size() ||
+						!bezierControlPointSlidersY[i][j] ||
+						j >= bezierControlPointSlidersZ[i].size() ||
+						!bezierControlPointSlidersZ[i][j] ||
+						j >= primitive.controlPoints[i].size()) {
+						continue;
+					}
+
+					primitive.controlPoints[i][j].x = *bezierControlPointSlidersX[i][j];
+					primitive.controlPoints[i][j].y = *bezierControlPointSlidersY[i][j];
+					primitive.controlPoints[i][j].z = *bezierControlPointSlidersZ[i][j];
+				}
+			}
+
+			primitive.generateMesh();
+		}
+	}
 }
 
 void SceneGraph::bezierResolutionChanged(int& value) {

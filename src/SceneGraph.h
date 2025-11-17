@@ -128,7 +128,10 @@ private:
 	void bezierPresetChanged(int& preset);
 	std::string getBezierPresetName(int preset);
 
-		void deleteButtonPressed();
+	// Sous-groupes pour organiser les points de contrôle
+	std::vector<ofxGuiGroup*> bezierControlPointGroups;
+
+	void deleteButtonPressed();
 	void deleteButton3DModelPressed();
 	void deleteButtonPrimitives3DPressed();
 	void thicknessChanged(float & val);
