@@ -100,6 +100,8 @@ void Canvas::update() {
 			primitive3D.material.setEmissiveColor(sceneGraphRef->material_emissive_color_primitives3D.get());
 			primitive3D.material.setSpecularColor(sceneGraphRef->material_specular_color_primitives3D.get());
 			primitive3D.material.setShininess(sceneGraphRef->material_shininess_primitives3D);
+			primitive3D.material.setMetallic(sceneGraphRef->material_metallic_primitives3D);
+			primitive3D.material.setRoughness(sceneGraphRef->material_roughness_primitives3D);
 
 			// Pour les surfaces Bezier, s'assurer d'update le mesh
 			if (primitive3D.type == Primitive3DType::BEZIER_SURFACE) {
@@ -627,13 +629,13 @@ void Canvas::addPrimitive3D(Primitive3DType type, const ofPoint& position, float
 
 void Canvas::drawPrimitives3D() {
 	for (auto& primitive : primitives3D) {
-		primitive.draw(canvasLight, showBoundingBoxes, lights);
+		primitive.draw(canvasLight, activeCamera->getGlobalPosition(), showBoundingBoxes, lights);
 	}
 }
 
 void Canvas::drawPrimitivePreview() {
 	if (drawingPrimitive && currentPrimitiveMode != Primitive3DType::NONE) {
-		tempPrimitive.draw(canvasLight);  // Same simple call for preview
+		tempPrimitive.draw(canvasLight, activeCamera->getGlobalPosition());  // Same simple call for preview
 	}
 }
 

@@ -69,6 +69,8 @@ public:
 	ofParameter<ofColor> material_emissive_color_primitives3D;
 	ofParameter<ofColor> material_specular_color_primitives3D;
 	ofxFloatSlider material_shininess_primitives3D;
+	ofxFloatSlider material_metallic_primitives3D;
+	ofxFloatSlider material_roughness_primitives3D;
 
 	// 7.2 - Material Parameters pour les models
 	ofxToggle modelMaterialActive;

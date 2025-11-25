@@ -60,35 +60,6 @@ public:
     void setMetallic(float m)                { metallic = m; }
     void setRoughness(float r)               { roughness = r; }
 
-    // --- Appliquer au shader Lambert/Phong actuel ---
-    void applyToShader(ofShader& shader) const
-    {
-        // PHONG COMPATIBLE UNIFORMS
-        shader.setUniform3f("color_ambient",
-            ambientColor.r / 255.0f,
-            ambientColor.g / 255.0f,
-            ambientColor.b / 255.0f
-        );
-
-        shader.setUniform3f("color_diffuse",
-            diffuseColor.r / 255.0f,
-            diffuseColor.g / 255.0f,
-            diffuseColor.b / 255.0f
-        );
-
-        shader.setUniform3f("color_specular",
-            specularColor.r / 255.0f,
-            specularColor.g / 255.0f,
-            specularColor.b / 255.0f
-        );
-
-        // brightness = shininess dans ton shader
-        shader.setUniform1f("brightness", shininess);
-
-        // PBR ADD-ON UNIFORMS
-        shader.setUniform1f("mat_metallic",  metallic);
-        shader.setUniform1f("mat_roughness", roughness);
-    }
 };
 
 #endif //OF_CLION_MINIMAL_MATERIAL_H

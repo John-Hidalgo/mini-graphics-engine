@@ -91,6 +91,8 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	primitives3DEditorPanel.add(material_emissive_color_primitives3D.set("Material Emissive Color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
 	primitives3DEditorPanel.add(material_specular_color_primitives3D.set("Material Specular Color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
 	primitives3DEditorPanel.add(material_shininess_primitives3D.setup("Material Shininess", 1, 0, 10));
+	primitives3DEditorPanel.add(material_metallic_primitives3D.setup("Material Metallic", 1, 0, 10));
+	primitives3DEditorPanel.add(material_roughness_primitives3D.setup("Material Roughness", 1, 0, 10));
 
 	deleteButtonPrimitives3D.setup("Effacez");
 	deleteButtonPrimitives3D.addListener(this,&SceneGraph::deleteButtonPrimitives3DPressed);
