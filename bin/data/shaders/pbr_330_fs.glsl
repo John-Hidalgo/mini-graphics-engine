@@ -55,6 +55,9 @@ uniform sampler2D texture_roughness;
 // texture d'occlusion ambiante
 uniform sampler2D texture_occlusion;
 
+uniform bool has_texture_metallic;
+uniform bool has_texture_occlusion;
+
 // position d'une source de lumière
 uniform vec3 light_position;
 
@@ -142,13 +145,21 @@ vec3 brdf_cook_torrance()
   texture_sample_diffuse = pow(texture_sample_diffuse, vec3(tone_mapping_gamma));
 
   // échantillonage de la texture de métallicité
-  float texture_sample_metallic = texture(texture_metallic, surface_texcoord).r;
+  // Metallic
+  float texture_sample_metallic =
+      has_texture_metallic
+      ? texture(texture_metallic, surface_texcoord).r
+      : 0.0; // valeur neutre
+
 
   // échantillonage de la texture de rugosité
   float texture_sample_roughness = texture(texture_roughness, surface_texcoord).r;
 
   // échantillonage de la texture d'occlusion
-  float texture_sample_occlusion = texture(texture_occlusion, surface_texcoord).r;
+  float texture_sample_occlusion =
+      has_texture_occlusion
+      ? texture(texture_occlusion, surface_texcoord).r
+      : 1.0; // AO neutre (pas d’occlusion)
 
   // facteurs du matériau combinées avec les échantillons de couleur
   float metallic = material_metallic * texture_sample_metallic;

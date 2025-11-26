@@ -15,6 +15,7 @@ struct Primitive3D {
 	ofMesh mesh;
 	bool isSelected = false;
 	ofShader shader;
+	ofShader shader_lambert;
 	ofColor color_ambient;
 	ofColor color_diffuse;
 	BoundingBox bbox;
@@ -30,6 +31,7 @@ struct Primitive3D {
 
 	void setup() {
 		shader.load("shaders/pbr_330_vs.glsl", "shaders/pbr_330_fs.glsl");
+		shader_lambert.load("shaders/lambert_330_vs.glsl", "shaders/lambert_330_fs.glsl");
 		color_ambient = ofColor(50, 50, 50);
 		color_diffuse = ofColor(200, 200, 200);
 
@@ -49,95 +51,169 @@ struct Primitive3D {
 	void draw(ofLight& canvasLight, const glm::vec3 cameraPosition, bool showBoundingBox = false, const std::vector<LightData>& lights = {})
 {
     ofEnableDepthTest();
-    shader.begin();
+		if (isMaterialActive)
+		{
+			shader.begin();
+		    // --- Matrices ---
+		    glm::vec3 pos3(position.x, position.y, position.z);
+		    glm::mat4 model = glm::translate(glm::mat4(1.0f), pos3);
+		    glm::mat4 view = ofGetCurrentViewMatrix();
+		    glm::mat4 proj = ofGetCurrentMatrix(OF_MATRIX_PROJECTION);
+				glm::mat4 modelView = view * model;
 
-    // --- Matrices ---
-    glm::vec3 pos3(position.x, position.y, position.z);
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), pos3);
-    glm::mat4 view = ofGetCurrentViewMatrix();
-    glm::mat4 proj = ofGetCurrentMatrix(OF_MATRIX_PROJECTION);
-		glm::mat4 modelView = view * model;
+		    shader.setUniformMatrix4f("modelViewMatrix", modelView);
+		    shader.setUniformMatrix4f("projectionMatrix", proj);
 
-    shader.setUniformMatrix4f("modelViewMatrix", modelView);
-    shader.setUniformMatrix4f("projectionMatrix", proj);
+		    // --- Lights ---
+		    glm::vec3 lightPos;
+		    glm::vec3 lightColor;
 
-    // --- Lights ---
-    glm::vec3 lightPos;
-    glm::vec3 lightColor;
+		    if (!lights.empty()) {
+		        glm::vec3 combinedPos(0.0f);
+		        glm::vec3 combinedColor(0.0f);
+		        float totalAtt = 0.0f;
 
-    if (!lights.empty()) {
-        glm::vec3 combinedPos(0.0f);
-        glm::vec3 combinedColor(0.0f);
-        float totalAtt = 0.0f;
+		        for (auto& l : lights) {
+		            float w = l.attenuation;
+		            combinedPos += glm::vec3(l.position) * w;
+		            combinedColor += glm::vec3(
+		                l.color.r / 255.f,
+		                l.color.g / 255.f,
+		                l.color.b / 255.f
+		            ) * w;
+		            totalAtt += w;
+		        }
+		        if (totalAtt == 0.0f) totalAtt = 1.0f;
 
-        for (auto& l : lights) {
-            float w = l.attenuation;
-            combinedPos += glm::vec3(l.position) * w;
-            combinedColor += glm::vec3(
-                l.color.r / 255.f,
-                l.color.g / 255.f,
-                l.color.b / 255.f
-            ) * w;
-            totalAtt += w;
-        }
-        if (totalAtt == 0.0f) totalAtt = 1.0f;
+		        lightPos   = combinedPos / totalAtt;
+		        lightColor = combinedColor / totalAtt;
+		    }
+		    else {
+		        lightPos = canvasLight.getGlobalPosition();
+		        lightColor = glm::vec3(
+		            canvasLight.getDiffuseColor().r / 255.f,
+		            canvasLight.getDiffuseColor().g / 255.f,
+		            canvasLight.getDiffuseColor().b / 255.f
+		        );
+		    }
 
-        lightPos   = combinedPos / totalAtt;
-        lightColor = combinedColor / totalAtt;
-    }
-    else {
-        lightPos = canvasLight.getGlobalPosition();
-        lightColor = glm::vec3(
-            canvasLight.getDiffuseColor().r / 255.f,
-            canvasLight.getDiffuseColor().g / 255.f,
-            canvasLight.getDiffuseColor().b / 255.f
-        );
-    }
+			shader.setUniform3f("light_position", lightPos);
+			shader.setUniform3f("light_color", lightColor);
+			shader.setUniform1f("light_intensity", 1.0f);
 
-    shader.setUniform3f("light_position", lightPos);
-    shader.setUniform3f("light_color", lightColor);
-		shader.setUniform1f("light_intensity", 1.0f);
+			    // --- Material ---
+			    float metallic;
+			    float roughness;
+				float shininess;
 
-    // --- Material ---
-    float metallic;
-    float roughness;
-		float shininess;
+		        metallic  = material.metallic;
+		        roughness = material.roughness;
+    			shininess = material.shininess;
+				shader.setUniform3f("material_color_ambient", material.ambientColor.r/255.0f, material.ambientColor.g/255.0f, material.ambientColor.b/255.0f);
+				shader.setUniform3f("material_color_diffuse", material.diffuseColor.r/255.0f, material.diffuseColor.g/255.0f, material.diffuseColor.b/255.0f);
+				shader.setUniform3f("material_color_specular", material.specularColor.r/255.0f, material.specularColor.g/255.0f, material.specularColor.b/255.0f);
+				shader.setUniform1f("material_brightness", shininess);
+				shader.setUniform1f("material_metallic", metallic);
+				shader.setUniform1f("material_roughness", roughness);
+				shader.setUniform3f("material_fresnel_ior", glm::vec3(0.04f, 0.04f, 0.04f));
+				shader.setUniform1f("tone_mapping_exposure", 1.0f);
+				shader.setUniform1i("tone_mapping_toggle", true);
+				shader.setUniform1f("material_occlusion", 1.0f);
+				shader.setUniform1i("has_texture_metallic", material.hasMetalnessTexture);
+				shader.setUniform1i("has_texture_occlusion", material.hasAOTexture);
+				shader.setUniformTexture("texture_diffuse", material.texture_diffuse.getTexture(), 1);
+				shader.setUniformTexture("texture_metallic", material.texture_metallic.getTexture(), 2);
+				shader.setUniformTexture("texture_roughness", material.texture_roughness.getTexture(), 3);
 
-    if (isMaterialActive) {
-        metallic  = material.metallic;
-        roughness = material.roughness;
-    	shininess = material.shininess;
-    }
-    else {
-        metallic = 0.0f;
-        roughness = 1.0f;
-    	shininess = 0.0f;
-    }
-		shader.setUniform3f("material_color_ambient", material.ambientColor.r/255.0f, material.ambientColor.g/255.0f, material.ambientColor.b/255.0f);
-		shader.setUniform3f("material_color_diffuse", material.diffuseColor.r/255.0f, material.diffuseColor.g/255.0f, material.diffuseColor.b/255.0f);
-		shader.setUniform3f("material_color_specular", material.specularColor.r/255.0f, material.specularColor.g/255.0f, material.specularColor.b/255.0f);
-    shader.setUniform1f("material_brightness", shininess);
-    shader.setUniform1f("material_metallic", metallic);
-    shader.setUniform1f("material_roughness", roughness);
-		shader.setUniform3f("material_fresnel_ior", glm::vec3(0.04f, 0.04f, 0.04f));
-		shader.setUniform1f("tone_mapping_exposure", 1.0f);
-		shader.setUniform1i("tone_mapping_toggle", true);
-		shader.setUniform1f("material_occlusion", 1.0f);
+				if (material.hasAOTexture)
+					shader.setUniformTexture("texture_occlusion", material.texture_occlusion.getTexture(), 4);
 
 
-    // --- Draw mesh (NO OF TRANSFORM!) ---
-    mesh.draw();
+		    // --- Draw mesh (NO OF TRANSFORM!) ---
+		    mesh.draw();
 
-    // --- Debug bounding box ---
-    if (showBoundingBox) {
-        ofPushStyle();
-        ofNoFill();
-        ofSetColor(0, 255, 0);
-        bbox.draw();
-        ofPopStyle();
-    }
+		    // --- Debug bounding box ---
+		    if (showBoundingBox) {
+		        ofPushStyle();
+		        ofNoFill();
+		        ofSetColor(0, 255, 0);
+		        bbox.draw();
+		        ofPopStyle();
+		    }
 
-    shader.end();
+		    shader.end();
+		} else
+		{
+			shader_lambert.begin();
+
+			shader_lambert.setUniformMatrix4f("modelViewMatrix", ofGetCurrentMatrix(OF_MATRIX_MODELVIEW));
+			shader_lambert.setUniformMatrix4f("projectionMatrix", ofGetCurrentMatrix(OF_MATRIX_PROJECTION));
+			// --- Lumières dynamiques ---
+			if (!lights.empty()) {
+				glm::vec3 combinedPos(0.0f);
+				glm::vec3 combinedColor(0.0f);
+				float totalAtt = 0.0f;
+
+				for (auto& l : lights) {
+					float w = l.attenuation;
+					combinedPos += glm::vec3(l.position.x, l.position.y, l.position.z) * w;
+					combinedColor += glm::vec3(l.color.r / 255.f, l.color.g / 255.f, l.color.b / 255.f) * w;
+					totalAtt += w;
+				}
+
+				combinedPos /= totalAtt;
+				combinedColor /= totalAtt;
+
+				shader_lambert.setUniform3f("light_position", combinedPos);
+				shader_lambert.setUniform3f("color_diffuse", combinedColor);
+			} else {
+				shader_lambert.setUniform3f("light_position", canvasLight.getGlobalPosition());
+			}
+
+			// --- Appliquer notre Material ---
+			shader_lambert.setUniform3f("color_ambient",
+				material.ambientColor.r / 255.f,
+				material.ambientColor.g / 255.f,
+				material.ambientColor.b / 255.f
+			);
+
+			shader_lambert.setUniform3f("color_diffuse",
+				material.diffuseColor.r / 255.f,
+				material.diffuseColor.g / 255.f,
+				material.diffuseColor.b / 255.f
+			);
+
+			shader_lambert.setUniform3f("color_specular",
+				material.specularColor.r / 255.f,
+				material.specularColor.g / 255.f,
+				material.specularColor.b / 255.f
+			);
+
+			shader_lambert.setUniform3f("color_emissive",
+				material.emissiveColor.r / 255.f,
+				material.emissiveColor.g / 255.f,
+				material.emissiveColor.b / 255.f
+			);
+
+			shader_lambert.setUniform1f("mat_shininess", material.shininess);
+			shader_lambert.setUniform1f("mat_metallic", material.metallic);
+			shader_lambert.setUniform1f("mat_roughness", material.roughness);
+
+			ofPushMatrix();
+			ofTranslate(position);
+			ofSetColor(color);
+			mesh.draw();
+			if (showBoundingBox) {
+				ofPushStyle();
+				ofNoFill();
+				ofSetColor(0, 255, 0);
+				bbox.draw();
+				ofPopStyle();
+			}
+			ofPopMatrix();
+			shader_lambert.end();
+		}
+
     ofDisableDepthTest();
 }
 

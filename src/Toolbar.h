@@ -119,8 +119,6 @@ private:
 	ofxButton materialPBRRough;
 	ofxButton materialMetalPolished;
 	ofxButton materialMetalBrushed;
-	ofxButton materialRoughSurface;
-	ofxButton materialSmoothSurface;
 	Material currentMaterial = Material(
 		ofColor(40, 40, 40),        // Ambient
 		ofColor(200, 200, 200),     // Diffuse (albedo)
@@ -194,14 +192,11 @@ private:
 	void updateCursorIcon();
 
 	void materialPBRMetalPressed();
-	void materialPBRPlasticPressed();
 	void materialPBRRoughPressed();
 
 	void materialMetalPolishedPressed();
 	void materialMetalBrushedPressed();
 
-	void materialRoughSurfacePressed();
-	void materialSmoothSurfacePressed();
 	void setSelectedMaterial(MaterialType mat);
 	void updateMaterialButtonColors();
 };

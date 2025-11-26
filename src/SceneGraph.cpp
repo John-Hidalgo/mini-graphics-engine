@@ -83,7 +83,7 @@ void SceneGraph::setup(Canvas* canvas, const ofRectangle& area) {
 	primitives3DEditorPanel.add(color_picker_diffuse_primitives3D.set("diffuse color", ofColor(174, 223, 134), ofColor(0, 0), ofColor(255, 255)));
 
 	// 7.2 - Parametres pour le material:
-	primitives3DMaterialActive.setup("Material actif", false);
+	primitives3DMaterialActive.setup("Material PBR", false);
 	primitives3DMaterialActive.addListener(this, &SceneGraph::primitives3DMaterialToggled);
 	primitives3DEditorPanel.add(&primitives3DMaterialActive);
 	primitives3DEditorPanel.add(material_ambient_color_primitives3D.set("Material Ambient Color", ofColor(15, 15, 15), ofColor(0, 0), ofColor(255,255)));
