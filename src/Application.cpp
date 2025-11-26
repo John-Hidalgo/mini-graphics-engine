@@ -26,6 +26,7 @@ void Application::setup() {
 	updateCameraViewports(ofGetWidth(), ofGetHeight());
 	skybox.setup();
 	defRenderer.setup();
+	rayRenderer.setup();
 }
 
 void Application::windowResized(int w, int h) {
@@ -175,6 +176,16 @@ void Application::draw() {
 		ofPushMatrix();
 		ofEnableDepthTest();
 		defRenderer.draw();
+		ofPopMatrix();
+		ofPopStyle();
+		ofPopView();
+	}
+	else if(toolbar.getRayRendering()){
+		ofPushView();
+		ofPushStyle();
+		ofPushMatrix();
+		ofEnableDepthTest();
+		rayRenderer.draw();
 		ofPopMatrix();
 		ofPopStyle();
 		ofPopView();
