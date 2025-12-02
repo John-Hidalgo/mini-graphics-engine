@@ -1,21 +1,21 @@
-#include "RayTraceRenderer.h"
+#include "RayTraceRendererGI.h"
 #include "loadShader.h"
 #include "ofMain.h"
 
-RayTraceRenderer::RayTraceRenderer(float leftPanel, float rightPanel, float bottomPanel)
+RayTraceRendererGI::RayTraceRendererGI(float leftPanel, float rightPanel, float bottomPanel)
 	: leftPanelWidth(leftPanel), rightPanelWidth(rightPanel), bottomPanelHeight(bottomPanel),
 	  shaderProgram(0), VAO(0), VBO(0), EBO(0)
 {
 }
 
-RayTraceRenderer::~RayTraceRenderer() {
+RayTraceRendererGI::~RayTraceRendererGI() {
 	if (VAO != 0) glDeleteVertexArrays(1, &VAO);
 	if (VBO != 0) glDeleteBuffers(1, &VBO);
 	if (EBO != 0) glDeleteBuffers(1, &EBO);
 	if (shaderProgram != 0) glDeleteProgram(shaderProgram);
 }
 
-void RayTraceRenderer::setup() {
+void RayTraceRendererGI::setup() {
 	VAO = 0;
 	VBO = 0;
 	EBO = 0;
@@ -28,31 +28,15 @@ void RayTraceRenderer::setup() {
 	
 
 	addSphere(glm::vec3(5.0f, 1.0f, -6.0f), 2.0f, glm::vec3(0.2f, 1.0f, 0.2f));
-	addSphere(glm::vec3(1.0f, 0.8f, -4.0f), 0.7f, glm::vec3(0.95f, 0.95f, 0.95f),1.0f);
+	addSphere(glm::vec3(1.0f, 0.8f, -4.0f), 0.7f, glm::vec3(0.95f, 0.95f, 0.95f));
 	addSphere(glm::vec3(-10.0f, 1.0f, -6.0f), 3.0f, glm::vec3(1.0f, 0.2f, 0.2f));
-
-	addTriangle(
-		glm::vec3(-1.0f, 2.0f, -5.0f),
-		glm::vec3(-2.5f, 0.0f, -5.0f),
-		glm::vec3(0.5f, 0.0f, -5.0f),
-		glm::vec3(0.95f, 0.95f, 0.95f),
-		1.0f
-	);
-
-	addTriangle(
-		glm::vec3(3.0f, 4.0f, -8.0f),
-		glm::vec3(1.0f, 0.0f, -8.0f),
-		glm::vec3(3.0f, 0.0f, -8.0f),
-		glm::vec3(0.9f, 1.0f, 1.0f)
-		//1.0f
-	);
 
 	easyCam.setDistance(15.0f);
 	easyCam.lookAt(glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
-void RayTraceRenderer::loadShaders() {
-	shaderProgram = loadShader("shaders/rayTracer_330_vs.glsl", "shaders/rayTracer_330_fs.glsl");
+void RayTraceRendererGI::loadShaders() {
+	shaderProgram = loadShader("shaders/rayTracer_330_vs.glsl", "shaders/rayTracerGI_330_fs.glsl");
 	if (shaderProgram == 0) {
 		ofLogError("RayTraceRenderer") << "Failed to load shaders!";
 		return;
@@ -101,7 +85,7 @@ void RayTraceRenderer::loadShaders() {
 	ofLogNotice("RayTraceRenderer") << "Shaders loaded successfully";
 }
 
-void RayTraceRenderer::setupFullscreenQuad() {
+void RayTraceRendererGI::setupFullscreenQuad() {
 	if (VAO != 0) {
 		glDeleteVertexArrays(1, &VAO);
 		glDeleteBuffers(1, &VBO);
@@ -138,12 +122,12 @@ void RayTraceRenderer::setupFullscreenQuad() {
 	}
 }
 
-void RayTraceRenderer::setupFixedCamera() {
+void RayTraceRendererGI::setupFixedCamera() {
 	fixedProj = glm::perspective(glm::radians(45.0f), 1500.0f / 1000.0f, 0.1f, 100.0f);
 	fixedView = glm::lookAt(glm::vec3(0, 10, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 }
 
-void RayTraceRenderer::setupEasyCamera() {
+void RayTraceRendererGI::setupEasyCamera() {
 	easyCam.setDistance(15.0f);
 	easyCam.setNearClip(0.1f);
 	easyCam.setFarClip(100.0f);
@@ -151,10 +135,10 @@ void RayTraceRenderer::setupEasyCamera() {
 	easyCam.lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 }
 
-void RayTraceRenderer::update() {
+void RayTraceRendererGI::update() {
 }
 
-void RayTraceRenderer::draw() {
+void RayTraceRendererGI::draw() {
 	if (VAO == 0 || shaderProgram == 0) {
 		ofLogError("RayTraceRenderer") << "OpenGL resources not initialized!";
 		return;
@@ -236,29 +220,29 @@ void RayTraceRenderer::draw() {
 	}
 }
 
-void RayTraceRenderer::setFixedCameraPosition(const glm::vec3& position, const glm::vec3& target) {
+void RayTraceRendererGI::setFixedCameraPosition(const glm::vec3& position, const glm::vec3& target) {
 	fixedView = glm::lookAt(position, target, glm::vec3(0, 1, 0));
 }
 
-void RayTraceRenderer::resetFixedCamera() {
+void RayTraceRendererGI::resetFixedCamera() {
 	setupFixedCamera();
 }
 
-void RayTraceRenderer::addCube(const glm::vec3& center, const glm::vec3& size, const glm::vec3& color, float refraction) {
+void RayTraceRendererGI::addCube(const glm::vec3& center, const glm::vec3& size, const glm::vec3& color, float refraction) {
 	cubeCenters.push_back(center);
 	cubeSizes.push_back(size);
 	cubeColors.push_back(color);
 	cubeRefractions.push_back(refraction); // 0.0 = no refraction, 1.0 = full refraction
 }
 
-void RayTraceRenderer::addSphere(const glm::vec3& center, float radius, const glm::vec3& color, float refraction) {
+void RayTraceRendererGI::addSphere(const glm::vec3& center, float radius, const glm::vec3& color, float refraction) {
 	sphereCenters.push_back(center);
 	sphereRadii.push_back(radius);
 	sphereColors.push_back(color);
 	sphereRefractions.push_back(refraction);
 }
 
-void RayTraceRenderer::addTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& color, float refraction) {
+void RayTraceRendererGI::addTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& color, float refraction) {
 	triangleV0.push_back(v0);
 	triangleV1.push_back(v1);
 	triangleV2.push_back(v2);
@@ -266,14 +250,14 @@ void RayTraceRenderer::addTriangle(const glm::vec3& v0, const glm::vec3& v1, con
 	triangleRefractions.push_back(refraction);
 }
 
-void RayTraceRenderer::addCube(const glm::vec3& center, const glm::vec3& size, const glm::vec3& color) {
+void RayTraceRendererGI::addCube(const glm::vec3& center, const glm::vec3& size, const glm::vec3& color) {
 	addCube(center, size, color, 0.0f);
 }
 
-void RayTraceRenderer::addSphere(const glm::vec3& center, float radius, const glm::vec3& color) {
+void RayTraceRendererGI::addSphere(const glm::vec3& center, float radius, const glm::vec3& color) {
 	addSphere(center, radius, color, 0.0f);
 }
 
-void RayTraceRenderer::addTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& color) {
+void RayTraceRendererGI::addTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& color) {
 	addTriangle(v0, v1, v2, color, 0.0f);
 }

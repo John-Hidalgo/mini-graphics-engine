@@ -3,10 +3,10 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-class RayTraceRenderer {
+class RayTraceRendererGI {
 public:
-	RayTraceRenderer(float leftPanel = 220.0f, float rightPanel = 540.0f, float bottomPanel = 160.0f);
-	~RayTraceRenderer();
+	RayTraceRendererGI(float leftPanel = 220.0f, float rightPanel = 540.0f, float bottomPanel = 160.0f);
+	~RayTraceRendererGI();
 	
 	void setup();
 	void update();

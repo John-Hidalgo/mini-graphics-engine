@@ -40,6 +40,7 @@ public:
 	ofxToggle skyBoxToggle;
 	ofxToggle defRendToggle;
 	ofxToggle rayRenderingToggle;
+	ofxToggle rayRenderingGIToggle;
 	ofxGuiGroup variantGroup;
 	ofxButton variantNoneButton;
 	ofxButton variantMetallicButton;
@@ -65,6 +66,7 @@ public:
 	bool isDrawingActive = false;
 	bool getDefRendering(){return defRendering;};
 	bool getRayRendering(){return rayRendering;};
+	bool getRayRenderingGI(){return rayRenderingGI;};
     ofImage selectedCursor;
 	std::map<std::string, ofImage> availableCursorIcons;
 private:
@@ -72,6 +74,7 @@ private:
 	Model3D model3D;
 	bool defRendering = false;
 	bool rayRendering = false;
+	bool rayRenderingGI = false;
 	ofxPanel dessinez;
 	ofxToggle rectangleToggle;
 	ofxToggle circleToggle;
@@ -180,6 +183,7 @@ private:
 	void skyBoxToggleChanged(bool& val);
 	void defRenderingToggled(bool& val);
 	void rayRenderingToggled(bool& val);
+	void rayRenderingGIToggled(bool& val);
 	void setExclusiveToggle(ShapeMode mode);
 
 	void sphereToggleChanged(bool &val);

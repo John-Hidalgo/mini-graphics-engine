@@ -27,6 +27,7 @@ void Application::setup() {
 	skybox.setup();
 	defRenderer.setup();
 	rayRenderer.setup();
+	rayRendererGI.setup();
 }
 
 void Application::windowResized(int w, int h) {
@@ -186,6 +187,16 @@ void Application::draw() {
 		ofPushMatrix();
 		ofEnableDepthTest();
 		rayRenderer.draw();
+		ofPopMatrix();
+		ofPopStyle();
+		ofPopView();
+	}
+	else if(toolbar.getRayRenderingGI()){
+		ofPushView();
+		ofPushStyle();
+		ofPushMatrix();
+		ofEnableDepthTest();
+		rayRendererGI.draw();
 		ofPopMatrix();
 		ofPopStyle();
 		ofPopView();
