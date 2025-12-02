@@ -9,6 +9,8 @@
 #include "CameraView.h"
 #include "SkyBox.h"
 #include "DeferredRenderer.h"
+#include "RayTraceRenderer.h"
+#include "RayTraceRendererGI.h"
 
 enum Coordinates {
 	EUCLIDEAN,
@@ -101,4 +103,6 @@ private:
 	void drawScaledViews();
 	DeferredRenderer defRenderer = DeferredRenderer(leftPanelWidth,rightPanelWidth,bottomPanelHeight);
 	ofEasyCam testCam;
+	RayTraceRenderer rayRenderer;
+	RayTraceRendererGI rayRendererGI;
 };

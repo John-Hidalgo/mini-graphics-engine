@@ -20,7 +20,7 @@ public:
 
 private:
 	Mesh cube;
-	Deferred deferred = Deferred(1000, 700);
+	Deferred deferred = Deferred(1700, 1024);
 	ofEasyCam easyCam;
 	
 	float angle = 0.0f;

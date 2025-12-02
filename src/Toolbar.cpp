@@ -88,6 +88,12 @@ void Toolbar::setup(Canvas* canvas) {
 	
 	dessinez.add(defRendToggle.setup("Rendu en diff", false));
 	defRendToggle.addListener(this, &Toolbar::defRenderingToggled);
+	
+	dessinez.add(rayRenderingToggle.setup("Rendu Lancer Rayons", false));
+	rayRenderingToggle.addListener(this, &Toolbar::rayRenderingToggled);
+	
+	dessinez.add(rayRenderingGIToggle.setup("Lancer Rayons Illumination Global", false));
+	rayRenderingGIToggle.addListener(this, &Toolbar::rayRenderingGIToggled);
 
 	dessinez.minimize();
 
@@ -942,7 +948,12 @@ void Toolbar::skyBoxToggleChanged(bool& val) {
 }
 void Toolbar::defRenderingToggled(bool& val) {
 	defRendering = val;
-	
+}
+void Toolbar::rayRenderingToggled(bool& val) {
+	rayRendering = val;
+}
+void Toolbar::rayRenderingGIToggled(bool& val) {
+	rayRenderingGI = val;
 }
 
 void Toolbar::loadCursorIcons() {
