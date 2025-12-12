@@ -25,7 +25,8 @@ enum class Texture {
 	WEIERSTRASS,
 	NORMAL_MAPPING,
 	HDR_DAY,
-	HDR_NIGHT
+	HDR_NIGHT,
+	MICHEL
 };
 
 
@@ -111,4 +112,7 @@ public:
 	// 7.2 Pour les materials
 	ofMaterial material;
 	bool isMaterialActive = false;
+	
+	ofShader shaderMichel;
+	ofTexture textureMichel;
 };

@@ -26,6 +26,7 @@ public:
 	ofParameter<ofColor> color_picker_background_primitives3D;
 	ofParameter<ofColor> color_picker_ambient_primitives3D;
 	ofParameter<ofColor> color_picker_diffuse_primitives3D;
+	ofxButton textureMichelButton;
 	ofxButton textureInversionButton;
 	ofxButton textureWeierstrassButton;
 	ofxButton textureNormalMappingButton;
@@ -155,6 +156,7 @@ private:
 	void rotateShapeRightPressed();
 	void rotateShapeLeftPressed();
 	void scaleShapeChanged(float& val);
+	void textureMichelPressed();
 	void textureInversionPressed();
 	void textureWeierstrassPressed();
 	void textureNormalMappingPressed();

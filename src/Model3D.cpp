@@ -15,6 +15,7 @@ void Model3D::setup()
 	shader_cell.load("shaders/CellShaded_330_vertex.glsl", "shaders/CellShaded_330_fragment.glsl");
 	shader_inversion.load("shaders/CircleInversion_330_vertex.glsl","shaders/CircleInversion_330_fragment.glsl");
 	shader_weierstrass.load("shaders/Weierstrass_330_vertex.glsl","shaders/Weierstrass_330_fragment.glsl");
+	shaderMichel.load("shaders/shader_michel_330_vs.glsl", "shaders/shader_michel_330_fs.glsl");
 	shader = shader_lambert;
 	currentLighting = Lighting::LAMBERT;
 	currentTexture = Texture::NONE;
@@ -47,6 +48,8 @@ void Model3D::setupTextures() {
 		ofLogError() << "Failed to load normal map";
 	if (!ofLoadImage(displacementMap, "textures/StoneBricksSplitface001_DISP_2K.png"))
 		ofLogError() << "Failed to load displacement map";
+	if (!ofLoadImage(textureMichel, "images/teapot.jpg"))
+
 	cubeMapDay.load("images/qwantani_sunset_puresky_4k.hdr", 512,true);
 	cubeMapNight.load("images/satara_night_4k.hdr", 512,true);
 
@@ -136,6 +139,9 @@ void Model3D::setProceduralTexture(Texture texture)
 			break;
 		case Texture::HDR_NIGHT:
 			shader = shaderHDRNight;
+			break;
+		case Texture::MICHEL:
+			shader = shaderMichel;
 			break;
 		case Texture::NONE:
 			setShader(previousLighting);
@@ -307,6 +313,15 @@ void Model3D::draw(const std::vector<LightData>& lights = {})
 			glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMapNight.getTextureId());
 			shader.setUniform1i("environmentMap", 0);
 		}
+	}
+	else if(currentTexture == Texture::MICHEL){
+//		ofLogNotice() << "MICHEL: Has tex coords? " << model.getMesh(0).hasTexCoords();
+//		ofLogNotice() << "MICHEL: Texture valid? " << textureMichel.isAllocated();
+//		ofLogNotice() << "MICHEL: Texture size: " << textureMichel.getWidth() << "x" << textureMichel.getHeight();
+//		ofLogNotice() << "MICHEL: Shader loaded? " << shaderMichel.isLoaded();
+		shader.setUniformMatrix4f("modelViewProjectionMatrix", mvp);
+		shader.setUniformTexture("tex", textureMichel, 0);
+		shader.setUniform1f("ambient", 0.3f);
 	}
 	else {
 		shader.setUniform1f("u_time", ofGetElapsedTimef());

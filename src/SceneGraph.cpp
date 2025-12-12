@@ -150,12 +150,15 @@ void SceneGraph::setupModelPanel(){
 	modelEditorPanel.add(material_shininess_model.setup("Material Shininess", 1, 0, 10));
 
 	textureGroup.setup("textures");
+	textureMichelButton.setup("Michel");
 	textureInversionButton.setup("Inversion du cercle");
 	textureWeierstrassButton.setup("Weierstrass");
 	textureNormalMappingButton.setup("Effet De relief");
 	textureInversionButton.addListener(this, &SceneGraph::textureInversionPressed);
 	textureWeierstrassButton.addListener(this, &SceneGraph::textureWeierstrassPressed);
 	textureNormalMappingButton.addListener(this, &SceneGraph::textureNormalMappingPressed);
+	textureMichelButton.addListener(this, &SceneGraph::textureMichelPressed);
+	textureGroup.add(&textureMichelButton);
 	textureGroup.add(&textureInversionButton);
 	textureGroup.add(&textureWeierstrassButton);
 	textureGroup.add(&textureNormalMappingButton);
@@ -188,6 +191,7 @@ void SceneGraph::setupModelPanel(){
 void SceneGraph::setupNormalMappingVisible(bool visible) {
 	enableNormalMapping = visible;
 	textureGroup.clear();
+	textureGroup.add(&textureMichelButton);
 	textureGroup.add(&textureInversionButton);
 	textureGroup.add(&textureWeierstrassButton);
 	if (visible) {
@@ -796,11 +800,11 @@ void SceneGraph::rotateShapeLeftPressed() {
 	}
 }
 
-void SceneGraph::textureInversionPressed() {
+void SceneGraph::textureMichelPressed() {
 	auto& models = canvasRef->getModels();
 	for (int i : selectedModelIndices) {
 		if (i >= 0 && i < models.size() && models[i]) {
-			models[i]->toggleProceduralTexture(Texture::INVERSION);
+			models[i]->toggleProceduralTexture(Texture::MICHEL);
 		} else {
 			ofLogError() << "Invalid model index: " << i;
 		}
@@ -817,6 +821,18 @@ void SceneGraph::textureWeierstrassPressed(){
 		}
 	}
 }
+
+void SceneGraph::textureInversionPressed() {
+	auto& models = canvasRef->getModels();
+	for (int i : selectedModelIndices) {
+		if (i >= 0 && i < models.size() && models[i]) {
+			models[i]->toggleProceduralTexture(Texture::INVERSION);
+		} else {
+			ofLogError() << "Invalid model index: " << i;
+		}
+	}
+}
+
 void SceneGraph::textureNormalMappingPressed(){
 	auto& models = canvasRef->getModels();
 	for (int i : selectedModelIndices) {
