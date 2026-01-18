@@ -13,6 +13,7 @@
 !data/**
 !bin/
 !bin/**
+!screenshots
 
 # --- MAIS IGNORER LES BINAIRES/ARTEFACTS À L'INTÉRIEUR DE bin ---
 bin/**/*.exe
