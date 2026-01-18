@@ -1,7 +1,7 @@
-# Ignore tout par défaut
+# Ignore everything by default
 *
 
-# --- GARDER UNIQUEMENT CES ÉLÉMENTS ---
+# --- Keep only these ---
 !.gitignore
 !README.md
 !devlog.md
@@ -13,9 +13,10 @@
 !data/**
 !bin/
 !bin/**
-!screenshots
+!screenshots/
+!screenshots/**
 
-# --- MAIS IGNORER LES BINAIRES/ARTEFACTS À L'INTÉRIEUR DE bin ---
+# --- Ignore binaries inside bin ---
 bin/**/*.exe
 bin/**/*.dll
 bin/**/*.lib
@@ -25,6 +26,6 @@ bin/**/*.app
 bin/**/*.dylib
 bin/**/*.so
 
-# (au cas où) fichiers OS indésirables, même dans les dossiers gardés
+# Ignore OS/system files even in kept folders
 .DS_Store
 Thumbs.db
